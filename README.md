@@ -24,8 +24,10 @@ Create a `.env` (or set environment variables):
 From the project root:
 
 ```bash
-uv run uvicorn app.main:app --reload
+uv run fastapi dev
 ```
+
+For production: `uv run fastapi run` or `uv run uvicorn app.main:app`.
 
 Health: `GET /api/v1/health`
 

@@ -39,14 +39,17 @@ from app.infrastructure.persistence.repositories.company_branch_repo import (
     CompanyBranchRepository,
 )
 from app.infrastructure.persistence.repositories.company_repo import CompanyRepository
-from app.infrastructure.persistence.repositories.diagnosis_repo import DiagnosisRepository
+from app.infrastructure.persistence.repositories.catalog_repo import (
+    DiagnosisRepository,
+    LabRepository,
+    MedicineRepository,
+    ServiceMaintenanceRepository,
+)
 from app.infrastructure.persistence.repositories.doctor_repo import DoctorRepository
 from app.infrastructure.persistence.repositories.hospital_branch_repo import (
     HospitalBranchRepository,
 )
 from app.infrastructure.persistence.repositories.hospital_repo import HospitalRepository
-from app.infrastructure.persistence.repositories.lab_repo import LabRepository
-from app.infrastructure.persistence.repositories.medicine_repo import MedicineRepository
 from app.infrastructure.persistence.repositories.member_dependant_repo import (
     MemberDependantRepository,
 )
@@ -56,9 +59,6 @@ from app.infrastructure.persistence.repositories.reimbursement_repo import (
     ReimbursementRepository,
 )
 from app.infrastructure.persistence.repositories.scheme_repo import SchemeRepository
-from app.infrastructure.persistence.repositories.service_maintenance_repo import (
-    ServiceMaintenanceRepository,
-)
 from app.infrastructure.persistence.repositories.tenant_repo import TenantRepository
 from app.infrastructure.security.jwt import verify_token
 

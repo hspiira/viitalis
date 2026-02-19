@@ -60,9 +60,9 @@ async def create_claim(
         total_amount=created.total_amount,
         status=created.status,
         invoice_number=created.invoice_number,
-        approved_at=getattr(created, "approved_at", None),
-        approved_by=getattr(created, "approved_by", None),
-        approval_comments=getattr(created, "approval_comments", None),
+        approved_at=created.approved_at,
+        approved_by=created.approved_by,
+        approval_comments=created.approval_comments,
     )
 
 
@@ -98,9 +98,9 @@ async def list_claims(
             total_amount=c.total_amount,
             status=c.status,
             invoice_number=c.invoice_number,
-        approved_at=getattr(c, "approved_at", None),
-        approved_by=getattr(c, "approved_by", None),
-        approval_comments=getattr(c, "approval_comments", None),
+        approved_at=c.approved_at,
+        approved_by=c.approved_by,
+        approval_comments=c.approval_comments,
         )
         for c in items
     ]

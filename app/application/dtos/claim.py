@@ -25,10 +25,10 @@ class ClaimResult:
 @dataclass
 class ClaimCreate:
     member_id: str
-    dependant_id: str | None = None
     hospital_id: str
-    doctor_id: str | None = None
     service_date: date
+    dependant_id: str | None = None
+    doctor_id: str | None = None
     total_amount: Decimal | None = None
     status: str = "draft"
     invoice_number: str | None = None

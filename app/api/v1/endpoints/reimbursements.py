@@ -11,6 +11,7 @@ from app.schemas.reimbursement import (
     ReimbursementCreateRequest,
     ReimbursementResponse,
     ReimbursementStatusRequest,
+    ReimbursementUpdateRequest,
 )
 
 router = APIRouter()
