@@ -20,13 +20,8 @@ router = APIRouter()
 
 
 def _to_response(r) -> MedicalConditionResponse:
-    return MedicalConditionResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        name=r.name,
-        code=r.code,
-        status=r.status,
-    )
+    """Map MedicalConditionResult DTO to API response (DRY)."""
+    return MedicalConditionResponse.model_validate(r)
 
 
 @router.post("", response_model=MedicalConditionResponse, status_code=201)

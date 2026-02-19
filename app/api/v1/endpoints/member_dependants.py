@@ -21,14 +21,13 @@ router = APIRouter()
 
 
 def _to_response(r) -> MemberDependantResponse:
-    return MemberDependantResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        member_id=r.member_id,
-        name=r.name,
-        card_no=r.card_no,
-        dob=r.dob,
-    )
+    """Map MemberDependantResult DTO to API response (DRY)."""
+    return MemberDependantResponse.model_validate(r)
+
+
+def _to_list_item(d) -> MemberDependantListItem:
+    """Map MemberDependantResult to list item response (DRY)."""
+    return MemberDependantListItem.model_validate(d)
 
 
 @router.post("", response_model=MemberDependantResponse, status_code=201)
@@ -57,17 +56,7 @@ async def list_dependants(
 ):
     """List dependants for a member. Requires X-Tenant-ID."""
     items = await dep_svc.list_by_member(member_id=member_id, skip=skip, limit=limit)
-    return [
-        MemberDependantListItem(
-            id=d.id,
-            tenant_id=d.tenant_id,
-            member_id=d.member_id,
-            name=d.name,
-            card_no=d.card_no,
-            dob=d.dob,
-        )
-        for d in items
-    ]
+    return [_to_list_item(d) for d in items]
 
 
 @router.get("/{dependant_id}", response_model=MemberDependantResponse)

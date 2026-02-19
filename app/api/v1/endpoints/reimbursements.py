@@ -17,6 +17,11 @@ from app.schemas.reimbursement import (
 router = APIRouter()
 
 
+def _to_response(r) -> ReimbursementResponse:
+    """Map ReimbursementResult DTO to API response (DRY)."""
+    return ReimbursementResponse.model_validate(r)
+
+
 @router.post("", response_model=ReimbursementResponse, status_code=201)
 async def create_reimbursement(
     body: ReimbursementCreateRequest,
@@ -26,13 +31,7 @@ async def create_reimbursement(
         claim_id=body.claim_id, amount=body.amount, status=body.status
     )
     created = await svc.create(data)
-    return ReimbursementResponse(
-        id=created.id,
-        tenant_id=created.tenant_id,
-        claim_id=created.claim_id,
-        amount=created.amount,
-        status=created.status,
-    )
+    return _to_response(created)
 
 
 @router.get("", response_model=list[ReimbursementResponse])
@@ -42,16 +41,7 @@ async def list_reimbursements(
     limit: int = Query(100, ge=1, le=500),
 ):
     items = await svc.list_reimbursements(skip=skip, limit=limit)
-    return [
-        ReimbursementResponse(
-            id=r.id,
-            tenant_id=r.tenant_id,
-            claim_id=r.claim_id,
-            amount=r.amount,
-            status=r.status,
-        )
-        for r in items
-    ]
+    return [_to_response(r) for r in items]
 
 
 @router.get("/{reimbursement_id}", response_model=ReimbursementResponse)
@@ -60,9 +50,7 @@ async def get_reimbursement(
     svc: Annotated[ReimbursementService, Depends(get_reimbursement_service)],
 ):
     r = await svc.get_by_id(reimbursement_id)
-    return ReimbursementResponse(
-        id=r.id, tenant_id=r.tenant_id, claim_id=r.claim_id, amount=r.amount, status=r.status
-    )
+    return _to_response(r)
 
 
 @router.patch("/{reimbursement_id}", response_model=ReimbursementResponse)
@@ -73,13 +61,7 @@ async def update_reimbursement(
 ):
     data = ReimbursementUpdate(status=body.status)
     updated = await svc.update(reimbursement_id, data)
-    return ReimbursementResponse(
-        id=updated.id,
-        tenant_id=updated.tenant_id,
-        claim_id=updated.claim_id,
-        amount=updated.amount,
-        status=updated.status,
-    )
+    return _to_response(updated)
 
 
 @router.patch("/{reimbursement_id}/status", response_model=ReimbursementResponse)
@@ -89,10 +71,4 @@ async def update_reimbursement_status(
     svc: Annotated[ReimbursementService, Depends(get_reimbursement_service)],
 ):
     updated = await svc.update_status(reimbursement_id, body.status)
-    return ReimbursementResponse(
-        id=updated.id,
-        tenant_id=updated.tenant_id,
-        claim_id=updated.claim_id,
-        amount=updated.amount,
-        status=updated.status,
-    )
+    return _to_response(updated)

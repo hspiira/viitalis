@@ -22,6 +22,21 @@ from app.schemas.claim_payment import ClaimPaymentResponse
 router = APIRouter()
 
 
+def _claim_to_response(c) -> ClaimResponse:
+    """Map ClaimResult DTO to API response. Single place for claim response shape (DRY)."""
+    return ClaimResponse.model_validate(c)
+
+
+def _claim_detail_to_response(d) -> ClaimDetailResponse:
+    """Map ClaimDetailResult DTO to API response."""
+    return ClaimDetailResponse.model_validate(d)
+
+
+def _claim_payment_to_response(p) -> ClaimPaymentResponse:
+    """Map ClaimPaymentResult DTO to API response."""
+    return ClaimPaymentResponse.model_validate(p)
+
+
 @router.post("", response_model=ClaimResponse, status_code=201)
 async def create_claim(
     body: ClaimCreateRequest,
@@ -51,22 +66,7 @@ async def create_claim(
         for d in body.details
     ]
     created = await svc.create_claim(data, details)
-    return ClaimResponse(
-        id=created.id,
-        tenant_id=created.tenant_id,
-        member_id=created.member_id,
-        dependant_id=created.dependant_id,
-        hospital_id=created.hospital_id,
-        doctor_id=created.doctor_id,
-        service_date=created.service_date,
-        total_amount=created.total_amount,
-        status=created.status,
-        invoice_number=created.invoice_number,
-        approved_at=created.approved_at,
-        approved_by=created.approved_by,
-        approval_comments=created.approval_comments,
-        billing_session_id=created.billing_session_id,
-    )
+    return _claim_to_response(created)
 
 
 @router.get("", response_model=list[ClaimResponse])
@@ -89,25 +89,7 @@ async def list_claims(
         service_date_from=service_date_from,
         service_date_to=service_date_to,
     )
-    return [
-        ClaimResponse(
-            id=c.id,
-            tenant_id=c.tenant_id,
-            member_id=c.member_id,
-            dependant_id=c.dependant_id,
-            hospital_id=c.hospital_id,
-            doctor_id=c.doctor_id,
-            service_date=c.service_date,
-            total_amount=c.total_amount,
-            status=c.status,
-            invoice_number=c.invoice_number,
-            approved_at=c.approved_at,
-            approved_by=c.approved_by,
-            approval_comments=c.approval_comments,
-            billing_session_id=c.billing_session_id,
-        )
-        for c in items
-    ]
+    return [_claim_to_response(c) for c in items]
 
 
 @router.post("/bulk-approve")
@@ -130,22 +112,7 @@ async def get_claim(
     svc: Annotated[ClaimService, Depends(get_claim_service)],
 ):
     c = await svc.get_by_id(claim_id)
-    return ClaimResponse(
-        id=c.id,
-        tenant_id=c.tenant_id,
-        member_id=c.member_id,
-        dependant_id=c.dependant_id,
-        hospital_id=c.hospital_id,
-        doctor_id=c.doctor_id,
-        service_date=c.service_date,
-        total_amount=c.total_amount,
-        status=c.status,
-        invoice_number=c.invoice_number,
-        approved_at=c.approved_at,
-        approved_by=c.approved_by,
-        approval_comments=c.approval_comments,
-        billing_session_id=c.billing_session_id,
-    )
+    return _claim_to_response(c)
 
 
 @router.get("/{claim_id}/payments", response_model=list[ClaimPaymentResponse])
@@ -156,16 +123,7 @@ async def get_claim_payments(
 ):
     await svc.get_by_id(claim_id)  # ensure claim exists and tenant-scoped
     items = await payment_svc.list_payments_by_claim(claim_id)
-    return [
-        ClaimPaymentResponse(
-            id=p.id,
-            tenant_id=p.tenant_id,
-            claim_id=p.claim_id,
-            amount=p.amount,
-            payment_date=p.payment_date,
-        )
-        for p in items
-    ]
+    return [_claim_payment_to_response(p) for p in items]
 
 
 @router.get("/{claim_id}/details", response_model=list[ClaimDetailResponse])
@@ -174,20 +132,7 @@ async def get_claim_details(
     svc: Annotated[ClaimService, Depends(get_claim_service)],
 ):
     items = await svc.list_details(claim_id)
-    return [
-        ClaimDetailResponse(
-            id=d.id,
-            tenant_id=d.tenant_id,
-            claim_id=d.claim_id,
-            fee_code=d.fee_code,
-            description=d.description,
-            unit_price=d.unit_price,
-            qty=d.qty,
-            amount=d.amount,
-            status=d.status,
-        )
-        for d in items
-    ]
+    return [_claim_detail_to_response(d) for d in items]
 
 
 @router.patch("/{claim_id}", response_model=ClaimResponse)
@@ -203,22 +148,7 @@ async def update_claim(
         invoice_number=body.invoice_number,
     )
     updated = await svc.update_claim(claim_id, data)
-    return ClaimResponse(
-        id=updated.id,
-        tenant_id=updated.tenant_id,
-        member_id=updated.member_id,
-        dependant_id=updated.dependant_id,
-        hospital_id=updated.hospital_id,
-        doctor_id=updated.doctor_id,
-        service_date=updated.service_date,
-        total_amount=updated.total_amount,
-        status=updated.status,
-        invoice_number=updated.invoice_number,
-        approved_at=updated.approved_at,
-        approved_by=updated.approved_by,
-        approval_comments=updated.approval_comments,
-        billing_session_id=updated.billing_session_id,
-    )
+    return _claim_to_response(updated)
 
 
 @router.patch("/{claim_id}/approval", response_model=ClaimResponse)
@@ -233,19 +163,4 @@ async def update_claim_approval(
         approved_by=body.approved_by,
         comments=body.comments,
     )
-    return ClaimResponse(
-        id=updated.id,
-        tenant_id=updated.tenant_id,
-        member_id=updated.member_id,
-        dependant_id=updated.dependant_id,
-        hospital_id=updated.hospital_id,
-        doctor_id=updated.doctor_id,
-        service_date=updated.service_date,
-        total_amount=updated.total_amount,
-        status=updated.status,
-        invoice_number=updated.invoice_number,
-        approved_at=updated.approved_at,
-        approved_by=updated.approved_by,
-        approval_comments=updated.approval_comments,
-        billing_session_id=updated.billing_session_id,
-    )
+    return _claim_to_response(updated)

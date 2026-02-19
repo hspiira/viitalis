@@ -11,7 +11,11 @@ from fastapi import Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.dtos.user import UserResult
+from app.application.use_cases.account_details import AccountDetailService
 from app.application.use_cases.auth import AuthService
+from app.application.use_cases.bank_account_details import BankAccountDetailService
+from app.application.use_cases.bank_branches import BankBranchService
+from app.application.use_cases.banks import BankService
 from app.application.use_cases.benefit_linkages import BenefitLinkageService
 from app.application.use_cases.benefits import BenefitService
 from app.application.use_cases.billing_sessions import BillingSessionService
@@ -35,12 +39,38 @@ from app.application.use_cases.plans import PlanService
 from app.application.use_cases.reimbursements import ReimbursementService
 from app.application.use_cases.schemes import SchemeService
 from app.application.use_cases.tenants import TenantService
+from app.application.use_cases.app_modules import AppModuleService
+from app.application.use_cases.user_logs import UserLogService
+from app.application.use_cases.user_profile import UserProfileService
+from app.application.use_cases.user_permissions import UserPermissionsService
 from app.core.config import get_settings
 from app.core.tenant_validation import is_valid_tenant_id_format
 from app.infrastructure.persistence.database import get_db, get_db_transactional
+from app.infrastructure.persistence.repositories.account_detail_repo import (
+    AccountDetailRepository,
+)
+from app.infrastructure.persistence.repositories.app_user_detail_repo import (
+    AppUserDetailRepository,
+)
+from app.infrastructure.persistence.repositories.app_user_log_repo import (
+    AppUserLogRepository,
+)
 from app.infrastructure.persistence.repositories.app_user_repo import (
     AppUserRepository,
 )
+from app.infrastructure.persistence.repositories.app_module_repo import (
+    AppModuleRepository,
+)
+from app.infrastructure.persistence.repositories.app_permission_repo import (
+    AppPermissionRepository,
+)
+from app.infrastructure.persistence.repositories.bank_account_detail_repo import (
+    BankAccountDetailRepository,
+)
+from app.infrastructure.persistence.repositories.bank_branch_repo import (
+    BankBranchRepository,
+)
+from app.infrastructure.persistence.repositories.bank_repo import BankRepository
 from app.infrastructure.persistence.repositories.benefit_linkage_repo import (
     BenefitLinkageRepository,
 )
@@ -111,6 +141,37 @@ GetDbTransactional = Annotated[AsyncSession, Depends(get_db_transactional)]
 async def get_tenant_repo(db: GetDb) -> TenantRepository:
     """Tenant repository for read operations (e.g. get_tenant_id validation)."""
     return TenantRepository(db)
+
+
+async def get_app_user_log_repo(db: GetDbTransactional) -> AppUserLogRepository:
+    """App user log repository (append-only). Use transactional session for writes."""
+    return AppUserLogRepository(db)
+
+
+async def get_user_profile_service(db: GetDbTransactional) -> UserProfileService:
+    """User profile service: get user with optional detail (for /me), update profile."""
+    return UserProfileService(
+        AppUserRepository(db, tenant_id=None),
+        AppUserDetailRepository(db),
+    )
+
+
+async def get_user_permissions_service(db: GetDb) -> UserPermissionsService:
+    """User permissions service: list permissions for user with module info."""
+    return UserPermissionsService(
+        AppPermissionRepository(db),
+        AppModuleRepository(db),
+    )
+
+
+async def get_app_module_service(db: GetDb) -> AppModuleService:
+    """App module service: list global modules."""
+    return AppModuleService(AppModuleRepository(db))
+
+
+async def get_user_log_service(db: GetDb) -> UserLogService:
+    """User log service: list audit logs by tenant."""
+    return UserLogService(AppUserLogRepository(db))
 
 
 async def get_auth_service(db: GetDb) -> AuthService:
@@ -382,10 +443,54 @@ async def get_medical_condition_service(
     return MedicalConditionService(MedicalConditionRepository(db, tenant_id))
 
 
+async def get_bank_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> BankService:
+    return BankService(BankRepository(db, tenant_id))
+
+
+async def get_bank_branch_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> BankBranchService:
+    return BankBranchService(
+        BankBranchRepository(db, tenant_id),
+        BankRepository(db, tenant_id),
+    )
+
+
+async def get_account_detail_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> AccountDetailService:
+    return AccountDetailService(AccountDetailRepository(db, tenant_id))
+
+
+async def get_bank_account_detail_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> BankAccountDetailService:
+    return BankAccountDetailService(
+        BankAccountDetailRepository(db, tenant_id),
+        AccountDetailRepository(db, tenant_id),
+        BankRepository(db, tenant_id),
+    )
+
+
 __all__ = [
     "GetDb",
     "GetDbTransactional",
+    "get_account_detail_service",
+    "get_app_module_service",
+    "get_app_user_log_repo",
     "get_auth_service",
+    "get_user_profile_service",
+    "get_user_log_service",
+    "get_user_permissions_service",
+    "get_bank_account_detail_service",
+    "get_bank_branch_service",
+    "get_bank_service",
     "get_benefit_linkage_service",
     "get_benefit_service",
     "get_billing_session_service",

@@ -18,18 +18,13 @@ router = APIRouter()
 
 
 def _to_response(r) -> BillingSessionResponse:
-    return BillingSessionResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        name=r.name,
-        session_date=r.session_date,
-        from_date=r.from_date,
-        to_date=r.to_date,
-        total_claims=r.total_claims,
-        total_amount=r.total_amount,
-        status=r.status,
-        created_by=r.created_by,
-    )
+    """Map BillingSessionResult DTO to API response (DRY)."""
+    return BillingSessionResponse.model_validate(r)
+
+
+def _to_list_item(s) -> BillingSessionListItem:
+    """Map BillingSessionResult to list item response (DRY)."""
+    return BillingSessionListItem.model_validate(s)
 
 
 @router.post("", response_model=BillingSessionResponse, status_code=201)
@@ -56,21 +51,7 @@ async def list_billing_sessions(
     status: str | None = Query(None, pattern="^(open|closed|disabled)$"),
 ):
     items = await svc.list_sessions(skip=skip, limit=limit, status=status)
-    return [
-        BillingSessionListItem(
-            id=s.id,
-            tenant_id=s.tenant_id,
-            name=s.name,
-            session_date=s.session_date,
-            from_date=s.from_date,
-            to_date=s.to_date,
-            total_claims=s.total_claims,
-            total_amount=s.total_amount,
-            status=s.status,
-            created_by=s.created_by,
-        )
-        for s in items
-    ]
+    return [_to_list_item(s) for s in items]
 
 
 @router.get("/{session_id}", response_model=BillingSessionResponse)

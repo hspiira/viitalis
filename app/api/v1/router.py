@@ -3,7 +3,11 @@
 from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
+    account_details,
+    app_modules,
     auth,
+    bank_branches,
+    banks,
     benefits,
     billing_sessions,
     catalogs,
@@ -26,13 +30,26 @@ from app.api.v1.endpoints import (
     reimbursements,
     schemes,
     tenants,
+    user_logs,
 )
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(app_modules.router, prefix="/app-modules", tags=["app-modules"])
 api_router.include_router(health.router, prefix="/health", tags=["health"])
 api_router.include_router(tenants.router, prefix="/tenants", tags=["tenants"])
 api_router.include_router(companies.router, prefix="/companies", tags=["companies"])
+api_router.include_router(banks.router, prefix="/banks", tags=["banks"])
+api_router.include_router(
+    bank_branches.router,
+    prefix="/banks/{bank_id}/branches",
+    tags=["bank-branches"],
+)
+api_router.include_router(
+    account_details.router,
+    prefix="/account-details",
+    tags=["account-details"],
+)
 api_router.include_router(
     company_branches.router,
     prefix="/companies/{company_id}/branches",
@@ -92,4 +109,7 @@ api_router.include_router(
 )
 api_router.include_router(
     reimbursements.router, prefix="/reimbursements", tags=["reimbursements"]
+)
+api_router.include_router(
+    user_logs.router, prefix="/user-logs", tags=["user-logs"]
 )

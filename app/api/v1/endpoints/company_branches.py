@@ -18,14 +18,13 @@ router = APIRouter()
 
 
 def _to_response(r) -> CompanyBranchResponse:
-    return CompanyBranchResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        company_id=r.company_id,
-        name=r.name,
-        address=r.address,
-        phone=r.phone,
-    )
+    """Map CompanyBranchResult DTO to API response (DRY)."""
+    return CompanyBranchResponse.model_validate(r)
+
+
+def _to_list_item(b) -> CompanyBranchListItem:
+    """Map CompanyBranchResult to list item response (DRY)."""
+    return CompanyBranchListItem.model_validate(b)
 
 
 @router.post("", response_model=CompanyBranchResponse, status_code=201)
@@ -54,17 +53,7 @@ async def list_branches(
 ):
     """List branches for a company. Requires X-Tenant-ID."""
     items = await branch_svc.list_by_company(company_id=company_id, skip=skip, limit=limit)
-    return [
-        CompanyBranchListItem(
-            id=b.id,
-            tenant_id=b.tenant_id,
-            company_id=b.company_id,
-            name=b.name,
-            address=b.address,
-            phone=b.phone,
-        )
-        for b in items
-    ]
+    return [_to_list_item(b) for b in items]
 
 
 @router.get("/{branch_id}", response_model=CompanyBranchResponse)

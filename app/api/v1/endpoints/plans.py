@@ -18,12 +18,13 @@ router = APIRouter()
 
 
 def _to_response(r) -> PlanResponse:
-    return PlanResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        name=r.name,
-        code=r.code,
-    )
+    """Map PlanResult DTO to API response (DRY)."""
+    return PlanResponse.model_validate(r)
+
+
+def _to_list_item(p) -> PlanListItem:
+    """Map PlanResult to list item response (DRY)."""
+    return PlanListItem.model_validate(p)
 
 
 @router.post("", response_model=PlanResponse, status_code=201)
@@ -45,15 +46,7 @@ async def list_plans(
 ):
     """List plans for the tenant. Requires X-Tenant-ID."""
     items = await plan_svc.list_plans(skip=skip, limit=limit)
-    return [
-        PlanListItem(
-            id=p.id,
-            tenant_id=p.tenant_id,
-            name=p.name,
-            code=p.code,
-        )
-        for p in items
-    ]
+    return [_to_list_item(p) for p in items]
 
 
 @router.get("/{plan_id}", response_model=PlanResponse)

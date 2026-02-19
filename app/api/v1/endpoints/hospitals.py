@@ -42,6 +42,16 @@ from app.schemas.hospital_pricing import (
 router = APIRouter()
 
 
+def _hospital_to_response(h) -> HospitalResponse:
+    """Map HospitalResult DTO to API response (DRY)."""
+    return HospitalResponse.model_validate(h)
+
+
+def _branch_to_response(b) -> HospitalBranchResponse:
+    """Map HospitalBranchResult DTO to API response (DRY)."""
+    return HospitalBranchResponse.model_validate(b)
+
+
 # --- Hospitals ---
 @router.post("", response_model=HospitalResponse, status_code=201)
 async def create_hospital(
@@ -50,9 +60,7 @@ async def create_hospital(
 ):
     data = HospitalCreate(name=body.name, address=body.address)
     created = await svc.create(data)
-    return HospitalResponse(
-        id=created.id, tenant_id=created.tenant_id, name=created.name, address=created.address
-    )
+    return _hospital_to_response(created)
 
 
 @router.get("", response_model=list[HospitalResponse])
@@ -62,10 +70,7 @@ async def list_hospitals(
     limit: int = Query(100, ge=1, le=500),
 ):
     items = await svc.list_hospitals(skip=skip, limit=limit)
-    return [
-        HospitalResponse(id=h.id, tenant_id=h.tenant_id, name=h.name, address=h.address)
-        for h in items
-    ]
+    return [_hospital_to_response(h) for h in items]
 
 
 @router.get("/{hospital_id}", response_model=HospitalResponse)
@@ -74,7 +79,7 @@ async def get_hospital(
     svc: Annotated[HospitalService, Depends(get_hospital_service)],
 ):
     h = await svc.get_by_id(hospital_id)
-    return HospitalResponse(id=h.id, tenant_id=h.tenant_id, name=h.name, address=h.address)
+    return _hospital_to_response(h)
 
 
 @router.patch("/{hospital_id}", response_model=HospitalResponse)
@@ -85,9 +90,7 @@ async def update_hospital(
 ):
     data = HospitalUpdate(name=body.name, address=body.address)
     updated = await svc.update(hospital_id, data)
-    return HospitalResponse(
-        id=updated.id, tenant_id=updated.tenant_id, name=updated.name, address=updated.address
-    )
+    return _hospital_to_response(updated)
 
 
 @router.delete("/{hospital_id}", status_code=204)
@@ -235,13 +238,7 @@ async def create_branch(
 ):
     data = HospitalBranchCreate(hospital_id=hospital_id, name=body.name, address=body.address)
     created = await svc.create(data)
-    return HospitalBranchResponse(
-        id=created.id,
-        tenant_id=created.tenant_id,
-        hospital_id=created.hospital_id,
-        name=created.name,
-        address=created.address,
-    )
+    return _branch_to_response(created)
 
 
 @router.get("/{hospital_id}/branches", response_model=list[HospitalBranchResponse])
@@ -252,16 +249,7 @@ async def list_branches(
     limit: int = Query(100, ge=1, le=500),
 ):
     items = await svc.list_by_hospital(hospital_id=hospital_id, skip=skip, limit=limit)
-    return [
-        HospitalBranchResponse(
-            id=b.id,
-            tenant_id=b.tenant_id,
-            hospital_id=b.hospital_id,
-            name=b.name,
-            address=b.address,
-        )
-        for b in items
-    ]
+    return [_branch_to_response(b) for b in items]
 
 
 @router.get("/{hospital_id}/branches/{branch_id}", response_model=HospitalBranchResponse)
@@ -273,9 +261,7 @@ async def get_branch(
     b = await svc.get_by_id(branch_id)
     if b.hospital_id != hospital_id:
         raise HTTPException(status_code=404, detail="Branch not found")
-    return HospitalBranchResponse(
-        id=b.id, tenant_id=b.tenant_id, hospital_id=b.hospital_id, name=b.name, address=b.address
-    )
+    return _branch_to_response(b)
 
 
 @router.patch("/{hospital_id}/branches/{branch_id}", response_model=HospitalBranchResponse)
@@ -290,10 +276,4 @@ async def update_branch(
         raise HTTPException(status_code=404, detail="Branch not found")
     data = HospitalBranchUpdate(name=body.name, address=body.address)
     updated = await svc.update(branch_id, data)
-    return HospitalBranchResponse(
-        id=updated.id,
-        tenant_id=updated.tenant_id,
-        hospital_id=updated.hospital_id,
-        name=updated.name,
-        address=updated.address,
-    )
+    return _branch_to_response(updated)

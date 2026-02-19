@@ -18,20 +18,13 @@ router = APIRouter()
 
 
 def _to_response(r) -> CompanyResponse:
-    return CompanyResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        name=r.name,
-        contact_person=r.contact_person,
-        address=r.address,
-        phone=r.phone,
-        email=r.email,
-        website=r.website,
-        remarks=r.remarks,
-        location=r.location,
-        district_id=r.district_id,
-        company_type=r.company_type,
-    )
+    """Map CompanyResult DTO to API response (DRY)."""
+    return CompanyResponse.model_validate(r)
+
+
+def _to_list_item(c) -> CompanyListItem:
+    """Map CompanyResult to list item response (DRY)."""
+    return CompanyListItem.model_validate(c)
 
 
 @router.post("", response_model=CompanyResponse, status_code=201)
@@ -64,23 +57,7 @@ async def list_companies(
 ):
     """List companies for the tenant. Requires X-Tenant-ID."""
     items = await company_svc.list_companies(skip=skip, limit=limit)
-    return [
-        CompanyListItem(
-            id=c.id,
-            tenant_id=c.tenant_id,
-            name=c.name,
-            contact_person=c.contact_person,
-            address=c.address,
-            phone=c.phone,
-            email=c.email,
-            website=c.website,
-            remarks=c.remarks,
-            location=c.location,
-            district_id=c.district_id,
-            company_type=c.company_type,
-        )
-        for c in items
-    ]
+    return [_to_list_item(c) for c in items]
 
 
 @router.get("/{company_id}", response_model=CompanyResponse)

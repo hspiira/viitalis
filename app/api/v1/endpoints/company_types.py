@@ -20,14 +20,8 @@ router = APIRouter()
 
 
 def _to_response(r) -> CompanyTypeResponse:
-    return CompanyTypeResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        name=r.name,
-        code=r.code,
-        description=r.description,
-        status=r.status,
-    )
+    """Map CompanyTypeResult DTO to API response (DRY)."""
+    return CompanyTypeResponse.model_validate(r)
 
 
 @router.post("", response_model=CompanyTypeResponse, status_code=201)

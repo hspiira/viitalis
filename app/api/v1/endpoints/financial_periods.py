@@ -20,15 +20,8 @@ router = APIRouter()
 
 
 def _to_response(r) -> FinancialPeriodResponse:
-    return FinancialPeriodResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        name=r.name,
-        start_date=r.start_date,
-        end_date=r.end_date,
-        is_current=r.is_current,
-        status=r.status,
-    )
+    """Map FinancialPeriodResult DTO to API response (DRY)."""
+    return FinancialPeriodResponse.model_validate(r)
 
 
 @router.post("", response_model=FinancialPeriodResponse, status_code=201)

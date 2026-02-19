@@ -16,6 +16,11 @@ from app.schemas.doctor import (
 router = APIRouter()
 
 
+def _to_response(d) -> DoctorResponse:
+    """Map DoctorResult DTO to API response (DRY)."""
+    return DoctorResponse.model_validate(d)
+
+
 @router.post("", response_model=DoctorResponse, status_code=201)
 async def create_doctor(
     body: DoctorCreateRequest,
@@ -27,13 +32,7 @@ async def create_doctor(
         specialization=body.specialization,
     )
     created = await svc.create(data)
-    return DoctorResponse(
-        id=created.id,
-        tenant_id=created.tenant_id,
-        hospital_id=created.hospital_id,
-        name=created.name,
-        specialization=created.specialization,
-    )
+    return _to_response(created)
 
 
 @router.get("", response_model=list[DoctorResponse])
@@ -46,16 +45,7 @@ async def list_doctors(
     items = await svc.list_doctors(
         skip=skip, limit=limit, hospital_id=hospital_id
     )
-    return [
-        DoctorResponse(
-            id=d.id,
-            tenant_id=d.tenant_id,
-            hospital_id=d.hospital_id,
-            name=d.name,
-            specialization=d.specialization,
-        )
-        for d in items
-    ]
+    return [_to_response(d) for d in items]
 
 
 @router.get("/{doctor_id}", response_model=DoctorResponse)
@@ -64,13 +54,7 @@ async def get_doctor(
     svc: Annotated[DoctorService, Depends(get_doctor_service)],
 ):
     d = await svc.get_by_id(doctor_id)
-    return DoctorResponse(
-        id=d.id,
-        tenant_id=d.tenant_id,
-        hospital_id=d.hospital_id,
-        name=d.name,
-        specialization=d.specialization,
-    )
+    return _to_response(d)
 
 
 @router.patch("/{doctor_id}", response_model=DoctorResponse)
@@ -81,10 +65,4 @@ async def update_doctor(
 ):
     data = DoctorUpdate(name=body.name, specialization=body.specialization)
     updated = await svc.update(doctor_id, data)
-    return DoctorResponse(
-        id=updated.id,
-        tenant_id=updated.tenant_id,
-        hospital_id=updated.hospital_id,
-        name=updated.name,
-        specialization=updated.specialization,
-    )
+    return _to_response(updated)

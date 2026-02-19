@@ -18,16 +18,13 @@ router = APIRouter()
 
 
 def _to_response(r) -> MemberResponse:
-    return MemberResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        company_id=r.company_id,
-        scheme_id=r.scheme_id,
-        card_no=r.card_no,
-        name=r.name,
-        dob=r.dob,
-        status=r.status,
-    )
+    """Map MemberResult DTO to API response (DRY)."""
+    return MemberResponse.model_validate(r)
+
+
+def _to_list_item(m) -> MemberListItem:
+    """Map MemberResult to list item response (DRY)."""
+    return MemberListItem.model_validate(m)
 
 
 @router.post("", response_model=MemberResponse, status_code=201)
@@ -60,19 +57,7 @@ async def list_members(
     items = await member_svc.list_members(
         skip=skip, limit=limit, company_id=company_id, scheme_id=scheme_id
     )
-    return [
-        MemberListItem(
-            id=m.id,
-            tenant_id=m.tenant_id,
-            company_id=m.company_id,
-            scheme_id=m.scheme_id,
-            card_no=m.card_no,
-            name=m.name,
-            dob=m.dob,
-            status=m.status,
-        )
-        for m in items
-    ]
+    return [_to_list_item(m) for m in items]
 
 
 @router.get("/{member_id}", response_model=MemberResponse)

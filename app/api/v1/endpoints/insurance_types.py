@@ -20,13 +20,8 @@ router = APIRouter()
 
 
 def _to_response(r) -> InsuranceTypeResponse:
-    return InsuranceTypeResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        name=r.name,
-        code=r.code,
-        status=r.status,
-    )
+    """Map InsuranceTypeResult DTO to API response (DRY)."""
+    return InsuranceTypeResponse.model_validate(r)
 
 
 @router.post("", response_model=InsuranceTypeResponse, status_code=201)

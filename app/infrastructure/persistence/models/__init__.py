@@ -11,7 +11,17 @@ from app.infrastructure.persistence.models.mixins import (
 from app.infrastructure.persistence.models.claim import Claim
 from app.infrastructure.persistence.models.claim_detail import ClaimDetail
 from app.infrastructure.persistence.models.claim_payment import ClaimPayment
+from app.infrastructure.persistence.models.account_detail import AccountDetail
 from app.infrastructure.persistence.models.app_user import AppUser
+from app.infrastructure.persistence.models.app_user_detail import AppUserDetail
+from app.infrastructure.persistence.models.app_user_log import AppUserLog
+from app.infrastructure.persistence.models.app_module import AppModule
+from app.infrastructure.persistence.models.app_permission import AppPermission
+from app.infrastructure.persistence.models.bank import Bank
+from app.infrastructure.persistence.models.bank_account_detail import (
+    BankAccountDetail,
+)
+from app.infrastructure.persistence.models.bank_branch import BankBranch
 from app.infrastructure.persistence.models.benefit import Benefit
 from app.infrastructure.persistence.models.benefit_linkage import BenefitLinkage
 from app.infrastructure.persistence.models.billing_session import BillingSession
@@ -43,7 +53,15 @@ from app.infrastructure.persistence.models.service_maintenance import ServiceMai
 from app.infrastructure.persistence.models.tenant import Tenant
 
 __all__ = [
+    "AccountDetail",
     "AppUser",
+    "AppUserDetail",
+    "AppUserLog",
+    "AppModule",
+    "AppPermission",
+    "Bank",
+    "BankAccountDetail",
+    "BankBranch",
     "Base",
     "Benefit",
     "BenefitLinkage",

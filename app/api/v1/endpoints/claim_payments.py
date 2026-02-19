@@ -15,6 +15,11 @@ from app.schemas.claim_payment import (
 router = APIRouter()
 
 
+def _to_response(p) -> ClaimPaymentResponse:
+    """Map ClaimPaymentResult DTO to API response (DRY)."""
+    return ClaimPaymentResponse.model_validate(p)
+
+
 @router.post("", response_model=ClaimPaymentResponse, status_code=201)
 async def create_claim_payment(
     body: ClaimPaymentCreateRequest,
@@ -26,13 +31,7 @@ async def create_claim_payment(
         payment_date=body.payment_date,
     )
     created = await svc.create_payment(data)
-    return ClaimPaymentResponse(
-        id=created.id,
-        tenant_id=created.tenant_id,
-        claim_id=created.claim_id,
-        amount=created.amount,
-        payment_date=created.payment_date,
-    )
+    return _to_response(created)
 
 
 @router.get("", response_model=list[ClaimPaymentResponse])
@@ -42,13 +41,4 @@ async def list_claim_payments(
     limit: int = Query(100, ge=1, le=500),
 ):
     items = await svc.list_payments(skip=skip, limit=limit)
-    return [
-        ClaimPaymentResponse(
-            id=p.id,
-            tenant_id=p.tenant_id,
-            claim_id=p.claim_id,
-            amount=p.amount,
-            payment_date=p.payment_date,
-        )
-        for p in items
-    ]
+    return [_to_response(p) for p in items]

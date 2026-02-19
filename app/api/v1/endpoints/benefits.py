@@ -33,43 +33,18 @@ router = APIRouter()
 
 
 def _benefit_to_response(r) -> BenefitResponse:
-    return BenefitResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        name=r.name,
-        code=r.code,
-        service_name=r.service_name,
-        in_or_out_patient=r.in_or_out_patient,
-        limit_amount=r.limit_amount,
-        scheme_duration=r.scheme_duration,
-        covered=r.covered,
-        status=r.status,
-        remarks=r.remarks,
-    )
+    """Map BenefitResult DTO to API response (DRY)."""
+    return BenefitResponse.model_validate(r)
 
 
 def _scheme_benefit_to_response(r) -> SchemeBenefitResponse:
-    return SchemeBenefitResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        scheme_id=r.scheme_id,
-        benefit_id=r.benefit_id,
-        limit_amount=r.limit_amount,
-        copayment_percent=r.copayment_percent,
-        waiting_period_days=r.waiting_period_days,
-        status=r.status,
-        termination_date=r.termination_date,
-    )
+    """Map SchemeBenefitResult DTO to API response (DRY)."""
+    return SchemeBenefitResponse.model_validate(r)
 
 
 def _linkage_to_response(r) -> BenefitLinkageResponse:
-    return BenefitLinkageResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        benefit_id=r.benefit_id,
-        service_type=r.service_type,
-        catalog_item_id=r.catalog_item_id,
-    )
+    """Map BenefitLinkageResult DTO to API response (DRY)."""
+    return BenefitLinkageResponse.model_validate(r)
 
 
 # --- Benefits CRUD ---

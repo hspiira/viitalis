@@ -8,7 +8,15 @@ from alembic import context
 from app.core.config import get_settings
 from app.infrastructure.persistence.database import Base
 from app.infrastructure.persistence.models import (  # noqa: F401 - register models
+    AccountDetail,
     AppUser,
+    AppUserDetail,
+    AppUserLog,
+    AppModule,
+    AppPermission,
+    Bank,
+    BankAccountDetail,
+    BankBranch,
     Benefit,
     BenefitLinkage,
     BillingSession,

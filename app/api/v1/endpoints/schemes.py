@@ -26,18 +26,18 @@ router = APIRouter()
 
 
 def _to_response(r) -> SchemeResponse:
-    return SchemeResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        company_id=r.company_id,
-        name=r.name,
-        description=r.description,
-        limit_value=r.limit_value,
-        begin_date=r.begin_date,
-        end_date=r.end_date,
-        termination_date=r.termination_date,
-        status=r.status,
-    )
+    """Map SchemeResult DTO to API response (DRY)."""
+    return SchemeResponse.model_validate(r)
+
+
+def _to_list_item(s) -> SchemeListItem:
+    """Map SchemeResult to list item response (DRY)."""
+    return SchemeListItem.model_validate(s)
+
+
+def _plan_to_response(r) -> SchemePlanResponse:
+    """Map SchemePlanResult DTO to API response (DRY)."""
+    return SchemePlanResponse.model_validate(r)
 
 
 @router.post("", response_model=SchemeResponse, status_code=201)
@@ -71,21 +71,7 @@ async def list_schemes(
     items = await scheme_svc.list_schemes(
         skip=skip, limit=limit, company_id=company_id
     )
-    return [
-        SchemeListItem(
-            id=s.id,
-            tenant_id=s.tenant_id,
-            company_id=s.company_id,
-            name=s.name,
-            description=s.description,
-            limit_value=s.limit_value,
-            begin_date=s.begin_date,
-            end_date=s.end_date,
-            termination_date=s.termination_date,
-            status=s.status,
-        )
-        for s in items
-    ]
+    return [_to_list_item(s) for s in items]
 
 
 @router.get("/{scheme_id}", response_model=SchemeResponse)
@@ -126,29 +112,15 @@ async def add_plan_to_scheme(
 ):
     """Link a plan to a scheme. Fails if already linked. Requires X-Tenant-ID."""
     result = await scheme_svc.add_plan_to_scheme(scheme_id, body.plan_id)
-    return SchemePlanResponse(
-        id=result.id,
-        tenant_id=result.tenant_id,
-        scheme_id=result.scheme_id,
-        plan_id=result.plan_id,
-    )
+    return _plan_to_response(result)
 
 
 # --- Scheme benefits ---
 
 
 def _scheme_benefit_to_response(r) -> SchemeBenefitResponse:
-    return SchemeBenefitResponse(
-        id=r.id,
-        tenant_id=r.tenant_id,
-        scheme_id=r.scheme_id,
-        benefit_id=r.benefit_id,
-        limit_amount=r.limit_amount,
-        copayment_percent=r.copayment_percent,
-        waiting_period_days=r.waiting_period_days,
-        status=r.status,
-        termination_date=r.termination_date,
-    )
+    """Map SchemeBenefitResult DTO to API response (DRY)."""
+    return SchemeBenefitResponse.model_validate(r)
 
 
 @router.get("/{scheme_id}/benefits", response_model=list[SchemeBenefitResponse])
