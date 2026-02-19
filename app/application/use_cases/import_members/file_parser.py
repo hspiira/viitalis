@@ -28,9 +28,7 @@ def _parse_dob(value: Any) -> date | None:
     return None
 
 
-def _row_to_member_create(
-    row: dict[str, Any], row_index: int
-) -> tuple[MemberCreate | None, str | None]:
+def _row_to_member_create(row: dict[str, Any]) -> tuple[MemberCreate | None, str | None]:
     """Convert a dict of column->value to MemberCreate. Returns (data, error_message)."""
     def get(key: str) -> str:
         v = row.get(key) or row.get(key.replace("_", " ")) or ""
@@ -90,7 +88,7 @@ def parse_csv(content: bytes) -> tuple[list[MemberCreate], list[int], list[tuple
             norm = _normalize_header(orig)
             if norm:
                 row[norm] = val
-        create, err = _row_to_member_create(row, i)
+        create, err = _row_to_member_create(row)
         if err:
             errors.append((i + 2, err))  # 1-based + header row
         elif create:
@@ -126,7 +124,7 @@ def parse_excel(content: bytes) -> tuple[list[MemberCreate], list[int], list[tup
     errors: list[tuple[int, str]] = []
     for row_index, row_tuple in enumerate(rows_iter):
         row = {h: (row_tuple[col_index[h]] if col_index[h] < len(row_tuple) else None) for h in col_index}
-        create, err = _row_to_member_create(row, row_index)
+        create, err = _row_to_member_create(row)
         if err:
             errors.append((row_index + 2, err))  # 1-based + header row
         elif create:

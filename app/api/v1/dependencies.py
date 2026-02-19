@@ -386,30 +386,6 @@ async def get_catalog_upload_service(
     )
 
 
-async def get_medicine_upload_service(
-    db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
-) -> CatalogUploadService:
-    """Alias for get_catalog_upload_service."""
-    return await get_catalog_upload_service(db, tenant_id)
-
-
-async def get_services_upload_service(
-    db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
-) -> CatalogUploadService:
-    """Same as get_catalog_upload_service (use upload_services method)."""
-    return await get_catalog_upload_service(db, tenant_id)
-
-
-async def get_labs_upload_service(
-    db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
-) -> CatalogUploadService:
-    """Same as get_catalog_upload_service (use upload_labs method)."""
-    return await get_catalog_upload_service(db, tenant_id)
-
-
 async def get_services_service(
     db: GetDbTransactional,
     tenant_id: Annotated[str, Depends(get_tenant_id)],
@@ -607,7 +583,8 @@ __all__ = [
     "get_import_members_service",
     "get_lab_service",
     "get_medicine_service",
-    "get_medicine_upload_service",
+    "get_catalog_upload_service",
+    "get_report_repo",
     "get_member_dependant_service",
     "get_member_service",
     "get_plan_service",
