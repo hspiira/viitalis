@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from scalar_fastapi import get_scalar_api_reference
 
 from app.api.v1.router import api_router
 from app.core.config import get_settings
@@ -34,6 +35,7 @@ def create_app() -> FastAPI:
         title=settings.app_name,
         version=settings.app_version,
         lifespan=lifespan,
+        docs_url=None,  # Scalar API reference served at /docs below
     )
     app.add_middleware(TenantContextMiddleware)
     app.add_middleware(
@@ -48,6 +50,15 @@ def create_app() -> FastAPI:
     app.add_exception_handler(ResourceNotFoundException, hms_exception_handler)
     app.add_exception_handler(SqlNotConfiguredException, sql_not_configured_handler)
     app.include_router(api_router, prefix="/api/v1")
+
+    @app.get("/docs", include_in_schema=False)
+    async def scalar_html():
+        return get_scalar_api_reference(
+            openapi_url=app.openapi_url,
+            title=f"{settings.app_name} API",
+            scalar_proxy_url="https://proxy.scalar.com",
+        )
+
     return app
 
 

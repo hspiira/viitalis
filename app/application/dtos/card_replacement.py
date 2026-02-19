@@ -48,3 +48,10 @@ class CardReplacementCreate:
     old_card_no: str | None = None
     new_card_no: str | None = None
     status: str = "requested"
+
+
+@dataclass
+class CardReplacementUpdate:
+    """For updating status and optionally new_card_no (e.g. on approve)."""
+    status: str | None = None
+    new_card_no: str | None = None

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.application.dtos.card_replacement import (
     CardReplacementCreate,
     CardReplacementResult,
+    CardReplacementUpdate,
 )
 from app.infrastructure.persistence.models.card_replacement import CardReplacement
 
@@ -71,6 +72,27 @@ class CardReplacementRepository:
             status=data.status,
         )
         self.db.add(row)
+        await self.db.flush()
+        await self.db.refresh(row)
+        return _to_result(row)
+
+    async def update(
+        self, entity_id: str, data: CardReplacementUpdate
+    ) -> CardReplacementResult | None:
+        """Update status and/or new_card_no. Returns updated result or None if not found."""
+        r = await self.db.execute(
+            select(CardReplacement).where(
+                CardReplacement.id == entity_id,
+                CardReplacement.tenant_id == self.tenant_id,
+            )
+        )
+        row = r.scalar_one_or_none()
+        if not row:
+            return None
+        if data.status is not None:
+            row.status = data.status
+        if data.new_card_no is not None:
+            row.new_card_no = data.new_card_no
         await self.db.flush()
         await self.db.refresh(row)
         return _to_result(row)

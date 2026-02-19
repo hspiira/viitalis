@@ -30,6 +30,7 @@ from app.api.v1.endpoints import (
     members,
     plans,
     reimbursements,
+    reports,
     schemes,
     tenants,
     user_logs,
@@ -122,6 +123,7 @@ api_router.include_router(
 api_router.include_router(
     reimbursements.router, prefix="/reimbursements", tags=["reimbursements"]
 )
+api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(
     user_logs.router, prefix="/user-logs", tags=["user-logs"]
 )

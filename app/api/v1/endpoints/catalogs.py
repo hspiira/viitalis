@@ -7,9 +7,11 @@ from fastapi import APIRouter, Depends, Query
 from app.api.v1.dependencies import (
     get_diagnosis_service,
     get_lab_service,
+    get_labs_upload_service,
     get_medicine_upload_service,
     get_medicine_service,
     get_services_service,
+    get_services_upload_service,
 )
 from app.application.dtos.catalog import CatalogItemCreate, CatalogItemUpdate
 from app.application.use_cases.catalog_upload import CatalogUploadService
@@ -86,5 +88,39 @@ async def upload_medicines(
 
 
 services_router = _catalog_router(get_services_service)
+
+
+@services_router.post("/upload", response_model=CatalogUploadResponse)
+async def upload_services(
+    body: CatalogUploadRequest,
+    upload_svc: Annotated[CatalogUploadService, Depends(get_services_upload_service)],
+):
+    """Bulk upload services (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
+    items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
+    created, failed, errors = await upload_svc.upload_services(items)
+    return CatalogUploadResponse(
+        created=created,
+        failed=failed,
+        errors=[CatalogUploadErrorItem(row=r, message=m) for r, m in errors],
+    )
+
+
 labs_router = _catalog_router(get_lab_service)
+
+
+@labs_router.post("/upload", response_model=CatalogUploadResponse)
+async def upload_labs(
+    body: CatalogUploadRequest,
+    upload_svc: Annotated[CatalogUploadService, Depends(get_labs_upload_service)],
+):
+    """Bulk upload labs (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
+    items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
+    created, failed, errors = await upload_svc.upload_labs(items)
+    return CatalogUploadResponse(
+        created=created,
+        failed=failed,
+        errors=[CatalogUploadErrorItem(row=r, message=m) for r, m in errors],
+    )
+
+
 diagnoses_router = _catalog_router(get_diagnosis_service)

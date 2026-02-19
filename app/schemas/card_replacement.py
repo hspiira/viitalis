@@ -34,6 +34,11 @@ class CardReplacementCreateRequest(BaseModel):
     status: str = Field("requested", max_length=32)
 
 
+class CardReplacementApproveRequest(BaseModel):
+    """Optional body for POST /card-replacements/{id}/approve."""
+    new_card_no: str | None = Field(None, max_length=64, description="Override new card number to issue")
+
+
 class CardReplacementResponse(BaseModel):
     id: str
     tenant_id: str

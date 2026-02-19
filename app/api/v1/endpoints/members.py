@@ -2,11 +2,12 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 
 from app.api.v1.dependencies import get_import_members_service, get_member_service
 from app.application.dtos.member import MemberCreate, MemberUpdate
 from app.application.use_cases.import_members import ImportMembersService
+from app.application.use_cases.import_members.file_parser import parse_csv, parse_excel
 from app.application.use_cases.members import MemberService
 from app.schemas.member import (
     MemberCreateRequest,
@@ -71,6 +72,43 @@ async def import_members(
         created=created,
         failed=failed,
         errors=[MemberImportErrorItem(row=r, message=m) for r, m in errors],
+    )
+
+
+@router.post("/import/file", response_model=MemberImportResponse)
+async def import_members_file(
+    file: Annotated[UploadFile, File(description="CSV or Excel (.xlsx) with headers: company_id, scheme_id, card_no, name, dob, status")],
+    import_svc: Annotated[ImportMembersService, Depends(get_import_members_service)],
+):
+    """Import members from CSV or Excel. First row must be headers. Same validation as JSON import. Requires X-Tenant-ID."""
+    content = await file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="Empty file")
+    filename = (file.filename or "").lower()
+    if filename.endswith(".xlsx") or filename.endswith(".xls") or (file.content_type or "").lower() in (
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "application/vnd.ms-excel",
+    ):
+        items, file_row_for_item, parse_errors = parse_excel(content)
+    else:
+        items, file_row_for_item, parse_errors = parse_csv(content)
+
+    all_errors: list[tuple[int, str]] = [(r, m) for r, m in parse_errors]
+    if not items:
+        return MemberImportResponse(
+            created=0,
+            failed=len(all_errors),
+            errors=[MemberImportErrorItem(row=r, message=m) for r, m in all_errors],
+        )
+
+    created, failed_count, import_errors = await import_svc.import_members(items)
+    for idx, msg in import_errors:
+        file_row = file_row_for_item[idx] if idx < len(file_row_for_item) else idx + 2
+        all_errors.append((file_row, msg))
+    return MemberImportResponse(
+        created=created,
+        failed=len(all_errors),
+        errors=[MemberImportErrorItem(row=r, message=m) for r, m in all_errors],
     )
 
 

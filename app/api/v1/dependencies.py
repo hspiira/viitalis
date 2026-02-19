@@ -140,6 +140,7 @@ from app.infrastructure.persistence.repositories.plan_repo import PlanRepository
 from app.infrastructure.persistence.repositories.reimbursement_repo import (
     ReimbursementRepository,
 )
+from app.infrastructure.persistence.repositories.report_repo import ReportRepository
 from app.infrastructure.persistence.repositories.scheme_repo import SchemeRepository
 from app.infrastructure.persistence.repositories.tenant_repo import TenantRepository
 from app.infrastructure.security.jwt import verify_token
@@ -373,11 +374,40 @@ async def get_medicine_service(
     return CatalogService(MedicineRepository(db, tenant_id))
 
 
+async def get_catalog_upload_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> CatalogUploadService:
+    """Catalog upload for medicines, services, and labs. Requires X-Tenant-ID."""
+    return CatalogUploadService(
+        MedicineRepository(db, tenant_id),
+        ServiceMaintenanceRepository(db, tenant_id),
+        LabRepository(db, tenant_id),
+    )
+
+
 async def get_medicine_upload_service(
     db: GetDbTransactional,
     tenant_id: Annotated[str, Depends(get_tenant_id)],
 ) -> CatalogUploadService:
-    return CatalogUploadService(MedicineRepository(db, tenant_id))
+    """Alias for get_catalog_upload_service."""
+    return await get_catalog_upload_service(db, tenant_id)
+
+
+async def get_services_upload_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> CatalogUploadService:
+    """Same as get_catalog_upload_service (use upload_services method)."""
+    return await get_catalog_upload_service(db, tenant_id)
+
+
+async def get_labs_upload_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> CatalogUploadService:
+    """Same as get_catalog_upload_service (use upload_labs method)."""
+    return await get_catalog_upload_service(db, tenant_id)
 
 
 async def get_services_service(
@@ -448,7 +478,17 @@ async def get_card_replacement_service(
     return CardReplacementService(
         CardReplacementRepository(db, tenant_id),
         CardReplacementReasonRepository(db, tenant_id),
+        MemberRepository(db, tenant_id),
+        MemberDependantRepository(db, tenant_id),
     )
+
+
+async def get_report_repo(
+    db: GetDb,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> ReportRepository:
+    """Read-only report repository (tenant-scoped). Requires X-Tenant-ID."""
+    return ReportRepository(db, tenant_id)
 
 
 async def get_company_type_service(

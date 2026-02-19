@@ -2,12 +2,13 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Body, Depends, Query
 
 from app.api.v1.dependencies import get_card_replacement_service
 from app.application.dtos.card_replacement import CardReplacementCreate
 from app.application.use_cases.card_replacements import CardReplacementService
 from app.schemas.card_replacement import (
+    CardReplacementApproveRequest,
     CardReplacementCreateRequest,
     CardReplacementResponse,
 )
@@ -72,3 +73,15 @@ async def get_card_replacement(
 ):
     r = await svc.get_by_id(entity_id)
     return _to_response(r)
+
+
+@router.post("/{entity_id}/approve", response_model=CardReplacementResponse)
+async def approve_card_replacement(
+    entity_id: str,
+    svc: Annotated[CardReplacementService, Depends(get_card_replacement_service)],
+    body: CardReplacementApproveRequest | None = Body(None),
+):
+    """Approve a replacement: set status to approved and update member/dependant card_no if new_card_no is set."""
+    override = body.new_card_no if body else None
+    updated = await svc.approve_replacement(entity_id, new_card_no_override=override)
+    return _to_response(updated)
