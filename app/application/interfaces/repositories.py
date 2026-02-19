@@ -23,7 +23,12 @@ from app.application.dtos.member_dependant import (
     MemberDependantUpdate,
 )
 from app.application.dtos.plan import PlanCreate, PlanResult, PlanUpdate
-from app.application.dtos.scheme import SchemeCreate, SchemeResult, SchemeUpdate
+from app.application.dtos.scheme import (
+    SchemeCreate,
+    SchemePlanResult,
+    SchemeResult,
+    SchemeUpdate,
+)
 from app.application.dtos.tenant import TenantCreate, TenantResult
 
 
@@ -64,6 +69,14 @@ class ICompanyRepository(Protocol):
 
     async def update(self, company_id: str, data: CompanyUpdate) -> CompanyResult | None:
         """Update a company. Returns updated company or None if not found."""
+        ...
+
+    async def count_members(self, company_id: str) -> int:
+        """Return number of members for this company (tenant-scoped, excludes soft-deleted)."""
+        ...
+
+    async def delete(self, company_id: str) -> bool:
+        """Delete a company. Returns True if found and deleted."""
         ...
 
 
@@ -112,6 +125,16 @@ class ISchemeRepository(Protocol):
         """Update a scheme. Returns updated scheme or None if not found."""
         ...
 
+    async def exists_scheme_plan(self, scheme_id: str, plan_id: str) -> bool:
+        """True if this (scheme_id, plan_id) link already exists."""
+        ...
+
+    async def add_scheme_plan(
+        self, scheme_id: str, plan_id: str
+    ) -> SchemePlanResult:
+        """Link a plan to a scheme. Returns the created scheme_plan."""
+        ...
+
 
 class IPlanRepository(Protocol):
     """Protocol for plan repository (DIP). Tenant-scoped."""
@@ -150,6 +173,12 @@ class IMemberRepository(Protocol):
         """Return members for the tenant with optional filters. Excludes soft-deleted."""
         ...
 
+    async def exists_by_card_no(
+        self, card_no: str, exclude_member_id: str | None = None
+    ) -> bool:
+        """True if another member in this tenant has this card_no."""
+        ...
+
     async def create(self, data: MemberCreate) -> MemberResult:
         """Create a member. Returns the created member."""
         ...
@@ -176,6 +205,12 @@ class IMemberDependantRepository(Protocol):
         """Return dependants for a member. Excludes soft-deleted."""
         ...
 
+    async def exists_by_card_no(
+        self, card_no: str, exclude_dependant_id: str | None = None
+    ) -> bool:
+        """True if another dependant in this tenant has this card_no."""
+        ...
+
     async def create(self, data: MemberDependantCreate) -> MemberDependantResult:
         """Create a dependant. Returns the created dependant."""
         ...
@@ -193,6 +228,16 @@ class IMemberDependantRepository(Protocol):
 
 class IClaimRepository(Protocol):
     """Protocol for claim repository (DIP). Tenant-scoped."""
+
+    async def exists_by_invoice_and_hospital(
+        self, invoice_number: str, hospital_id: str
+    ) -> bool:
+        """True if a claim exists with same invoice_number and hospital_id."""
+        ...
+
+    async def exists_by_dependant_id(self, dependant_id: str) -> bool:
+        """True if any claim references this dependant_id."""
+        ...
 
     async def get_by_id(self, claim_id: str) -> ClaimResult | None:
         """Return claim by ID (within tenant)."""

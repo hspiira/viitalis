@@ -1,10 +1,15 @@
-"""Scheme service: create, get, list, update. Tenant-scoped."""
+"""Scheme service: create, get, list, update, add_plan_to_scheme. Tenant-scoped."""
 
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from app.application.dtos.scheme import SchemeCreate, SchemeResult, SchemeUpdate
+from app.application.dtos.scheme import (
+    SchemeCreate,
+    SchemePlanResult,
+    SchemeResult,
+    SchemeUpdate,
+)
 from app.domain.exceptions import ResourceNotFoundException, ValidationException
 
 if TYPE_CHECKING:
@@ -49,3 +54,15 @@ class SchemeService:
         if not updated:
             raise ResourceNotFoundException("Scheme not found")
         return updated
+
+    async def add_plan_to_scheme(
+        self, scheme_id: str, plan_id: str
+    ) -> SchemePlanResult:
+        """Link a plan to a scheme. Fails if link already exists."""
+        await self.get_by_id(scheme_id)  # raise if scheme not found
+        if await self.scheme_repo.exists_scheme_plan(scheme_id, plan_id):
+            raise ValidationException(
+                "This plan is already linked to this scheme",
+                field="plan_id",
+            )
+        return await self.scheme_repo.add_scheme_plan(scheme_id, plan_id)

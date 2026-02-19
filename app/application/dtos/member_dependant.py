@@ -12,6 +12,7 @@ class MemberDependantResult:
     tenant_id: str
     member_id: str
     name: str
+    card_no: str | None
     dob: date | None
 
 
@@ -21,6 +22,7 @@ class MemberDependantCreate:
 
     member_id: str
     name: str
+    card_no: str | None = None
     dob: date | None = None
 
 
@@ -29,4 +31,5 @@ class MemberDependantUpdate:
     """Data for partial update of a member dependant."""
 
     name: str | None = None
+    card_no: str | None = None
     dob: date | None = None

@@ -40,3 +40,16 @@ class CompanyService:
         if not updated:
             raise ResourceNotFoundException("Company not found")
         return updated
+
+    async def delete_company(self, company_id: str) -> None:
+        """Delete a company. Fails if company has any members."""
+        await self.get_by_id(company_id)  # raise if not found
+        n = await self.company_repo.count_members(company_id)
+        if n > 0:
+            raise ValidationException(
+                "Cannot delete company that has members; remove or reassign members first",
+                field="company_id",
+            )
+        ok = await self.company_repo.delete(company_id)
+        if not ok:
+            raise ResourceNotFoundException("Company not found")

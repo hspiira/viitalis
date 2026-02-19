@@ -18,6 +18,7 @@ from app.application.use_cases.claims import ClaimService
 from app.application.use_cases.company_branches import CompanyBranchService
 from app.application.use_cases.companies import CompanyService
 from app.application.use_cases.doctors import DoctorService
+from app.application.use_cases.hospital_pricing import HospitalPricingService
 from app.application.use_cases.hospitals import HospitalBranchService, HospitalService
 from app.application.use_cases.member_dependants import MemberDependantService
 from app.application.use_cases.members import MemberService
@@ -35,6 +36,9 @@ from app.infrastructure.persistence.repositories.claim_payment_repo import (
     ClaimPaymentRepository,
 )
 from app.infrastructure.persistence.repositories.claim_repo import ClaimRepository
+from app.infrastructure.persistence.repositories.hospital_pricing_repo import (
+    HospitalPricingRepository,
+)
 from app.infrastructure.persistence.repositories.company_branch_repo import (
     CompanyBranchRepository,
 )
@@ -185,22 +189,32 @@ async def get_member_dependant_service(
     tenant_id: Annotated[str, Depends(get_tenant_id)],
 ) -> MemberDependantService:
     """Member dependant service (transactional, tenant-scoped). Requires X-Tenant-ID."""
-    repo = MemberDependantRepository(db, tenant_id)
-    return MemberDependantService(repo)
+    return MemberDependantService(
+        MemberDependantRepository(db, tenant_id),
+        ClaimRepository(db, tenant_id),
+    )
 
 
 async def get_claim_service(
     db: GetDbTransactional,
     tenant_id: Annotated[str, Depends(get_tenant_id)],
 ) -> ClaimService:
-    return ClaimService(ClaimRepository(db, tenant_id))
+    return ClaimService(
+        ClaimRepository(db, tenant_id),
+        MemberRepository(db, tenant_id),
+        SchemeRepository(db, tenant_id),
+        HospitalPricingRepository(db, tenant_id),
+    )
 
 
 async def get_claim_payment_service(
     db: GetDbTransactional,
     tenant_id: Annotated[str, Depends(get_tenant_id)],
 ) -> ClaimPaymentService:
-    return ClaimPaymentService(ClaimPaymentRepository(db, tenant_id))
+    return ClaimPaymentService(
+        ClaimPaymentRepository(db, tenant_id),
+        ClaimRepository(db, tenant_id),
+    )
 
 
 async def get_hospital_service(
@@ -208,6 +222,13 @@ async def get_hospital_service(
     tenant_id: Annotated[str, Depends(get_tenant_id)],
 ) -> HospitalService:
     return HospitalService(HospitalRepository(db, tenant_id))
+
+
+async def get_hospital_pricing_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> HospitalPricingService:
+    return HospitalPricingService(HospitalPricingRepository(db, tenant_id))
 
 
 async def get_hospital_branch_service(
@@ -273,6 +294,7 @@ __all__ = [
     "get_diagnosis_service",
     "get_doctor_service",
     "get_hospital_branch_service",
+    "get_hospital_pricing_service",
     "get_hospital_service",
     "get_lab_service",
     "get_medicine_service",

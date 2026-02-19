@@ -16,12 +16,44 @@ from app.application.dtos.claim import (
 from app.domain.exceptions import ResourceNotFoundException, ValidationException
 
 if TYPE_CHECKING:
-    from app.application.interfaces.repositories import IClaimRepository
+    from app.application.interfaces.repositories import (
+        IClaimRepository,
+        IMemberRepository,
+        ISchemeRepository,
+    )
+
+
+def _scheme_valid_at_date(
+    begin_date: date | None,
+    end_date: date | None,
+    termination_date: date | None,
+    service_date: date,
+) -> bool:
+    """True if scheme is active for service_date."""
+    if begin_date is not None and service_date < begin_date:
+        return False
+    if end_date is not None and service_date > end_date:
+        return False
+    if termination_date is not None and service_date >= termination_date:
+        return False
+    return True
+
+
+_PRICE_TOLERANCE = Decimal("0.01")
 
 
 class ClaimService:
-    def __init__(self, claim_repo: IClaimRepository) -> None:
+    def __init__(
+        self,
+        claim_repo: IClaimRepository,
+        member_repo: IMemberRepository,
+        scheme_repo: ISchemeRepository,
+        hospital_pricing_repo=None,
+    ) -> None:
         self.claim_repo = claim_repo
+        self.member_repo = member_repo
+        self.scheme_repo = scheme_repo
+        self.hospital_pricing_repo = hospital_pricing_repo
 
     async def create_claim(
         self, data: ClaimCreate, details: list[ClaimDetailCreate]
@@ -36,6 +68,45 @@ class ClaimService:
             raise ValidationException(
                 "Service date cannot be in the future", field="service_date"
             )
+
+        member = await self.member_repo.get_by_id(data.member_id)
+        if not member:
+            raise ValidationException("Member not found", field="member_id")
+        scheme = await self.scheme_repo.get_by_id(member.scheme_id)
+        if not scheme:
+            raise ValidationException("Scheme not found for member", field="scheme_id")
+        if not _scheme_valid_at_date(
+            scheme.begin_date,
+            scheme.end_date,
+            scheme.termination_date,
+            data.service_date,
+        ):
+            raise ValidationException(
+                "Scheme is not active for the service date",
+                field="service_date",
+            )
+
+        if data.invoice_number and data.invoice_number.strip():
+            if await self.claim_repo.exists_by_invoice_and_hospital(
+                data.invoice_number, data.hospital_id
+            ):
+                raise ValidationException(
+                    "A claim already exists for this invoice number at this hospital",
+                    field="invoice_number",
+                )
+
+        if self.hospital_pricing_repo:
+            for i, d in enumerate(details):
+                if d.item_type and d.fee_code and d.item_type in ("medicine", "service", "lab"):
+                    agreed = await self.hospital_pricing_repo.get_agreed_unit_price(
+                        data.hospital_id, d.item_type, d.fee_code
+                    )
+                    if agreed is not None and abs(Decimal(d.unit_price) - agreed) > _PRICE_TOLERANCE:
+                        raise ValidationException(
+                            f"Unit price for {d.fee_code} does not match hospital agreed price",
+                            field=f"details[{i}].unit_price",
+                        )
+
         return await self.claim_repo.create_with_details(data, details)
 
     async def get_by_id(self, claim_id: str) -> ClaimResult:

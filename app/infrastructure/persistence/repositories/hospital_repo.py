@@ -1,9 +1,10 @@
 """Hospital repository. Tenant-scoped."""
 
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.dtos.hospital import HospitalCreate, HospitalResult, HospitalUpdate
+from app.infrastructure.persistence.models.claim import Claim
 from app.infrastructure.persistence.models.hospital import Hospital
 
 
@@ -62,3 +63,23 @@ class HospitalRepository:
         await self.db.flush()
         await self.db.refresh(h)
         return _to_result(h)
+
+    async def has_claims(self, hospital_id: str) -> bool:
+        """True if any claim in this tenant references this hospital."""
+        r = await self.db.execute(
+            select(Claim.id).where(
+                Claim.tenant_id == self.tenant_id,
+                Claim.hospital_id == hospital_id,
+            ).limit(1)
+        )
+        return r.scalar_one_or_none() is not None
+
+    async def delete(self, hospital_id: str) -> bool:
+        """Delete hospital by ID. Returns True if found and deleted."""
+        result = await self.db.execute(
+            delete(Hospital).where(
+                Hospital.id == hospital_id,
+                Hospital.tenant_id == self.tenant_id,
+            )
+        )
+        return result.rowcount > 0

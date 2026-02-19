@@ -26,6 +26,7 @@ def _to_response(r) -> MemberDependantResponse:
         tenant_id=r.tenant_id,
         member_id=r.member_id,
         name=r.name,
+        card_no=r.card_no,
         dob=r.dob,
     )
 
@@ -40,6 +41,7 @@ async def create_dependant(
     data = MemberDependantCreate(
         member_id=member_id,
         name=body.name,
+        card_no=body.card_no,
         dob=body.dob,
     )
     created = await dep_svc.create_dependant(data)
@@ -61,6 +63,7 @@ async def list_dependants(
             tenant_id=d.tenant_id,
             member_id=d.member_id,
             name=d.name,
+            card_no=d.card_no,
             dob=d.dob,
         )
         for d in items
@@ -91,7 +94,7 @@ async def update_dependant(
     dep = await dep_svc.get_by_id(dependant_id)
     if dep.member_id != member_id:
         raise HTTPException(status_code=404, detail="Dependant not found")
-    data = MemberDependantUpdate(name=body.name, dob=body.dob)
+    data = MemberDependantUpdate(name=body.name, card_no=body.card_no, dob=body.dob)
     updated = await dep_svc.update_dependant(dependant_id, data)
     return _to_response(updated)
 

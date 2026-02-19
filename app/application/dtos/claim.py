@@ -63,3 +63,4 @@ class ClaimDetailCreate:
     qty: int = 1
     amount: Decimal = Decimal("0")
     status: str = "pending"
+    item_type: str | None = None  # "medicine" | "service" | "lab" for price agreement check

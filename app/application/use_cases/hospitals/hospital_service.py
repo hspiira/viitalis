@@ -1,4 +1,4 @@
-"""Hospital service: CRUD. Tenant-scoped."""
+"""Hospital service: CRUD, delete with guard. Tenant-scoped."""
 
 from __future__ import annotations
 
@@ -29,3 +29,15 @@ class HospitalService:
         if not updated:
             raise ResourceNotFoundException("Hospital not found")
         return updated
+
+    async def delete(self, hospital_id: str) -> None:
+        """Delete a hospital. Fails if any claims reference it."""
+        await self.get_by_id(hospital_id)  # raise if not found
+        if await self.repo.has_claims(hospital_id):
+            raise ValidationException(
+                "Cannot delete hospital that has claims; remove or reassign claims first",
+                field="hospital_id",
+            )
+        ok = await self.repo.delete(hospital_id)
+        if not ok:
+            raise ResourceNotFoundException("Hospital not found")

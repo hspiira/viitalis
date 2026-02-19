@@ -54,6 +54,31 @@ class ClaimRepository:
         self.db = db
         self.tenant_id = tenant_id
 
+    async def exists_by_invoice_and_hospital(
+        self, invoice_number: str, hospital_id: str
+    ) -> bool:
+        """True if a claim already exists for this tenant with same invoice_number and hospital_id."""
+        if not invoice_number or not invoice_number.strip():
+            return False
+        r = await self.db.execute(
+            select(Claim.id).where(
+                Claim.tenant_id == self.tenant_id,
+                Claim.invoice_number == invoice_number.strip(),
+                Claim.hospital_id == hospital_id,
+            ).limit(1)
+        )
+        return r.scalar_one_or_none() is not None
+
+    async def exists_by_dependant_id(self, dependant_id: str) -> bool:
+        """True if any claim in this tenant references this dependant_id."""
+        r = await self.db.execute(
+            select(Claim.id).where(
+                Claim.tenant_id == self.tenant_id,
+                Claim.dependant_id == dependant_id,
+            ).limit(1)
+        )
+        return r.scalar_one_or_none() is not None
+
     async def get_by_id(self, claim_id: str) -> ClaimResult | None:
         r = await self.db.execute(
             select(Claim).where(

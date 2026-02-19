@@ -58,3 +58,18 @@ class SchemeListItem(BaseModel):
     end_date: date | None
     termination_date: date | None
     status: str
+
+
+class SchemePlanAddRequest(BaseModel):
+    """Request body for POST /schemes/{scheme_id}/plans."""
+
+    plan_id: str = Field(..., min_length=1, max_length=64)
+
+
+class SchemePlanResponse(BaseModel):
+    """Response for scheme–plan link."""
+
+    id: str
+    tenant_id: str
+    scheme_id: str
+    plan_id: str

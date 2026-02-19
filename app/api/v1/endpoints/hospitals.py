@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.api.v1.dependencies import (
     get_hospital_branch_service,
+    get_hospital_pricing_service,
     get_hospital_service,
 )
 from app.application.dtos.hospital import (
@@ -14,6 +15,12 @@ from app.application.dtos.hospital import (
     HospitalCreate,
     HospitalUpdate,
 )
+from app.application.dtos.hospital_pricing import (
+    HospitalLabTestCreate,
+    HospitalMedicineCreate,
+    HospitalServicePriceCreate,
+)
+from app.application.use_cases.hospital_pricing import HospitalPricingService
 from app.application.use_cases.hospitals import HospitalBranchService, HospitalService
 from app.schemas.hospital import (
     HospitalBranchCreateRequest,
@@ -22,6 +29,14 @@ from app.schemas.hospital import (
     HospitalCreateRequest,
     HospitalResponse,
     HospitalUpdateRequest,
+)
+from app.schemas.hospital_pricing import (
+    HospitalLabTestCreateRequest,
+    HospitalLabTestResponse,
+    HospitalMedicineCreateRequest,
+    HospitalMedicineResponse,
+    HospitalServicePriceCreateRequest,
+    HospitalServicePriceResponse,
 )
 
 router = APIRouter()
@@ -73,6 +88,142 @@ async def update_hospital(
     return HospitalResponse(
         id=updated.id, tenant_id=updated.tenant_id, name=updated.name, address=updated.address
     )
+
+
+@router.delete("/{hospital_id}", status_code=204)
+async def delete_hospital(
+    hospital_id: str,
+    svc: Annotated[HospitalService, Depends(get_hospital_service)],
+):
+    """Delete a hospital. Fails if it has claims. Requires X-Tenant-ID."""
+    await svc.delete(hospital_id)
+
+
+# --- Hospital pricing (medicines, services, labs) ---
+@router.get("/{hospital_id}/medicines", response_model=list[HospitalMedicineResponse])
+async def list_hospital_medicines(
+    hospital_id: str,
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+):
+    items = await pricing_svc.list_medicines(hospital_id, skip=skip, limit=limit)
+    return [HospitalMedicineResponse.model_validate(x) for x in items]
+
+
+@router.post("/{hospital_id}/medicines", response_model=HospitalMedicineResponse, status_code=201)
+async def create_hospital_medicine(
+    hospital_id: str,
+    body: HospitalMedicineCreateRequest,
+    hospital_svc: Annotated[HospitalService, Depends(get_hospital_service)],
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+):
+    await hospital_svc.get_by_id(hospital_id)
+    data = HospitalMedicineCreate(
+        hospital_id=hospital_id,
+        medicine_id=body.medicine_id,
+        unit_price=body.unit_price,
+        effective_date=body.effective_date,
+        status=body.status,
+    )
+    created = await pricing_svc.create_medicine(hospital_id, data)
+    return HospitalMedicineResponse.model_validate(created)
+
+
+@router.get("/{hospital_id}/medicines/{pricing_id}", response_model=HospitalMedicineResponse)
+async def get_hospital_medicine(
+    hospital_id: str,
+    pricing_id: str,
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+):
+    r = await pricing_svc.get_medicine(pricing_id)
+    if r.hospital_id != hospital_id:
+        raise HTTPException(status_code=404, detail="Not found")
+    return HospitalMedicineResponse.model_validate(r)
+
+
+@router.get("/{hospital_id}/services", response_model=list[HospitalServicePriceResponse])
+async def list_hospital_services(
+    hospital_id: str,
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+):
+    items = await pricing_svc.list_services(hospital_id, skip=skip, limit=limit)
+    return [HospitalServicePriceResponse.model_validate(x) for x in items]
+
+
+@router.post("/{hospital_id}/services", response_model=HospitalServicePriceResponse, status_code=201)
+async def create_hospital_service(
+    hospital_id: str,
+    body: HospitalServicePriceCreateRequest,
+    hospital_svc: Annotated[HospitalService, Depends(get_hospital_service)],
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+):
+    await hospital_svc.get_by_id(hospital_id)
+    data = HospitalServicePriceCreate(
+        hospital_id=hospital_id,
+        service_id=body.service_id,
+        amount=body.amount,
+        effective_date=body.effective_date,
+        status=body.status,
+    )
+    created = await pricing_svc.create_service(hospital_id, data)
+    return HospitalServicePriceResponse.model_validate(created)
+
+
+@router.get("/{hospital_id}/services/{pricing_id}", response_model=HospitalServicePriceResponse)
+async def get_hospital_service_price(
+    hospital_id: str,
+    pricing_id: str,
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+):
+    r = await pricing_svc.get_service(pricing_id)
+    if r.hospital_id != hospital_id:
+        raise HTTPException(status_code=404, detail="Not found")
+    return HospitalServicePriceResponse.model_validate(r)
+
+
+@router.get("/{hospital_id}/labs", response_model=list[HospitalLabTestResponse])
+async def list_hospital_labs(
+    hospital_id: str,
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+):
+    items = await pricing_svc.list_labs(hospital_id, skip=skip, limit=limit)
+    return [HospitalLabTestResponse.model_validate(x) for x in items]
+
+
+@router.post("/{hospital_id}/labs", response_model=HospitalLabTestResponse, status_code=201)
+async def create_hospital_lab_test(
+    hospital_id: str,
+    body: HospitalLabTestCreateRequest,
+    hospital_svc: Annotated[HospitalService, Depends(get_hospital_service)],
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+):
+    await hospital_svc.get_by_id(hospital_id)
+    data = HospitalLabTestCreate(
+        hospital_id=hospital_id,
+        lab_id=body.lab_id,
+        amount=body.amount,
+        effective_date=body.effective_date,
+        status=body.status,
+    )
+    created = await pricing_svc.create_lab_test(hospital_id, data)
+    return HospitalLabTestResponse.model_validate(created)
+
+
+@router.get("/{hospital_id}/labs/{pricing_id}", response_model=HospitalLabTestResponse)
+async def get_hospital_lab_test(
+    hospital_id: str,
+    pricing_id: str,
+    pricing_svc: Annotated[HospitalPricingService, Depends(get_hospital_pricing_service)],
+):
+    r = await pricing_svc.get_lab_test(pricing_id)
+    if r.hospital_id != hospital_id:
+        raise HTTPException(status_code=404, detail="Not found")
+    return HospitalLabTestResponse.model_validate(r)
 
 
 # --- Branches (nested under /hospitals/{hospital_id}/branches) ---

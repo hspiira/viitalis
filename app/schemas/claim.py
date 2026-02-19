@@ -13,6 +13,7 @@ class ClaimDetailCreateRequest(BaseModel):
     qty: int = Field(default=1, ge=1)
     amount: Decimal = Field(default=Decimal("0"))
     status: str = Field(default="pending", max_length=32)
+    item_type: str | None = Field(None, pattern="^(medicine|service|lab)$")
 
 
 class ClaimCreateRequest(BaseModel):

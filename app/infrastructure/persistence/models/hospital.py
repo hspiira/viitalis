@@ -15,3 +15,12 @@ class Hospital(MultiTenantModel, Base):
 
     branches = relationship("HospitalBranch", back_populates="hospital", cascade="all, delete-orphan")
     doctors = relationship("Doctor", back_populates="hospital", cascade="all, delete-orphan")
+    hospital_medicines = relationship(
+        "HospitalMedicine", back_populates="hospital", cascade="all, delete-orphan"
+    )
+    hospital_services = relationship(
+        "HospitalServicePrice", back_populates="hospital", cascade="all, delete-orphan"
+    )
+    hospital_lab_tests = relationship(
+        "HospitalLabTest", back_populates="hospital", cascade="all, delete-orphan"
+    )

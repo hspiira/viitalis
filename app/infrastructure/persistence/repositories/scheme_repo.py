@@ -3,8 +3,14 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.application.dtos.scheme import SchemeCreate, SchemeResult, SchemeUpdate
+from app.application.dtos.scheme import (
+    SchemeCreate,
+    SchemePlanResult,
+    SchemeResult,
+    SchemeUpdate,
+)
 from app.infrastructure.persistence.models.scheme import Scheme
+from app.infrastructure.persistence.models.scheme_plan import SchemePlan
 
 
 def _scheme_to_result(s: Scheme) -> SchemeResult:
@@ -104,3 +110,33 @@ class SchemeRepository:
         await self.db.flush()
         await self.db.refresh(scheme)
         return _scheme_to_result(scheme)
+
+    async def exists_scheme_plan(self, scheme_id: str, plan_id: str) -> bool:
+        """True if this (scheme_id, plan_id) link already exists for this tenant."""
+        r = await self.db.execute(
+            select(SchemePlan.id).where(
+                SchemePlan.tenant_id == self.tenant_id,
+                SchemePlan.scheme_id == scheme_id,
+                SchemePlan.plan_id == plan_id,
+            ).limit(1)
+        )
+        return r.scalar_one_or_none() is not None
+
+    async def add_scheme_plan(
+        self, scheme_id: str, plan_id: str
+    ) -> SchemePlanResult:
+        """Link a plan to a scheme. Returns the created scheme_plan."""
+        sp = SchemePlan(
+            tenant_id=self.tenant_id,
+            scheme_id=scheme_id,
+            plan_id=plan_id,
+        )
+        self.db.add(sp)
+        await self.db.flush()
+        await self.db.refresh(sp)
+        return SchemePlanResult(
+            id=sp.id,
+            tenant_id=sp.tenant_id,
+            scheme_id=sp.scheme_id,
+            plan_id=sp.plan_id,
+        )

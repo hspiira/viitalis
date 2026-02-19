@@ -1,10 +1,11 @@
 """Company repository. Tenant-scoped: all queries filter by tenant_id."""
 
-from sqlalchemy import select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.dtos.company import CompanyCreate, CompanyResult, CompanyUpdate
 from app.infrastructure.persistence.models.company import Company
+from app.infrastructure.persistence.models.member import Member
 
 
 def _company_to_result(c: Company) -> CompanyResult:
@@ -113,3 +114,24 @@ class CompanyRepository:
         await self.db.flush()
         await self.db.refresh(company)
         return _company_to_result(company)
+
+    async def count_members(self, company_id: str) -> int:
+        """Return number of (non-deleted) members for this company in this tenant."""
+        r = await self.db.execute(
+            select(func.count(Member.id)).where(
+                Member.tenant_id == self.tenant_id,
+                Member.company_id == company_id,
+                Member.deleted_at.is_(None),
+            )
+        )
+        return r.scalar_one_or_none() or 0
+
+    async def delete(self, company_id: str) -> bool:
+        """Delete company by ID. Returns True if found and deleted."""
+        result = await self.db.execute(
+            delete(Company).where(
+                Company.id == company_id,
+                Company.tenant_id == self.tenant_id,
+            )
+        )
+        return result.rowcount > 0

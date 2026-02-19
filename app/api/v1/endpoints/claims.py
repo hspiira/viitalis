@@ -45,6 +45,7 @@ async def create_claim(
             qty=d.qty,
             amount=d.amount,
             status=d.status,
+            item_type=d.item_type,
         )
         for d in body.details
     ]

@@ -114,3 +114,12 @@ async def update_company(
     )
     updated = await company_svc.update_company(company_id, data)
     return _to_response(updated)
+
+
+@router.delete("/{company_id}", status_code=204)
+async def delete_company(
+    company_id: str,
+    company_svc: Annotated[CompanyService, Depends(get_company_service)],
+):
+    """Delete a company. Fails if company has any members. Requires X-Tenant-ID."""
+    await company_svc.delete_company(company_id)

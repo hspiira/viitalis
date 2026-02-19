@@ -10,6 +10,8 @@ from app.application.use_cases.schemes import SchemeService
 from app.schemas.scheme import (
     SchemeCreateRequest,
     SchemeListItem,
+    SchemePlanAddRequest,
+    SchemePlanResponse,
     SchemeResponse,
     SchemeUpdateRequest,
 )
@@ -108,3 +110,19 @@ async def update_scheme(
     )
     updated = await scheme_svc.update_scheme(scheme_id, data)
     return _to_response(updated)
+
+
+@router.post("/{scheme_id}/plans", response_model=SchemePlanResponse, status_code=201)
+async def add_plan_to_scheme(
+    scheme_id: str,
+    body: SchemePlanAddRequest,
+    scheme_svc: Annotated[SchemeService, Depends(get_scheme_service)],
+):
+    """Link a plan to a scheme. Fails if already linked. Requires X-Tenant-ID."""
+    result = await scheme_svc.add_plan_to_scheme(scheme_id, body.plan_id)
+    return SchemePlanResponse(
+        id=result.id,
+        tenant_id=result.tenant_id,
+        scheme_id=result.scheme_id,
+        plan_id=result.plan_id,
+    )

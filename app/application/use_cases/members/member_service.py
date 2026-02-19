@@ -27,6 +27,11 @@ class MemberService:
             raise ValidationException("Member must belong to a scheme", field="scheme_id")
         if not data.card_no or not data.card_no.strip():
             raise ValidationException("Card number is required", field="card_no")
+        if await self.member_repo.exists_by_card_no(data.card_no):
+            raise ValidationException(
+                "Another member already has this card number",
+                field="card_no",
+            )
         return await self.member_repo.create(data)
 
     async def get_by_id(self, member_id: str) -> MemberResult:
@@ -50,6 +55,14 @@ class MemberService:
 
     async def update_member(self, member_id: str, data: MemberUpdate) -> MemberResult:
         """Update a member. Raises ResourceNotFoundException if not found."""
+        if data.card_no is not None and data.card_no.strip():
+            if await self.member_repo.exists_by_card_no(
+                data.card_no, exclude_member_id=member_id
+            ):
+                raise ValidationException(
+                    "Another member already has this card number",
+                    field="card_no",
+                )
         updated = await self.member_repo.update(member_id, data)
         if not updated:
             raise ResourceNotFoundException("Member not found")

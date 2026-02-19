@@ -9,6 +9,24 @@ from app.application.dtos.member import MemberCreate, MemberResult, MemberUpdate
 from app.infrastructure.persistence.models.member import Member
 
 
+async def _exists_by_card_no(
+    db: AsyncSession,
+    tenant_id: str,
+    card_no: str,
+    exclude_member_id: str | None = None,
+) -> bool:
+    """Return True if another member (same tenant) has this card_no."""
+    q = select(Member.id).where(
+        Member.tenant_id == tenant_id,
+        Member.card_no == card_no.strip(),
+        Member.deleted_at.is_(None),
+    )
+    if exclude_member_id:
+        q = q.where(Member.id != exclude_member_id)
+    r = await db.execute(q.limit(1))
+    return r.scalar_one_or_none() is not None
+
+
 def _member_to_result(m: Member) -> MemberResult:
     """Map ORM Member to MemberResult."""
     return MemberResult(
@@ -62,6 +80,14 @@ class MemberRepository:
         result = await self.db.execute(q)
         members = result.scalars().all()
         return [_member_to_result(m) for m in members]
+
+    async def exists_by_card_no(
+        self, card_no: str, exclude_member_id: str | None = None
+    ) -> bool:
+        """True if another member in this tenant has this card_no (excludes soft-deleted)."""
+        return await _exists_by_card_no(
+            self.db, self.tenant_id, card_no, exclude_member_id=exclude_member_id
+        )
 
     async def create(self, data: MemberCreate) -> MemberResult:
         """Create a member (tenant_id from repo scope)."""

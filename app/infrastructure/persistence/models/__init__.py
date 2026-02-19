@@ -18,6 +18,9 @@ from app.infrastructure.persistence.models.diagnosis import Diagnosis
 from app.infrastructure.persistence.models.doctor import Doctor
 from app.infrastructure.persistence.models.hospital import Hospital
 from app.infrastructure.persistence.models.hospital_branch import HospitalBranch
+from app.infrastructure.persistence.models.hospital_lab_test import HospitalLabTest
+from app.infrastructure.persistence.models.hospital_medicine import HospitalMedicine
+from app.infrastructure.persistence.models.hospital_service import HospitalServicePrice
 from app.infrastructure.persistence.models.lab import Lab
 from app.infrastructure.persistence.models.medicine import Medicine
 from app.infrastructure.persistence.models.member import Member
@@ -42,6 +45,9 @@ __all__ = [
     "Doctor",
     "Hospital",
     "HospitalBranch",
+    "HospitalLabTest",
+    "HospitalMedicine",
+    "HospitalServicePrice",
     "Lab",
     "Medicine",
     "Member",
