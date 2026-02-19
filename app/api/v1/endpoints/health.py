@@ -1,18 +1,12 @@
 """Health check endpoint."""
 
 from fastapi import APIRouter
-
-from app.core.config import get_settings
+from fastapi.responses import RedirectResponse
 
 router = APIRouter()
 
 
-@router.get("", status_code=200)
+@router.get("", status_code=302)
 async def health():
-    """Return app name and version. No DB check for minimal dependency."""
-    settings = get_settings()
-    return {
-        "status": "ok",
-        "app": settings.app_name,
-        "version": settings.app_version,
-    }
+    """Redirect to the root landing page instead of returning JSON."""
+    return RedirectResponse(url="/", status_code=302)
