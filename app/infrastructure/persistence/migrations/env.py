@@ -20,6 +20,8 @@ from app.infrastructure.persistence.models import (  # noqa: F401 - register mod
     Benefit,
     BenefitLinkage,
     BillingSession,
+    CardReplacement,
+    CardReplacementReason,
     Claim,
     ClaimDetail,
     ClaimPayment,

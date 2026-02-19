@@ -7,15 +7,20 @@ from fastapi import APIRouter, Depends, Query
 from app.api.v1.dependencies import (
     get_diagnosis_service,
     get_lab_service,
+    get_medicine_upload_service,
     get_medicine_service,
     get_services_service,
 )
 from app.application.dtos.catalog import CatalogItemCreate, CatalogItemUpdate
+from app.application.use_cases.catalog_upload import CatalogUploadService
 from app.application.use_cases.catalogs import CatalogService
 from app.schemas.catalog import (
     CatalogItemCreateRequest,
     CatalogItemResponse,
     CatalogItemUpdateRequest,
+    CatalogUploadErrorItem,
+    CatalogUploadRequest,
+    CatalogUploadResponse,
 )
 
 
@@ -63,6 +68,23 @@ def _catalog_router(get_svc):
 
 
 medicines_router = _catalog_router(get_medicine_service)
+
+
+@medicines_router.post("/upload", response_model=CatalogUploadResponse)
+async def upload_medicines(
+    body: CatalogUploadRequest,
+    upload_svc: Annotated[CatalogUploadService, Depends(get_medicine_upload_service)],
+):
+    """Bulk upload medicines (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
+    items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
+    created, failed, errors = await upload_svc.upload_medicines(items)
+    return CatalogUploadResponse(
+        created=created,
+        failed=failed,
+        errors=[CatalogUploadErrorItem(row=r, message=m) for r, m in errors],
+    )
+
+
 services_router = _catalog_router(get_services_service)
 labs_router = _catalog_router(get_lab_service)
 diagnoses_router = _catalog_router(get_diagnosis_service)

@@ -49,3 +49,35 @@ class MemberListItem(BaseModel):
     name: str
     dob: date | None
     status: str
+
+
+class MemberImportRow(BaseModel):
+    """Single row for bulk member import."""
+
+    company_id: str = Field(..., min_length=1, max_length=64)
+    scheme_id: str = Field(..., min_length=1, max_length=64)
+    card_no: str = Field(..., min_length=1, max_length=64)
+    name: str = Field(..., min_length=1, max_length=255)
+    dob: date | None = None
+    status: str = Field("active", max_length=32)
+
+
+class MemberImportRequest(BaseModel):
+    """Request body for POST /members/import."""
+
+    members: list[MemberImportRow] = Field(..., min_length=1, max_length=500)
+
+
+class MemberImportErrorItem(BaseModel):
+    """Error for one row in import."""
+
+    row: int
+    message: str
+
+
+class MemberImportResponse(BaseModel):
+    """Response for POST /members/import."""
+
+    created: int
+    failed: int
+    errors: list[MemberImportErrorItem] = []

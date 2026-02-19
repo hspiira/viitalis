@@ -4,11 +4,15 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from app.api.v1.dependencies import get_member_service
+from app.api.v1.dependencies import get_import_members_service, get_member_service
 from app.application.dtos.member import MemberCreate, MemberUpdate
+from app.application.use_cases.import_members import ImportMembersService
 from app.application.use_cases.members import MemberService
 from app.schemas.member import (
     MemberCreateRequest,
+    MemberImportErrorItem,
+    MemberImportRequest,
+    MemberImportResponse,
     MemberListItem,
     MemberResponse,
     MemberUpdateRequest,
@@ -43,6 +47,31 @@ async def create_member(
     )
     created = await member_svc.create_member(data)
     return _to_response(created)
+
+
+@router.post("/import", response_model=MemberImportResponse)
+async def import_members(
+    body: MemberImportRequest,
+    import_svc: Annotated[ImportMembersService, Depends(get_import_members_service)],
+):
+    """Import members in batch (JSON). Validates company_id, scheme_id, card_no uniqueness. Max 500 per request. Requires X-Tenant-ID."""
+    items = [
+        MemberCreate(
+            company_id=r.company_id,
+            scheme_id=r.scheme_id,
+            card_no=r.card_no,
+            name=r.name,
+            dob=r.dob,
+            status=r.status,
+        )
+        for r in body.members
+    ]
+    created, failed, errors = await import_svc.import_members(items)
+    return MemberImportResponse(
+        created=created,
+        failed=failed,
+        errors=[MemberImportErrorItem(row=r, message=m) for r, m in errors],
+    )
 
 
 @router.get("", response_model=list[MemberListItem])

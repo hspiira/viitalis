@@ -44,6 +44,17 @@ def make_catalog_repo(model_class: type[_CatalogModel]):
             row = r.scalar_one_or_none()
             return to_result(row) if row else None
 
+        async def exists_by_code(self, code: str) -> bool:
+            if not code or not code.strip():
+                return False
+            r = await self._db.execute(
+                select(self._model.id).where(
+                    self._model.tenant_id == self._tenant_id,
+                    self._model.code == code.strip(),
+                ).limit(1)
+            )
+            return r.scalar_one_or_none() is not None
+
         async def list_by_tenant(
             self, skip: int = 0, limit: int = 100
         ) -> list[CatalogItemResult]:

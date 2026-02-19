@@ -25,6 +25,10 @@ from app.infrastructure.persistence.models.bank_branch import BankBranch
 from app.infrastructure.persistence.models.benefit import Benefit
 from app.infrastructure.persistence.models.benefit_linkage import BenefitLinkage
 from app.infrastructure.persistence.models.billing_session import BillingSession
+from app.infrastructure.persistence.models.card_replacement import CardReplacement
+from app.infrastructure.persistence.models.card_replacement_reason import (
+    CardReplacementReason,
+)
 from app.infrastructure.persistence.models.company import Company
 from app.infrastructure.persistence.models.company_branch import CompanyBranch
 from app.infrastructure.persistence.models.company_group import CompanyGroup
@@ -66,6 +70,8 @@ __all__ = [
     "Benefit",
     "BenefitLinkage",
     "BillingSession",
+    "CardReplacement",
+    "CardReplacementReason",
     "Claim",
     "ClaimDetail",
     "ClaimPayment",

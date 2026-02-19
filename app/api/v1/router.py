@@ -8,6 +8,8 @@ from app.api.v1.endpoints import (
     auth,
     bank_branches,
     banks,
+    card_replacement_reasons,
+    card_replacements,
     benefits,
     billing_sessions,
     catalogs,
@@ -40,6 +42,16 @@ api_router.include_router(health.router, prefix="/health", tags=["health"])
 api_router.include_router(tenants.router, prefix="/tenants", tags=["tenants"])
 api_router.include_router(companies.router, prefix="/companies", tags=["companies"])
 api_router.include_router(banks.router, prefix="/banks", tags=["banks"])
+api_router.include_router(
+    card_replacement_reasons.router,
+    prefix="/card-replacement-reasons",
+    tags=["card-replacement-reasons"],
+)
+api_router.include_router(
+    card_replacements.router,
+    prefix="/card-replacements",
+    tags=["card-replacements"],
+)
 api_router.include_router(
     bank_branches.router,
     prefix="/banks/{bank_id}/branches",

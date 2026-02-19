@@ -17,8 +17,13 @@ from app.application.use_cases.bank_account_details import BankAccountDetailServ
 from app.application.use_cases.bank_branches import BankBranchService
 from app.application.use_cases.banks import BankService
 from app.application.use_cases.benefit_linkages import BenefitLinkageService
+from app.application.use_cases.card_replacement_reasons import (
+    CardReplacementReasonService,
+)
+from app.application.use_cases.card_replacements import CardReplacementService
 from app.application.use_cases.benefits import BenefitService
 from app.application.use_cases.billing_sessions import BillingSessionService
+from app.application.use_cases.catalog_upload import CatalogUploadService
 from app.application.use_cases.catalogs import CatalogService
 from app.application.use_cases.claim_payments import ClaimPaymentService
 from app.application.use_cases.claims import ClaimService
@@ -29,6 +34,7 @@ from app.application.use_cases.company_types import CompanyTypeService
 from app.application.use_cases.departments import DepartmentService
 from app.application.use_cases.doctors import DoctorService
 from app.application.use_cases.financial_periods import FinancialPeriodService
+from app.application.use_cases.import_members import ImportMembersService
 from app.application.use_cases.insurance_types import InsuranceTypeService
 from app.application.use_cases.medical_conditions import MedicalConditionService
 from app.application.use_cases.hospital_pricing import HospitalPricingService
@@ -71,6 +77,12 @@ from app.infrastructure.persistence.repositories.bank_branch_repo import (
     BankBranchRepository,
 )
 from app.infrastructure.persistence.repositories.bank_repo import BankRepository
+from app.infrastructure.persistence.repositories.card_replacement_reason_repo import (
+    CardReplacementReasonRepository,
+)
+from app.infrastructure.persistence.repositories.card_replacement_repo import (
+    CardReplacementRepository,
+)
 from app.infrastructure.persistence.repositories.benefit_linkage_repo import (
     BenefitLinkageRepository,
 )
@@ -281,6 +293,18 @@ async def get_member_service(
     return MemberService(repo)
 
 
+async def get_import_members_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> ImportMembersService:
+    """Import members service (batch). Requires X-Tenant-ID."""
+    return ImportMembersService(
+        MemberRepository(db, tenant_id),
+        CompanyRepository(db, tenant_id),
+        SchemeRepository(db, tenant_id),
+    )
+
+
 async def get_member_dependant_service(
     db: GetDbTransactional,
     tenant_id: Annotated[str, Depends(get_tenant_id)],
@@ -349,6 +373,13 @@ async def get_medicine_service(
     return CatalogService(MedicineRepository(db, tenant_id))
 
 
+async def get_medicine_upload_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> CatalogUploadService:
+    return CatalogUploadService(MedicineRepository(db, tenant_id))
+
+
 async def get_services_service(
     db: GetDbTransactional,
     tenant_id: Annotated[str, Depends(get_tenant_id)],
@@ -398,6 +429,25 @@ async def get_benefit_linkage_service(
     return BenefitLinkageService(
         BenefitLinkageRepository(db, tenant_id),
         BenefitRepository(db, tenant_id),
+    )
+
+
+async def get_card_replacement_reason_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> CardReplacementReasonService:
+    return CardReplacementReasonService(
+        CardReplacementReasonRepository(db, tenant_id),
+    )
+
+
+async def get_card_replacement_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> CardReplacementService:
+    return CardReplacementService(
+        CardReplacementRepository(db, tenant_id),
+        CardReplacementReasonRepository(db, tenant_id),
     )
 
 
@@ -500,6 +550,8 @@ __all__ = [
     "get_company_branch_service",
     "get_company_group_service",
     "get_company_service",
+    "get_card_replacement_reason_service",
+    "get_card_replacement_service",
     "get_company_type_service",
     "get_department_service",
     "get_financial_period_service",
@@ -512,8 +564,10 @@ __all__ = [
     "get_hospital_branch_service",
     "get_hospital_pricing_service",
     "get_hospital_service",
+    "get_import_members_service",
     "get_lab_service",
     "get_medicine_service",
+    "get_medicine_upload_service",
     "get_member_dependant_service",
     "get_member_service",
     "get_plan_service",
