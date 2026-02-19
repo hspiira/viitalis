@@ -8,5 +8,32 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Frontend (Node / Vite / TanStack Start)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/.output/
+frontend/.vinxi/
+frontend/.turbo/
+frontend/.tanstack/
+# Literal '#' dir (escape # so it's not treated as comment)
+frontend/\#/
+.env
+.env.local
+.env.*.local
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.tsbuildinfo
+coverage/
+.cache/
+
+# OS / IDE
+.DS_Store
+
+# Project-specific
 /Nmicros.hms/
 /docs/
