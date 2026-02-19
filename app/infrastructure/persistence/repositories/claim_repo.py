@@ -32,6 +32,7 @@ def _claim_to_result(c: Claim) -> ClaimResult:
         approved_at=c.approved_at,
         approved_by=c.approved_by,
         approval_comments=c.approval_comments,
+        billing_session_id=c.billing_session_id,
     )
 
 
@@ -127,6 +128,7 @@ class ClaimRepository:
             total_amount=total if data.total_amount is None else data.total_amount,
             status=data.status,
             invoice_number=data.invoice_number,
+            billing_session_id=data.billing_session_id,
         )
         self.db.add(claim)
         await self.db.flush()

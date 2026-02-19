@@ -12,6 +12,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.application.dtos.user import UserResult
 from app.application.use_cases.auth import AuthService
+from app.application.use_cases.benefit_linkages import BenefitLinkageService
+from app.application.use_cases.benefits import BenefitService
+from app.application.use_cases.billing_sessions import BillingSessionService
 from app.application.use_cases.catalogs import CatalogService
 from app.application.use_cases.claim_payments import ClaimPaymentService
 from app.application.use_cases.claims import ClaimService
@@ -31,6 +34,15 @@ from app.core.tenant_validation import is_valid_tenant_id_format
 from app.infrastructure.persistence.database import get_db, get_db_transactional
 from app.infrastructure.persistence.repositories.app_user_repo import (
     AppUserRepository,
+)
+from app.infrastructure.persistence.repositories.benefit_linkage_repo import (
+    BenefitLinkageRepository,
+)
+from app.infrastructure.persistence.repositories.benefit_repo import (
+    BenefitRepository,
+)
+from app.infrastructure.persistence.repositories.billing_session_repo import (
+    BillingSessionRepository,
 )
 from app.infrastructure.persistence.repositories.claim_payment_repo import (
     ClaimPaymentRepository,
@@ -280,10 +292,37 @@ async def get_reimbursement_service(
     return ReimbursementService(ReimbursementRepository(db, tenant_id))
 
 
+async def get_billing_session_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> BillingSessionService:
+    return BillingSessionService(BillingSessionRepository(db, tenant_id))
+
+
+async def get_benefit_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> BenefitService:
+    return BenefitService(BenefitRepository(db, tenant_id))
+
+
+async def get_benefit_linkage_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> BenefitLinkageService:
+    return BenefitLinkageService(
+        BenefitLinkageRepository(db, tenant_id),
+        BenefitRepository(db, tenant_id),
+    )
+
+
 __all__ = [
     "GetDb",
     "GetDbTransactional",
     "get_auth_service",
+    "get_benefit_linkage_service",
+    "get_benefit_service",
+    "get_billing_session_service",
     "get_claim_payment_service",
     "get_current_user",
     "get_claim_service",

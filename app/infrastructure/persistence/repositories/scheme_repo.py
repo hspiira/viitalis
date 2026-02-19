@@ -3,6 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.application.dtos.benefit import SchemeBenefitCreate, SchemeBenefitResult, SchemeBenefitUpdate
 from app.application.dtos.scheme import (
     SchemeCreate,
     SchemePlanResult,
@@ -10,6 +11,7 @@ from app.application.dtos.scheme import (
     SchemeUpdate,
 )
 from app.infrastructure.persistence.models.scheme import Scheme
+from app.infrastructure.persistence.models.scheme_benefit import SchemeBenefit
 from app.infrastructure.persistence.models.scheme_plan import SchemePlan
 
 
@@ -139,4 +141,129 @@ class SchemeRepository:
             tenant_id=sp.tenant_id,
             scheme_id=sp.scheme_id,
             plan_id=sp.plan_id,
+        )
+
+    async def list_scheme_benefits(
+        self, scheme_id: str, skip: int = 0, limit: int = 100
+    ) -> list[SchemeBenefitResult]:
+        r = await self.db.execute(
+            select(SchemeBenefit)
+            .where(
+                SchemeBenefit.tenant_id == self.tenant_id,
+                SchemeBenefit.scheme_id == scheme_id,
+            )
+            .offset(skip)
+            .limit(limit)
+            .order_by(SchemeBenefit.benefit_id)
+        )
+        return [
+            SchemeBenefitResult(
+                id=sb.id,
+                tenant_id=sb.tenant_id,
+                scheme_id=sb.scheme_id,
+                benefit_id=sb.benefit_id,
+                limit_amount=sb.limit_amount,
+                copayment_percent=sb.copayment_percent,
+                waiting_period_days=sb.waiting_period_days,
+                status=sb.status,
+                termination_date=sb.termination_date,
+            )
+            for sb in r.scalars().all()
+        ]
+
+    async def exists_scheme_benefit(self, scheme_id: str, benefit_id: str) -> bool:
+        r = await self.db.execute(
+            select(SchemeBenefit.id).where(
+                SchemeBenefit.tenant_id == self.tenant_id,
+                SchemeBenefit.scheme_id == scheme_id,
+                SchemeBenefit.benefit_id == benefit_id,
+            ).limit(1)
+        )
+        return r.scalar_one_or_none() is not None
+
+    async def add_scheme_benefit(
+        self, scheme_id: str, data: SchemeBenefitCreate
+    ) -> SchemeBenefitResult:
+        sb = SchemeBenefit(
+            tenant_id=self.tenant_id,
+            scheme_id=scheme_id,
+            benefit_id=data.benefit_id,
+            limit_amount=data.limit_amount,
+            copayment_percent=data.copayment_percent,
+            waiting_period_days=data.waiting_period_days,
+            status=data.status,
+        )
+        self.db.add(sb)
+        await self.db.flush()
+        await self.db.refresh(sb)
+        return SchemeBenefitResult(
+            id=sb.id,
+            tenant_id=sb.tenant_id,
+            scheme_id=sb.scheme_id,
+            benefit_id=sb.benefit_id,
+            limit_amount=sb.limit_amount,
+            copayment_percent=sb.copayment_percent,
+            waiting_period_days=sb.waiting_period_days,
+            status=sb.status,
+            termination_date=sb.termination_date,
+        )
+
+    async def get_scheme_benefit_by_id(
+        self, scheme_benefit_id: str
+    ) -> SchemeBenefitResult | None:
+        r = await self.db.execute(
+            select(SchemeBenefit).where(
+                SchemeBenefit.id == scheme_benefit_id,
+                SchemeBenefit.tenant_id == self.tenant_id,
+            )
+        )
+        sb = r.scalar_one_or_none()
+        if not sb:
+            return None
+        return SchemeBenefitResult(
+            id=sb.id,
+            tenant_id=sb.tenant_id,
+            scheme_id=sb.scheme_id,
+            benefit_id=sb.benefit_id,
+            limit_amount=sb.limit_amount,
+            copayment_percent=sb.copayment_percent,
+            waiting_period_days=sb.waiting_period_days,
+            status=sb.status,
+            termination_date=sb.termination_date,
+        )
+
+    async def update_scheme_benefit(
+        self, scheme_benefit_id: str, data: SchemeBenefitUpdate
+    ) -> SchemeBenefitResult | None:
+        r = await self.db.execute(
+            select(SchemeBenefit).where(
+                SchemeBenefit.id == scheme_benefit_id,
+                SchemeBenefit.tenant_id == self.tenant_id,
+            )
+        )
+        sb = r.scalar_one_or_none()
+        if not sb:
+            return None
+        if data.limit_amount is not None:
+            sb.limit_amount = data.limit_amount
+        if data.copayment_percent is not None:
+            sb.copayment_percent = data.copayment_percent
+        if data.waiting_period_days is not None:
+            sb.waiting_period_days = data.waiting_period_days
+        if data.status is not None:
+            sb.status = data.status
+        if data.termination_date is not None:
+            sb.termination_date = data.termination_date
+        await self.db.flush()
+        await self.db.refresh(sb)
+        return SchemeBenefitResult(
+            id=sb.id,
+            tenant_id=sb.tenant_id,
+            scheme_id=sb.scheme_id,
+            benefit_id=sb.benefit_id,
+            limit_amount=sb.limit_amount,
+            copayment_percent=sb.copayment_percent,
+            waiting_period_days=sb.waiting_period_days,
+            status=sb.status,
+            termination_date=sb.termination_date,
         )

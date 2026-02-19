@@ -4,6 +4,8 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     auth,
+    benefits,
+    billing_sessions,
     catalogs,
     claim_payments,
     claims,
@@ -31,6 +33,7 @@ api_router.include_router(
     tags=["company-branches"],
 )
 api_router.include_router(schemes.router, prefix="/schemes", tags=["schemes"])
+api_router.include_router(benefits.router, prefix="/benefits", tags=["benefits"])
 api_router.include_router(plans.router, prefix="/plans", tags=["plans"])
 api_router.include_router(members.router, prefix="/members", tags=["members"])
 api_router.include_router(
@@ -41,6 +44,9 @@ api_router.include_router(
 api_router.include_router(claims.router, prefix="/claims", tags=["claims"])
 api_router.include_router(
     claim_payments.router, prefix="/claim-payments", tags=["claim-payments"]
+)
+api_router.include_router(
+    billing_sessions.router, prefix="/billing-sessions", tags=["billing-sessions"]
 )
 api_router.include_router(hospitals.router, prefix="/hospitals", tags=["hospitals"])
 api_router.include_router(doctors.router, prefix="/doctors", tags=["doctors"])

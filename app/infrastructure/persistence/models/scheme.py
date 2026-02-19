@@ -29,3 +29,6 @@ class Scheme(MultiTenantModel, Base):
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="active")
 
     scheme_plans = relationship("SchemePlan", back_populates="scheme", cascade="all, delete-orphan")
+    scheme_benefits = relationship(
+        "SchemeBenefit", back_populates="scheme", cascade="all, delete-orphan"
+    )

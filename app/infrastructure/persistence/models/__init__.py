@@ -12,6 +12,9 @@ from app.infrastructure.persistence.models.claim import Claim
 from app.infrastructure.persistence.models.claim_detail import ClaimDetail
 from app.infrastructure.persistence.models.claim_payment import ClaimPayment
 from app.infrastructure.persistence.models.app_user import AppUser
+from app.infrastructure.persistence.models.benefit import Benefit
+from app.infrastructure.persistence.models.benefit_linkage import BenefitLinkage
+from app.infrastructure.persistence.models.billing_session import BillingSession
 from app.infrastructure.persistence.models.company import Company
 from app.infrastructure.persistence.models.company_branch import CompanyBranch
 from app.infrastructure.persistence.models.diagnosis import Diagnosis
@@ -28,6 +31,7 @@ from app.infrastructure.persistence.models.member_dependant import MemberDependa
 from app.infrastructure.persistence.models.plan import Plan
 from app.infrastructure.persistence.models.reimbursement import Reimbursement
 from app.infrastructure.persistence.models.scheme import Scheme
+from app.infrastructure.persistence.models.scheme_benefit import SchemeBenefit
 from app.infrastructure.persistence.models.scheme_plan import SchemePlan
 from app.infrastructure.persistence.models.service_maintenance import ServiceMaintenance
 from app.infrastructure.persistence.models.tenant import Tenant
@@ -35,6 +39,9 @@ from app.infrastructure.persistence.models.tenant import Tenant
 __all__ = [
     "AppUser",
     "Base",
+    "Benefit",
+    "BenefitLinkage",
+    "BillingSession",
     "Claim",
     "ClaimDetail",
     "ClaimPayment",
@@ -55,6 +62,7 @@ __all__ = [
     "Plan",
     "Reimbursement",
     "Scheme",
+    "SchemeBenefit",
     "SchemePlan",
     "ServiceMaintenance",
     "MultiTenantModel",

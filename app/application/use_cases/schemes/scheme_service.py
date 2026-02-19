@@ -1,9 +1,15 @@
-"""Scheme service: create, get, list, update, add_plan_to_scheme. Tenant-scoped."""
+"""Scheme service: create, get, list, update, add_plan_to_scheme, scheme_benefits. Tenant-scoped."""
 
 from __future__ import annotations
 
+from datetime import date
 from typing import TYPE_CHECKING
 
+from app.application.dtos.benefit import (
+    SchemeBenefitCreate,
+    SchemeBenefitResult,
+    SchemeBenefitUpdate,
+)
 from app.application.dtos.scheme import (
     SchemeCreate,
     SchemePlanResult,
@@ -66,3 +72,45 @@ class SchemeService:
                 field="plan_id",
             )
         return await self.scheme_repo.add_scheme_plan(scheme_id, plan_id)
+
+    async def list_scheme_benefits(
+        self, scheme_id: str, skip: int = 0, limit: int = 100
+    ) -> list[SchemeBenefitResult]:
+        await self.get_by_id(scheme_id)
+        return await self.scheme_repo.list_scheme_benefits(
+            scheme_id, skip=skip, limit=limit
+        )
+
+    async def add_benefit_to_scheme(
+        self, scheme_id: str, data: SchemeBenefitCreate
+    ) -> SchemeBenefitResult:
+        await self.get_by_id(scheme_id)
+        if await self.scheme_repo.exists_scheme_benefit(scheme_id, data.benefit_id):
+            raise ValidationException(
+                "This benefit is already linked to this scheme",
+                field="benefit_id",
+            )
+        return await self.scheme_repo.add_scheme_benefit(scheme_id, data)
+
+    async def get_scheme_benefit(
+        self, scheme_benefit_id: str
+    ) -> SchemeBenefitResult:
+        sb = await self.scheme_repo.get_scheme_benefit_by_id(scheme_benefit_id)
+        if not sb:
+            raise ResourceNotFoundException("Scheme benefit not found")
+        return sb
+
+    async def terminate_scheme_benefit(
+        self, scheme_benefit_id: str, termination_date: date | None = None
+    ) -> SchemeBenefitResult:
+        await self.get_scheme_benefit(scheme_benefit_id)
+        updated = await self.scheme_repo.update_scheme_benefit(
+            scheme_benefit_id,
+            SchemeBenefitUpdate(
+                status="terminated",
+                termination_date=termination_date or date.today(),
+            ),
+        )
+        if not updated:
+            raise ResourceNotFoundException("Scheme benefit not found")
+        return updated

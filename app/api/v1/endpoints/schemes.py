@@ -2,11 +2,17 @@
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Body, Depends, Query
 
 from app.api.v1.dependencies import get_scheme_service
 from app.application.dtos.scheme import SchemeCreate, SchemeUpdate
 from app.application.use_cases.schemes import SchemeService
+from app.application.dtos.benefit import SchemeBenefitCreate
+from app.schemas.benefit import (
+    SchemeBenefitAddRequest,
+    SchemeBenefitResponse,
+    TerminateSchemeBenefitRequest,
+)
 from app.schemas.scheme import (
     SchemeCreateRequest,
     SchemeListItem,
@@ -126,3 +132,89 @@ async def add_plan_to_scheme(
         scheme_id=result.scheme_id,
         plan_id=result.plan_id,
     )
+
+
+# --- Scheme benefits ---
+
+
+def _scheme_benefit_to_response(r) -> SchemeBenefitResponse:
+    return SchemeBenefitResponse(
+        id=r.id,
+        tenant_id=r.tenant_id,
+        scheme_id=r.scheme_id,
+        benefit_id=r.benefit_id,
+        limit_amount=r.limit_amount,
+        copayment_percent=r.copayment_percent,
+        waiting_period_days=r.waiting_period_days,
+        status=r.status,
+        termination_date=r.termination_date,
+    )
+
+
+@router.get("/{scheme_id}/benefits", response_model=list[SchemeBenefitResponse])
+async def list_scheme_benefits(
+    scheme_id: str,
+    scheme_svc: Annotated[SchemeService, Depends(get_scheme_service)],
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+):
+    """List benefits linked to a scheme. Requires X-Tenant-ID."""
+    items = await scheme_svc.list_scheme_benefits(
+        scheme_id, skip=skip, limit=limit
+    )
+    return [_scheme_benefit_to_response(sb) for sb in items]
+
+
+@router.post(
+    "/{scheme_id}/benefits",
+    response_model=SchemeBenefitResponse,
+    status_code=201,
+)
+async def add_benefit_to_scheme(
+    scheme_id: str,
+    body: SchemeBenefitAddRequest,
+    scheme_svc: Annotated[SchemeService, Depends(get_scheme_service)],
+):
+    """Link a benefit to a scheme. Fails if already linked. Requires X-Tenant-ID."""
+    data = SchemeBenefitCreate(
+        scheme_id=scheme_id,
+        benefit_id=body.benefit_id,
+        limit_amount=body.limit_amount,
+        copayment_percent=body.copayment_percent,
+        waiting_period_days=body.waiting_period_days,
+        status=body.status,
+    )
+    result = await scheme_svc.add_benefit_to_scheme(scheme_id, data)
+    return _scheme_benefit_to_response(result)
+
+
+@router.get(
+    "/{scheme_id}/benefits/{scheme_benefit_id}",
+    response_model=SchemeBenefitResponse,
+)
+async def get_scheme_benefit(
+    scheme_id: str,
+    scheme_benefit_id: str,
+    scheme_svc: Annotated[SchemeService, Depends(get_scheme_service)],
+):
+    """Get a scheme-benefit link by ID. Requires X-Tenant-ID."""
+    sb = await scheme_svc.get_scheme_benefit(scheme_benefit_id)
+    return _scheme_benefit_to_response(sb)
+
+
+@router.post(
+    "/{scheme_id}/benefits/{scheme_benefit_id}/terminate",
+    response_model=SchemeBenefitResponse,
+)
+async def terminate_scheme_benefit(
+    scheme_id: str,
+    scheme_benefit_id: str,
+    scheme_svc: Annotated[SchemeService, Depends(get_scheme_service)],
+    body: TerminateSchemeBenefitRequest | None = Body(None),
+):
+    """Terminate a scheme-benefit (set status=terminated, optional termination_date). Requires X-Tenant-ID."""
+    termination_date = body.termination_date if body is not None else None
+    result = await scheme_svc.terminate_scheme_benefit(
+        scheme_benefit_id, termination_date=termination_date
+    )
+    return _scheme_benefit_to_response(result)

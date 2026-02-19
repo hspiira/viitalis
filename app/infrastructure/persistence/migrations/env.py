@@ -9,6 +9,9 @@ from app.core.config import get_settings
 from app.infrastructure.persistence.database import Base
 from app.infrastructure.persistence.models import (  # noqa: F401 - register models
     AppUser,
+    Benefit,
+    BenefitLinkage,
+    BillingSession,
     Claim,
     ClaimDetail,
     ClaimPayment,
@@ -27,6 +30,7 @@ from app.infrastructure.persistence.models import (  # noqa: F401 - register mod
     MemberDependant,
     Plan,
     Scheme,
+    SchemeBenefit,
     SchemePlan,
     ServiceMaintenance,
     Tenant,

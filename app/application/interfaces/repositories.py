@@ -23,6 +23,11 @@ from app.application.dtos.member_dependant import (
     MemberDependantUpdate,
 )
 from app.application.dtos.plan import PlanCreate, PlanResult, PlanUpdate
+from app.application.dtos.benefit import (
+    SchemeBenefitCreate,
+    SchemeBenefitResult,
+    SchemeBenefitUpdate,
+)
 from app.application.dtos.scheme import (
     SchemeCreate,
     SchemePlanResult,
@@ -133,6 +138,34 @@ class ISchemeRepository(Protocol):
         self, scheme_id: str, plan_id: str
     ) -> SchemePlanResult:
         """Link a plan to a scheme. Returns the created scheme_plan."""
+        ...
+
+    async def list_scheme_benefits(
+        self, scheme_id: str, skip: int = 0, limit: int = 100
+    ) -> list[SchemeBenefitResult]:
+        """Return scheme_benefits for a scheme."""
+        ...
+
+    async def exists_scheme_benefit(self, scheme_id: str, benefit_id: str) -> bool:
+        """True if this (scheme_id, benefit_id) link already exists."""
+        ...
+
+    async def add_scheme_benefit(
+        self, scheme_id: str, data: SchemeBenefitCreate
+    ) -> SchemeBenefitResult:
+        """Link a benefit to a scheme. Returns the created scheme_benefit."""
+        ...
+
+    async def get_scheme_benefit_by_id(
+        self, scheme_benefit_id: str
+    ) -> SchemeBenefitResult | None:
+        """Return scheme_benefit by ID."""
+        ...
+
+    async def update_scheme_benefit(
+        self, scheme_benefit_id: str, data: SchemeBenefitUpdate
+    ) -> SchemeBenefitResult | None:
+        """Update scheme_benefit (e.g. terminate). Returns updated or None."""
         ...
 
 

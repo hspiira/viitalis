@@ -36,6 +36,7 @@ async def create_claim(
         total_amount=body.total_amount,
         status=body.status,
         invoice_number=body.invoice_number,
+        billing_session_id=body.billing_session_id,
     )
     details = [
         ClaimDetailCreate(
@@ -64,6 +65,7 @@ async def create_claim(
         approved_at=created.approved_at,
         approved_by=created.approved_by,
         approval_comments=created.approval_comments,
+        billing_session_id=created.billing_session_id,
     )
 
 
@@ -99,9 +101,10 @@ async def list_claims(
             total_amount=c.total_amount,
             status=c.status,
             invoice_number=c.invoice_number,
-        approved_at=c.approved_at,
-        approved_by=c.approved_by,
-        approval_comments=c.approval_comments,
+            approved_at=c.approved_at,
+            approved_by=c.approved_by,
+            approval_comments=c.approval_comments,
+            billing_session_id=c.billing_session_id,
         )
         for c in items
     ]
@@ -141,6 +144,7 @@ async def get_claim(
         approved_at=c.approved_at,
         approved_by=c.approved_by,
         approval_comments=c.approval_comments,
+        billing_session_id=c.billing_session_id,
     )
 
 
@@ -213,6 +217,7 @@ async def update_claim(
         approved_at=updated.approved_at,
         approved_by=updated.approved_by,
         approval_comments=updated.approval_comments,
+        billing_session_id=updated.billing_session_id,
     )
 
 
@@ -242,4 +247,5 @@ async def update_claim_approval(
         approved_at=updated.approved_at,
         approved_by=updated.approved_by,
         approval_comments=updated.approval_comments,
+        billing_session_id=updated.billing_session_id,
     )

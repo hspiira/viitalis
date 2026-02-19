@@ -25,6 +25,7 @@ class ClaimCreateRequest(BaseModel):
     total_amount: Decimal | None = None
     status: str = Field(default="draft", max_length=32)
     invoice_number: str | None = Field(None, max_length=64)
+    billing_session_id: str | None = Field(None, max_length=64)
     details: list[ClaimDetailCreateRequest] = Field(default_factory=list)
 
 
@@ -49,6 +50,7 @@ class ClaimResponse(BaseModel):
     approved_at: datetime | None = None
     approved_by: str | None = None
     approval_comments: str | None = None
+    billing_session_id: str | None = None
 
 
 class ClaimApprovalRequest(BaseModel):

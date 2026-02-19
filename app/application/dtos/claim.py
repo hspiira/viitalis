@@ -20,6 +20,7 @@ class ClaimResult:
     approved_at: datetime | None
     approved_by: str | None
     approval_comments: str | None
+    billing_session_id: str | None = None
 
 
 @dataclass
@@ -32,6 +33,7 @@ class ClaimCreate:
     total_amount: Decimal | None = None
     status: str = "draft"
     invoice_number: str | None = None
+    billing_session_id: str | None = None
 
 
 @dataclass

@@ -32,7 +32,16 @@ class Claim(MultiTenantModel, Base):
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     approved_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
     approval_comments: Mapped[str | None] = mapped_column(Text, nullable=True)
+    billing_session_id: Mapped[str | None] = mapped_column(
+        String(64),
+        ForeignKey("billing_session.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
 
     details = relationship(
         "ClaimDetail", back_populates="claim", cascade="all, delete-orphan"
+    )
+    billing_session = relationship(
+        "BillingSession", back_populates="claims", foreign_keys=[billing_session_id]
     )
