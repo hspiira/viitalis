@@ -17,7 +17,13 @@ from app.infrastructure.persistence.models.benefit_linkage import BenefitLinkage
 from app.infrastructure.persistence.models.billing_session import BillingSession
 from app.infrastructure.persistence.models.company import Company
 from app.infrastructure.persistence.models.company_branch import CompanyBranch
+from app.infrastructure.persistence.models.company_group import CompanyGroup
+from app.infrastructure.persistence.models.company_type import CompanyType
+from app.infrastructure.persistence.models.department import Department
 from app.infrastructure.persistence.models.diagnosis import Diagnosis
+from app.infrastructure.persistence.models.financial_period import FinancialPeriod
+from app.infrastructure.persistence.models.insurance_type import InsuranceType
+from app.infrastructure.persistence.models.medical_condition import MedicalCondition
 from app.infrastructure.persistence.models.doctor import Doctor
 from app.infrastructure.persistence.models.hospital import Hospital
 from app.infrastructure.persistence.models.hospital_branch import HospitalBranch
@@ -47,6 +53,12 @@ __all__ = [
     "ClaimPayment",
     "Company",
     "CompanyBranch",
+    "CompanyGroup",
+    "CompanyType",
+    "Department",
+    "FinancialPeriod",
+    "InsuranceType",
+    "MedicalCondition",
     "CuidMixin",
     "Diagnosis",
     "Doctor",

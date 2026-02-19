@@ -20,7 +20,13 @@ from app.application.use_cases.claim_payments import ClaimPaymentService
 from app.application.use_cases.claims import ClaimService
 from app.application.use_cases.company_branches import CompanyBranchService
 from app.application.use_cases.companies import CompanyService
+from app.application.use_cases.company_groups import CompanyGroupService
+from app.application.use_cases.company_types import CompanyTypeService
+from app.application.use_cases.departments import DepartmentService
 from app.application.use_cases.doctors import DoctorService
+from app.application.use_cases.financial_periods import FinancialPeriodService
+from app.application.use_cases.insurance_types import InsuranceTypeService
+from app.application.use_cases.medical_conditions import MedicalConditionService
 from app.application.use_cases.hospital_pricing import HospitalPricingService
 from app.application.use_cases.hospitals import HospitalBranchService, HospitalService
 from app.application.use_cases.member_dependants import MemberDependantService
@@ -55,21 +61,39 @@ from app.infrastructure.persistence.repositories.company_branch_repo import (
     CompanyBranchRepository,
 )
 from app.infrastructure.persistence.repositories.company_repo import CompanyRepository
+from app.infrastructure.persistence.repositories.company_group_repo import (
+    CompanyGroupRepository,
+)
+from app.infrastructure.persistence.repositories.company_type_repo import (
+    CompanyTypeRepository,
+)
 from app.infrastructure.persistence.repositories.catalog_repo import (
     DiagnosisRepository,
     LabRepository,
     MedicineRepository,
     ServiceMaintenanceRepository,
 )
+from app.infrastructure.persistence.repositories.department_repo import (
+    DepartmentRepository,
+)
 from app.infrastructure.persistence.repositories.doctor_repo import DoctorRepository
+from app.infrastructure.persistence.repositories.financial_period_repo import (
+    FinancialPeriodRepository,
+)
 from app.infrastructure.persistence.repositories.hospital_branch_repo import (
     HospitalBranchRepository,
 )
 from app.infrastructure.persistence.repositories.hospital_repo import HospitalRepository
+from app.infrastructure.persistence.repositories.insurance_type_repo import (
+    InsuranceTypeRepository,
+)
 from app.infrastructure.persistence.repositories.member_dependant_repo import (
     MemberDependantRepository,
 )
 from app.infrastructure.persistence.repositories.member_repo import MemberRepository
+from app.infrastructure.persistence.repositories.medical_condition_repo import (
+    MedicalConditionRepository,
+)
 from app.infrastructure.persistence.repositories.plan_repo import PlanRepository
 from app.infrastructure.persistence.repositories.reimbursement_repo import (
     ReimbursementRepository,
@@ -316,6 +340,48 @@ async def get_benefit_linkage_service(
     )
 
 
+async def get_company_type_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> CompanyTypeService:
+    return CompanyTypeService(CompanyTypeRepository(db, tenant_id))
+
+
+async def get_company_group_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> CompanyGroupService:
+    return CompanyGroupService(CompanyGroupRepository(db, tenant_id))
+
+
+async def get_department_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> DepartmentService:
+    return DepartmentService(DepartmentRepository(db, tenant_id))
+
+
+async def get_financial_period_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> FinancialPeriodService:
+    return FinancialPeriodService(FinancialPeriodRepository(db, tenant_id))
+
+
+async def get_insurance_type_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> InsuranceTypeService:
+    return InsuranceTypeService(InsuranceTypeRepository(db, tenant_id))
+
+
+async def get_medical_condition_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_tenant_id)],
+) -> MedicalConditionService:
+    return MedicalConditionService(MedicalConditionRepository(db, tenant_id))
+
+
 __all__ = [
     "GetDb",
     "GetDbTransactional",
@@ -327,7 +393,13 @@ __all__ = [
     "get_current_user",
     "get_claim_service",
     "get_company_branch_service",
+    "get_company_group_service",
     "get_company_service",
+    "get_company_type_service",
+    "get_department_service",
+    "get_financial_period_service",
+    "get_insurance_type_service",
+    "get_medical_condition_service",
     "get_db",
     "get_db_transactional",
     "get_diagnosis_service",

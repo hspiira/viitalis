@@ -11,9 +11,15 @@ from app.api.v1.endpoints import (
     claims,
     companies,
     company_branches,
+    company_groups,
+    company_types,
+    departments,
     doctors,
+    financial_periods,
     health,
     hospitals,
+    insurance_types,
+    medical_conditions,
     member_dependants,
     members,
     plans,
@@ -31,6 +37,30 @@ api_router.include_router(
     company_branches.router,
     prefix="/companies/{company_id}/branches",
     tags=["company-branches"],
+)
+api_router.include_router(
+    company_groups.router, prefix="/company-groups", tags=["company-groups"]
+)
+api_router.include_router(
+    company_types.router, prefix="/company-types", tags=["company-types"]
+)
+api_router.include_router(
+    departments.router, prefix="/departments", tags=["departments"]
+)
+api_router.include_router(
+    financial_periods.router,
+    prefix="/financial-periods",
+    tags=["financial-periods"],
+)
+api_router.include_router(
+    insurance_types.router,
+    prefix="/insurance-types",
+    tags=["insurance-types"],
+)
+api_router.include_router(
+    medical_conditions.router,
+    prefix="/medical-conditions",
+    tags=["medical-conditions"],
 )
 api_router.include_router(schemes.router, prefix="/schemes", tags=["schemes"])
 api_router.include_router(benefits.router, prefix="/benefits", tags=["benefits"])
