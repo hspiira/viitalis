@@ -3,7 +3,7 @@
  * Use with apiGet, apiPost, apiPatch, etc. so requests are authenticated and tenant-scoped.
  */
 
-import { getStoredToken, getTenantId } from '#/lib/auth-store'
+import { getStoredToken, getTenantId } from '@/lib/auth-store'
 
 export interface ApiOpts {
   token: string | null

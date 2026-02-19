@@ -3,7 +3,7 @@
  * Persists token to localStorage; user is refreshed from GET /auth/me.
  */
 
-import { apiGet } from '#/lib/api-client'
+import { apiGet } from '@/lib/api-client'
 
 const STORAGE_KEY = 'vitalis-auth-token'
 
