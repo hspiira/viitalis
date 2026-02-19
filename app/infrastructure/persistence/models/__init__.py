@@ -8,13 +8,49 @@ from app.infrastructure.persistence.models.mixins import (
     TenantMixin,
     TimestampMixin,
 )
+from app.infrastructure.persistence.models.claim import Claim
+from app.infrastructure.persistence.models.claim_detail import ClaimDetail
+from app.infrastructure.persistence.models.claim_payment import ClaimPayment
+from app.infrastructure.persistence.models.app_user import AppUser
 from app.infrastructure.persistence.models.company import Company
+from app.infrastructure.persistence.models.company_branch import CompanyBranch
+from app.infrastructure.persistence.models.diagnosis import Diagnosis
+from app.infrastructure.persistence.models.doctor import Doctor
+from app.infrastructure.persistence.models.hospital import Hospital
+from app.infrastructure.persistence.models.hospital_branch import HospitalBranch
+from app.infrastructure.persistence.models.lab import Lab
+from app.infrastructure.persistence.models.medicine import Medicine
+from app.infrastructure.persistence.models.member import Member
+from app.infrastructure.persistence.models.member_dependant import MemberDependant
+from app.infrastructure.persistence.models.plan import Plan
+from app.infrastructure.persistence.models.reimbursement import Reimbursement
+from app.infrastructure.persistence.models.scheme import Scheme
+from app.infrastructure.persistence.models.scheme_plan import SchemePlan
+from app.infrastructure.persistence.models.service_maintenance import ServiceMaintenance
 from app.infrastructure.persistence.models.tenant import Tenant
 
 __all__ = [
+    "AppUser",
     "Base",
+    "Claim",
+    "ClaimDetail",
+    "ClaimPayment",
     "Company",
+    "CompanyBranch",
     "CuidMixin",
+    "Diagnosis",
+    "Doctor",
+    "Hospital",
+    "HospitalBranch",
+    "Lab",
+    "Medicine",
+    "Member",
+    "MemberDependant",
+    "Plan",
+    "Reimbursement",
+    "Scheme",
+    "SchemePlan",
+    "ServiceMaintenance",
     "MultiTenantModel",
     "SoftDeleteMixin",
     "Tenant",

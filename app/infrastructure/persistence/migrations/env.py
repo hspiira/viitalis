@@ -7,7 +7,27 @@ from alembic import context
 
 from app.core.config import get_settings
 from app.infrastructure.persistence.database import Base
-from app.infrastructure.persistence.models import Company, Tenant  # noqa: F401 - register models
+from app.infrastructure.persistence.models import (  # noqa: F401 - register models
+    AppUser,
+    Claim,
+    ClaimDetail,
+    ClaimPayment,
+    Company,
+    CompanyBranch,
+    Diagnosis,
+    Doctor,
+    Hospital,
+    HospitalBranch,
+    Lab,
+    Medicine,
+    Member,
+    MemberDependant,
+    Plan,
+    Scheme,
+    SchemePlan,
+    ServiceMaintenance,
+    Tenant,
+)
 
 config = context.config
 if config.config_file_name:
