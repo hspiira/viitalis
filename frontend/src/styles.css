@@ -48,6 +48,8 @@ code {
   --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #2d2d2d;
+  --chart-1: 160, 84%, 39%;
+  --chart-2: 173, 58%, 39%;
 }
 
 .dark {

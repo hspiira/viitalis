@@ -19,6 +19,7 @@ from app.domain.exceptions import ValidationException
 from app.infrastructure.persistence.repositories.app_user_log_repo import (
     AppUserLogRepository,
 )
+from app.core.rate_limit import limiter
 from app.schemas.auth import (
     LoginRequest,
     MeResponse,
@@ -31,6 +32,7 @@ router = APIRouter()
 
 
 @router.post("/login", response_model=TokenResponse)
+@limiter.limit("5/minute")
 async def login(
     request: Request,
     body: LoginRequest,

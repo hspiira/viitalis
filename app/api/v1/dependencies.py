@@ -213,6 +213,8 @@ async def get_current_user(
     tenant_id = payload.get("tenant_id")
     if not user_id or not tenant_id:
         raise HTTPException(status_code=401, detail="Invalid token payload")
+    if not isinstance(user_id, str) or not isinstance(tenant_id, str):
+        raise HTTPException(status_code=401, detail="Invalid token payload")
     user_repo = AppUserRepository(db, tenant_id=tenant_id)
     user = await user_repo.get_by_id(user_id)
     if not user:
@@ -243,6 +245,29 @@ async def get_tenant_id(
     return value
 
 
+async def get_authenticated_tenant_id(
+    request: Request,
+    current_user: Annotated[UserResult, Depends(get_current_user)],
+    tenant_repo: Annotated[TenantRepository, Depends(get_tenant_repo)],
+) -> str:
+    """Require JWT and ensure token tenant matches X-Tenant-ID. Returns tenant_id. Raises 400/403 if missing or mismatch."""
+    name = get_settings().tenant_header_name
+    value = request.headers.get(name)
+    if not value:
+        raise HTTPException(status_code=400, detail=f"Missing required header: {name}")
+    if not is_valid_tenant_id_format(value):
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid tenant ID format (alphanumeric, hyphen, underscore; max 64 characters)",
+        )
+    tenant = await tenant_repo.get_by_id(value)
+    if not tenant:
+        raise HTTPException(status_code=400, detail="Invalid or unknown tenant")
+    if current_user.tenant_id != value:
+        raise HTTPException(status_code=403, detail="Tenant does not match token")
+    return value
+
+
 async def get_tenant_service(db: GetDbTransactional) -> TenantService:
     """Tenant service for create/list/get (transactional session)."""
     repo = TenantRepository(db)
@@ -251,7 +276,7 @@ async def get_tenant_service(db: GetDbTransactional) -> TenantService:
 
 async def get_company_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CompanyService:
     """Company service (transactional, tenant-scoped). Requires X-Tenant-ID."""
     repo = CompanyRepository(db, tenant_id)
@@ -260,7 +285,7 @@ async def get_company_service(
 
 async def get_company_branch_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CompanyBranchService:
     """Company branch service (transactional, tenant-scoped). Requires X-Tenant-ID."""
     repo = CompanyBranchRepository(db, tenant_id)
@@ -269,7 +294,7 @@ async def get_company_branch_service(
 
 async def get_scheme_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> SchemeService:
     """Scheme service (transactional, tenant-scoped). Requires X-Tenant-ID."""
     repo = SchemeRepository(db, tenant_id)
@@ -278,7 +303,7 @@ async def get_scheme_service(
 
 async def get_plan_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> PlanService:
     """Plan service (transactional, tenant-scoped). Requires X-Tenant-ID."""
     repo = PlanRepository(db, tenant_id)
@@ -287,7 +312,7 @@ async def get_plan_service(
 
 async def get_member_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> MemberService:
     """Member service (transactional, tenant-scoped). Requires X-Tenant-ID."""
     repo = MemberRepository(db, tenant_id)
@@ -296,7 +321,7 @@ async def get_member_service(
 
 async def get_import_members_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> ImportMembersService:
     """Import members service (batch). Requires X-Tenant-ID."""
     return ImportMembersService(
@@ -308,7 +333,7 @@ async def get_import_members_service(
 
 async def get_member_dependant_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> MemberDependantService:
     """Member dependant service (transactional, tenant-scoped). Requires X-Tenant-ID."""
     return MemberDependantService(
@@ -319,7 +344,7 @@ async def get_member_dependant_service(
 
 async def get_claim_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> ClaimService:
     return ClaimService(
         ClaimRepository(db, tenant_id),
@@ -331,7 +356,7 @@ async def get_claim_service(
 
 async def get_claim_payment_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> ClaimPaymentService:
     return ClaimPaymentService(
         ClaimPaymentRepository(db, tenant_id),
@@ -341,42 +366,42 @@ async def get_claim_payment_service(
 
 async def get_hospital_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> HospitalService:
     return HospitalService(HospitalRepository(db, tenant_id))
 
 
 async def get_hospital_pricing_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> HospitalPricingService:
     return HospitalPricingService(HospitalPricingRepository(db, tenant_id))
 
 
 async def get_hospital_branch_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> HospitalBranchService:
     return HospitalBranchService(HospitalBranchRepository(db, tenant_id))
 
 
 async def get_doctor_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> DoctorService:
     return DoctorService(DoctorRepository(db, tenant_id))
 
 
 async def get_medicine_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CatalogService:
     return CatalogService(MedicineRepository(db, tenant_id))
 
 
 async def get_catalog_upload_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CatalogUploadService:
     """Catalog upload for medicines, services, and labs. Requires X-Tenant-ID."""
     return CatalogUploadService(
@@ -388,49 +413,49 @@ async def get_catalog_upload_service(
 
 async def get_services_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CatalogService:
     return CatalogService(ServiceMaintenanceRepository(db, tenant_id))
 
 
 async def get_lab_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CatalogService:
     return CatalogService(LabRepository(db, tenant_id))
 
 
 async def get_diagnosis_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CatalogService:
     return CatalogService(DiagnosisRepository(db, tenant_id))
 
 
 async def get_reimbursement_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> ReimbursementService:
     return ReimbursementService(ReimbursementRepository(db, tenant_id))
 
 
 async def get_billing_session_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> BillingSessionService:
     return BillingSessionService(BillingSessionRepository(db, tenant_id))
 
 
 async def get_benefit_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> BenefitService:
     return BenefitService(BenefitRepository(db, tenant_id))
 
 
 async def get_benefit_linkage_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> BenefitLinkageService:
     return BenefitLinkageService(
         BenefitLinkageRepository(db, tenant_id),
@@ -440,7 +465,7 @@ async def get_benefit_linkage_service(
 
 async def get_card_replacement_reason_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CardReplacementReasonService:
     return CardReplacementReasonService(
         CardReplacementReasonRepository(db, tenant_id),
@@ -449,7 +474,7 @@ async def get_card_replacement_reason_service(
 
 async def get_card_replacement_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CardReplacementService:
     return CardReplacementService(
         CardReplacementRepository(db, tenant_id),
@@ -461,7 +486,7 @@ async def get_card_replacement_service(
 
 async def get_report_repo(
     db: GetDb,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> ReportRepository:
     """Read-only report repository (tenant-scoped). Requires X-Tenant-ID."""
     return ReportRepository(db, tenant_id)
@@ -469,56 +494,56 @@ async def get_report_repo(
 
 async def get_company_type_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CompanyTypeService:
     return CompanyTypeService(CompanyTypeRepository(db, tenant_id))
 
 
 async def get_company_group_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CompanyGroupService:
     return CompanyGroupService(CompanyGroupRepository(db, tenant_id))
 
 
 async def get_department_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> DepartmentService:
     return DepartmentService(DepartmentRepository(db, tenant_id))
 
 
 async def get_financial_period_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> FinancialPeriodService:
     return FinancialPeriodService(FinancialPeriodRepository(db, tenant_id))
 
 
 async def get_insurance_type_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> InsuranceTypeService:
     return InsuranceTypeService(InsuranceTypeRepository(db, tenant_id))
 
 
 async def get_medical_condition_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> MedicalConditionService:
     return MedicalConditionService(MedicalConditionRepository(db, tenant_id))
 
 
 async def get_bank_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> BankService:
     return BankService(BankRepository(db, tenant_id))
 
 
 async def get_bank_branch_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> BankBranchService:
     return BankBranchService(
         BankBranchRepository(db, tenant_id),
@@ -528,14 +553,14 @@ async def get_bank_branch_service(
 
 async def get_account_detail_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> AccountDetailService:
     return AccountDetailService(AccountDetailRepository(db, tenant_id))
 
 
 async def get_bank_account_detail_service(
     db: GetDbTransactional,
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> BankAccountDetailService:
     return BankAccountDetailService(
         BankAccountDetailRepository(db, tenant_id),
@@ -548,6 +573,7 @@ __all__ = [
     "GetDb",
     "GetDbTransactional",
     "get_account_detail_service",
+    "get_authenticated_tenant_id",
     "get_app_module_service",
     "get_app_user_log_repo",
     "get_auth_service",

@@ -75,13 +75,18 @@ async def import_members(
     )
 
 
+MAX_IMPORT_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+
 @router.post("/import/file", response_model=MemberImportResponse)
 async def import_members_file(
     file: Annotated[UploadFile, File(description="CSV or Excel (.xlsx) with headers: company_id, scheme_id, card_no, name, dob, status")],
     import_svc: Annotated[ImportMembersService, Depends(get_import_members_service)],
 ):
-    """Import members from CSV or Excel. First row must be headers. Same validation as JSON import. Requires X-Tenant-ID."""
-    content = await file.read()
+    """Import members from CSV or Excel. First row must be headers. Same validation as JSON import. Requires X-Tenant-ID. Max file size 5 MB."""
+    content = await file.read(MAX_IMPORT_FILE_SIZE + 1)
+    if len(content) > MAX_IMPORT_FILE_SIZE:
+        raise HTTPException(status_code=413, detail="File too large (max 5 MB)")
     if not content:
         raise HTTPException(status_code=400, detail="Empty file")
     filename = (file.filename or "").lower()

@@ -60,16 +60,16 @@ target_metadata = Base.metadata
 
 
 def get_url() -> str:
-    """Database URL from settings. Use sync driver for migrations."""
+    """Database URL from settings. Use sync driver for migrations (psycopg2 for Postgres)."""
     try:
         url = get_settings().database_url.get_secret_value().strip()
     except Exception:
         url = ""
     if not url:
         return config.get_main_option("sqlalchemy.url", "sqlite:///alembic.db")
-    # Use sync driver for Alembic: asyncpg -> psycopg2 for Postgres
-    if "postgresql+asyncpg" in url:
-        url = url.replace("postgresql+asyncpg", "postgresql+psycopg2", 1)
+    # Alembic needs a sync driver; app uses asyncpg at runtime
+    if "://" in url and ("postgresql" in url or url.startswith("postgres://")):
+        url = "postgresql+psycopg2://" + url.split("://", 1)[1]
     return url
 
 

@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
-from app.api.v1.dependencies import get_tenant_id, get_user_log_service
+from app.api.v1.dependencies import get_authenticated_tenant_id, get_user_log_service
 from app.application.use_cases.user_logs import UserLogService
 from app.schemas.auth import UserLogResponse
 
@@ -13,7 +13,7 @@ router = APIRouter()
 
 @router.get("", response_model=list[UserLogResponse])
 async def list_user_logs(
-    tenant_id: Annotated[str, Depends(get_tenant_id)],
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
     svc: Annotated[UserLogService, Depends(get_user_log_service)],
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),

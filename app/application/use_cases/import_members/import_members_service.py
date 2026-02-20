@@ -1,12 +1,18 @@
 """Import members in batch. Validate company_id, scheme_id, card_no uniqueness."""
 
+import logging
+
+from sqlalchemy.exc import IntegrityError
+
 from app.application.dtos.member import MemberCreate, MemberResult
 from app.infrastructure.persistence.repositories.company_repo import CompanyRepository
 from app.infrastructure.persistence.repositories.member_repo import MemberRepository
 from app.infrastructure.persistence.repositories.scheme_repo import SchemeRepository
 
+logger = logging.getLogger(__name__)
 
 MAX_IMPORT_BATCH = 500
+GENERIC_ROW_ERROR = "Row failed validation or duplicate data"
 
 
 class ImportMembersService:
@@ -44,8 +50,15 @@ class ImportMembersService:
             try:
                 await self.member_repo.create(data)
                 created += 1
+            except IntegrityError:
+                logger.exception("Import member row %s: integrity error", i)
+                errors.append((i, GENERIC_ROW_ERROR))
+            except (ValueError, TypeError) as e:
+                logger.exception("Import member row %s: validation error", i)
+                errors.append((i, GENERIC_ROW_ERROR))
             except Exception as e:
-                errors.append((i, str(e)))
+                logger.exception("Import member row %s: unexpected error", i)
+                errors.append((i, GENERIC_ROW_ERROR))
         failed = len(errors)
         return (created, failed, errors)
 

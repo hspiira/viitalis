@@ -12,12 +12,51 @@ uv sync
 
 ## Configuration
 
-Create a `.env` (or set environment variables):
+Create a `.env` in the project root (or set environment variables):
 
 - `DATABASE_BACKEND` — `postgres` or `oracle`
 - `DATABASE_URL` — e.g. `postgresql+asyncpg://user:pass@localhost:5432/hms` or `oracle+oracledb://user:pass@host:1521/service_name`
 - `SECRET_KEY` — for JWT (default dev key used if unset)
 - `X-Tenant-ID` — header name for tenant (default: `X-Tenant-ID`)
+
+### PostgreSQL: create the database
+
+The app does not create the database for you; the database must exist before you run migrations.
+
+**Option A — command line (if `createdb` is in your PATH):**
+
+```bash
+createdb -U postgres hms
+```
+
+Use the same user and database name as in your `DATABASE_URL`.
+
+**Option B — psql:**
+
+```bash
+psql -U postgres -c "CREATE DATABASE hms;"
+```
+
+**Option C — another user:** If your local Postgres user is e.g. `myuser` with no password on `localhost:5432`:
+
+```bash
+createdb hms
+```
+
+Then in `.env`:
+
+```
+DATABASE_BACKEND=postgres
+DATABASE_URL=postgresql+asyncpg://myuser@localhost:5432/hms
+```
+
+After the database exists, run migrations from the project root:
+
+```bash
+uv run alembic upgrade head
+```
+
+Alembic will use the same `DATABASE_URL` (the env converts `asyncpg` to `psycopg2` for migrations automatically).
 
 ## Run
 

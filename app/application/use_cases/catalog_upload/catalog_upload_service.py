@@ -1,5 +1,9 @@
 """Bulk upload for catalog items (medicines, services, labs). Skip duplicates by code."""
 
+import logging
+
+from sqlalchemy.exc import IntegrityError
+
 from app.application.dtos.catalog import CatalogItemCreate
 from app.infrastructure.persistence.repositories.catalog_repo import (
     LabRepository,
@@ -7,8 +11,10 @@ from app.infrastructure.persistence.repositories.catalog_repo import (
     ServiceMaintenanceRepository,
 )
 
+logger = logging.getLogger(__name__)
 
 MAX_UPLOAD_BATCH = 500
+GENERIC_ROW_ERROR = "Row failed validation or duplicate data"
 
 
 async def _upload_catalog(
@@ -34,8 +40,15 @@ async def _upload_catalog(
         try:
             await repo.create(data)
             created += 1
-        except Exception as e:
-            errors.append((i, str(e)))
+        except IntegrityError:
+            logger.exception("Catalog upload row %s: integrity error", i)
+            errors.append((i, GENERIC_ROW_ERROR))
+        except (ValueError, TypeError):
+            logger.exception("Catalog upload row %s: validation error", i)
+            errors.append((i, GENERIC_ROW_ERROR))
+        except Exception:
+            logger.exception("Catalog upload row %s: unexpected error", i)
+            errors.append((i, GENERIC_ROW_ERROR))
     return (created, len(errors), errors)
 
 
