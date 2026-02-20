@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
@@ -31,6 +32,7 @@ import { Skeleton } from '#/components/ui/skeleton'
 import { FileText } from 'lucide-react'
 
 export const Route = createFileRoute('/claims')({
+  beforeLoad: () => requireAuthBeforeLoad('/claims'),
   component: ClaimsPage,
 })
 

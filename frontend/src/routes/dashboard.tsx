@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { format } from 'date-fns'
 import {
   Search,
@@ -39,6 +40,7 @@ import {
 import { ScrollArea } from '#/components/ui/scroll-area'
 
 export const Route = createFileRoute('/dashboard')({
+  beforeLoad: () => requireAuthBeforeLoad('/dashboard'),
   component: DashboardPage,
 })
 

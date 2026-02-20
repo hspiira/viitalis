@@ -1,7 +1,9 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useEffect } from 'react'
 import { ArrowRight, Star } from 'lucide-react'
 import { LandingLayout } from '#/components/landing/LandingLayout'
 import { Button } from '#/components/ui/button'
+import { useAuth } from '#/lib/auth-context'
 
 export const Route = createFileRoute('/')({
   component: LandingPage,
@@ -10,6 +12,19 @@ export const Route = createFileRoute('/')({
 const accentGreen = 'hsl(160, 84%, 39%)'
 
 function LandingPage() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (user) {
+      navigate({ to: '/dashboard' })
+    }
+  }, [user, navigate])
+
+  if (user) {
+    return null
+  }
+
   return (
     <LandingLayout>
       {/* Header */}
@@ -20,7 +35,7 @@ function LandingPage() {
         </Link>
         <Link
           to="/login"
-          search={{ tenant_code: '', username: '', redirect: undefined }}
+          search={{ redirect: undefined }}
           className="text-sm font-medium text-black/80 hover:text-black transition-colors"
         >
           Sign in

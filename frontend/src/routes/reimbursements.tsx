@@ -1,10 +1,12 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { apiGet, apiPost, getApiErrorDetail } from '#/lib/api-client'
 import { useApi } from '#/lib/use-api'
 
 export const Route = createFileRoute('/reimbursements')({
+  beforeLoad: () => requireAuthBeforeLoad('/reimbursements'),
   component: ReimbursementsPage,
 })
 

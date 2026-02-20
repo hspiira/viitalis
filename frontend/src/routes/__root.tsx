@@ -7,9 +7,9 @@ import {
   Scripts,
 } from '@tanstack/react-router'
 import AppLayout from '#/components/AppLayout'
-import { AuthGuard } from '#/components/AuthGuard'
 import { ErrorBoundary } from '#/components/ErrorBoundary'
 import { NotFound } from '#/components/NotFound'
+import { AuthProvider, useAuth } from '#/lib/auth-context'
 import '#/styles.css'
 
 export const Route = createRootRoute({
@@ -28,14 +28,35 @@ function RootComponent() {
   return (
     <RootDocument>
       <ErrorBoundary>
-        <AuthGuard>
-          <AppLayout>
-            <Outlet />
-          </AppLayout>
-        </AuthGuard>
+        <AuthProvider>
+          <RootWithAuth />
+        </AuthProvider>
       </ErrorBoundary>
     </RootDocument>
   )
+}
+
+/** Layout by auth state only (Timeline-style): when user is set show AppLayout, else just Outlet for login/register/landing. */
+function RootWithAuth() {
+  const { user, isLoading } = useAuth()
+
+  if (isLoading && !user) {
+    return (
+      <div className="min-h-screen bg-[var(--background)] flex items-center justify-center">
+        <p className="text-[var(--foreground-muted)]">Loading…</p>
+      </div>
+    )
+  }
+
+  if (user) {
+    return (
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
+    )
+  }
+
+  return <Outlet />
 }
 
 function RootDocument({ children }: { children: ReactNode }) {

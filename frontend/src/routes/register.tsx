@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { ArrowLeft, CheckCircle, Copy, Eye, EyeOff } from 'lucide-react'
 import { apiPost } from '#/lib/api-client'
+import { useRedirectIfAuthenticated } from '#/lib/hooks'
 import { AuthPageLayout } from '#/components/auth/AuthPageLayout'
 import { Button } from '#/components/ui/button'
 
@@ -29,6 +30,7 @@ export const Route = createFileRoute('/register')({
 
 function RegisterPage() {
   const navigate = useNavigate()
+  const isAuthenticated = useRedirectIfAuthenticated('/dashboard')
   const [tenantName, setTenantName] = useState('')
   const [tenantCode, setTenantCode] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -36,6 +38,10 @@ function RegisterPage() {
   const [created, setCreated] = useState<TenantCreateResponse | null>(null)
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [passwordCopied, setPasswordCopied] = useState(false)
+
+  if (isAuthenticated) {
+    return null
+  }
 
   const validateCode = (value: string): boolean => {
     if (value.length < 1 || value.length > 64) return false
@@ -90,7 +96,7 @@ function RegisterPage() {
     if (created) {
       navigate({
         to: '/login',
-        search: { tenant_code: created.tenant_code, username: created.admin_username },
+        state: { tenant_code: created.tenant_code, username: created.admin_username },
       })
     }
   }

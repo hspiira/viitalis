@@ -1,8 +1,8 @@
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
-import { useState, useEffect } from 'react'
+import { createFileRoute, Link, useRouterState } from '@tanstack/react-router'
+import { useState } from 'react'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
-import { apiPost, getApiErrorDetail } from '#/lib/api-client'
-import { setToken, fetchMe, getAuthUser, loadStoredToken, clearAuth } from '#/lib/auth-store'
+import { useAuth } from '#/lib/auth-context'
+import { useRedirectIfAuthenticated } from '#/lib/hooks'
 import { AuthPageLayout } from '#/components/auth/AuthPageLayout'
 import { Button } from '#/components/ui/button'
 
@@ -14,76 +14,55 @@ function safeRedirectPath(raw: unknown): string | undefined {
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
+  // Only redirect in URL (like register has no search) so URL stays /login or /login?redirect=...
   validateSearch: (search: Record<string, unknown>) => ({
-    tenant_code: typeof search.tenant_code === 'string' ? search.tenant_code : '',
-    username: typeof search.username === 'string' ? search.username : '',
     redirect: safeRedirectPath(search.redirect),
   }),
 })
 
 function LoginPage() {
-  const navigate = useNavigate()
-  const { tenant_code, username: searchUsername, redirect } = Route.useSearch()
-  const [tenantCode, setTenantCode] = useState(tenant_code)
-  const [username, setUsername] = useState(searchUsername)
+  const { redirect } = Route.useSearch()
+  const locationState = useRouterState({ select: (s) => s.location.state }) as
+    | { tenant_code?: string; username?: string }
+    | undefined
+  const [tenantCode, setTenantCode] = useState(
+    typeof locationState?.tenant_code === 'string' ? locationState.tenant_code : ''
+  )
+  const [username, setUsername] = useState(
+    typeof locationState?.username === 'string' ? locationState.username : ''
+  )
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [ready, setReady] = useState(false)
+
+  const { login, error, clearError } = useAuth()
 
   const redirectPath = redirect ?? '/dashboard'
   const redirectPathOnly = redirectPath.includes('?')
     ? redirectPath.slice(0, redirectPath.indexOf('?'))
     : redirectPath
 
-  useEffect(() => {
-    const token = loadStoredToken()
-    if (token) {
-      fetchMe().finally(() => setReady(true))
-    } else {
-      setReady(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!ready) return
-    const user = getAuthUser()
-    if (user) {
-      navigate({ to: redirectPathOnly })
-    }
-  }, [ready, redirectPathOnly, navigate])
+  const isAuthenticated = useRedirectIfAuthenticated(redirectPathOnly)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setError(null)
+    clearError()
     setIsSubmitting(true)
     try {
-      const res = await apiPost<{ access_token: string; token_type: string }>(
-        '/auth/login',
-        {
-          tenant_code: tenantCode.trim(),
-          username: username.trim(),
-          password,
-        },
-        { token: null, tenantId: null }
-      )
-      setToken(res.access_token)
-      const me = await fetchMe()
-      if (!me) {
-        clearAuth()
-        setError('Could not load user profile')
+      const ok = await login(tenantCode, username, password)
+      if (ok) {
+        // Full page navigation so the next load runs on the client with token in
+        // localStorage; client-side navigate() can trigger an SSR fetch that
+        // has no token and ends up rendering NotFound.
+        window.location.replace(redirectPathOnly)
         return
       }
-      navigate({ to: redirectPathOnly })
-    } catch (err: unknown) {
-      setError(getApiErrorDetail(err) || 'Login failed. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  if (ready && getAuthUser()) {
+  if (isAuthenticated) {
     return null
   }
 

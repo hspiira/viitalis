@@ -1,12 +1,12 @@
 import { Link, useNavigate } from '@tanstack/react-router'
-import { getAuthUser, clearAuth } from '#/lib/auth-store'
+import { useAuth } from '#/lib/auth-context'
 
 export default function Header() {
   const navigate = useNavigate()
-  const user = getAuthUser()
+  const { user, logout } = useAuth()
 
   function handleLogout() {
-    clearAuth()
+    logout()
     navigate({ to: '/login' })
   }
 

@@ -1,6 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { requireAuthBeforeLoad } from '#/lib/route-auth'
 
 export const Route = createFileRoute('/members')({
+  beforeLoad: () => requireAuthBeforeLoad('/members'),
   component: MembersPage,
 })
 

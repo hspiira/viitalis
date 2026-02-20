@@ -3,7 +3,7 @@
  * Persists token to localStorage; user is refreshed from GET /auth/me.
  */
 
-import { apiGet } from '@/lib/api-client'
+import { apiGet, apiPost, getApiErrorDetail } from '@/lib/api-client'
 
 const STORAGE_KEY = 'vitalis-auth-token'
 
@@ -93,4 +93,23 @@ export async function fetchMe(): Promise<MeUser | null> {
     clearAuth()
     return null
   }
+}
+
+/** Call login API and return access token. Throws on failure. */
+export async function loginWithPassword(
+  tenant_code: string,
+  username: string,
+  password: string
+): Promise<string> {
+  const res = await apiPost<{ access_token: string; token_type: string }>(
+    '/auth/login',
+    { tenant_code: tenant_code.trim(), username: username.trim(), password },
+    { token: null, tenantId: null }
+  )
+  return res.access_token
+}
+
+/** Get user-facing error message from a login/API error. */
+export function getLoginErrorDetail(err: unknown): string {
+  return getApiErrorDetail(err) || 'Login failed. Please try again.'
 }

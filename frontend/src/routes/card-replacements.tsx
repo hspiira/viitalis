@@ -1,4 +1,5 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import {
@@ -9,6 +10,7 @@ import {
 import { getStoredToken, getTenantId } from '#/lib/auth-store'
 
 export const Route = createFileRoute('/card-replacements')({
+  beforeLoad: () => requireAuthBeforeLoad('/card-replacements'),
   component: CardReplacementsPage,
 })
 

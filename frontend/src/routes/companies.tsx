@@ -1,9 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
+import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { useEffect, useState } from 'react'
 import { apiGet, apiPost, apiPatch, getApiErrorDetail } from '#/lib/api-client'
 import { getStoredToken, getTenantId } from '#/lib/auth-store'
 
 export const Route = createFileRoute('/companies')({
+  beforeLoad: () => requireAuthBeforeLoad('/companies'),
   component: CompaniesPage,
 })
 
