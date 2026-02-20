@@ -45,3 +45,23 @@ class AppUserRepository:
         if not u:
             return None
         return (_to_result(u), u.password_hash)
+
+    async def create(
+        self,
+        tenant_id: str,
+        username: str,
+        email: str | None,
+        password_hash: str,
+    ) -> UserResult:
+        """Create an app user for a tenant. Caller must ensure (tenant_id, username) is unique."""
+        u = AppUser(
+            tenant_id=tenant_id,
+            username=username.strip(),
+            email=email.strip() if email else None,
+            password_hash=password_hash,
+            is_active=True,
+        )
+        self.db.add(u)
+        await self.db.flush()
+        await self.db.refresh(u)
+        return _to_result(u)

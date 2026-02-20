@@ -82,7 +82,7 @@ const navGroups: { label: string; items: NavItem[] }[] = [
   {
     label: 'Main',
     items: [
-      { to: '/', label: 'Introduction', icon: Home },
+      { to: '/dashboard', label: 'Introduction', icon: Home },
     ],
   },
   {

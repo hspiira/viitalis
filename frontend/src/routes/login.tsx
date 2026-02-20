@@ -1,28 +1,71 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { useState } from 'react'
-import { apiPost } from '#/lib/api-client'
-import { setToken, fetchMe, clearAuth } from '#/lib/auth-store'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+import { useState, useEffect } from 'react'
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import { apiPost, getApiErrorDetail } from '#/lib/api-client'
+import { setToken, fetchMe, getAuthUser, loadStoredToken, clearAuth } from '#/lib/auth-store'
+import { AuthPageLayout } from '#/components/auth/AuthPageLayout'
+import { Button } from '#/components/ui/button'
+
+function safeRedirectPath(raw: unknown): string | undefined {
+  const s = typeof raw === 'string' ? raw.trim() : ''
+  if (!s || !s.startsWith('/') || s.startsWith('//')) return undefined
+  return s
+}
 
 export const Route = createFileRoute('/login')({
   component: LoginPage,
+  validateSearch: (search: Record<string, unknown>) => ({
+    tenant_code: typeof search.tenant_code === 'string' ? search.tenant_code : '',
+    username: typeof search.username === 'string' ? search.username : '',
+    redirect: safeRedirectPath(search.redirect),
+  }),
 })
 
 function LoginPage() {
   const navigate = useNavigate()
-  const [tenantCode, setTenantCode] = useState('')
-  const [username, setUsername] = useState('')
+  const { tenant_code, username: searchUsername, redirect } = Route.useSearch()
+  const [tenantCode, setTenantCode] = useState(tenant_code)
+  const [username, setUsername] = useState(searchUsername)
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [ready, setReady] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent) {
+  const redirectPath = redirect ?? '/dashboard'
+  const redirectPathOnly = redirectPath.includes('?')
+    ? redirectPath.slice(0, redirectPath.indexOf('?'))
+    : redirectPath
+
+  useEffect(() => {
+    const token = loadStoredToken()
+    if (token) {
+      fetchMe().finally(() => setReady(true))
+    } else {
+      setReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!ready) return
+    const user = getAuthUser()
+    if (user) {
+      navigate({ to: redirectPathOnly })
+    }
+  }, [ready, redirectPathOnly, navigate])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
-    setLoading(true)
+    setIsSubmitting(true)
     try {
       const res = await apiPost<{ access_token: string; token_type: string }>(
         '/auth/login',
-        { tenant_code: tenantCode.trim(), username: username.trim(), password },
+        {
+          tenant_code: tenantCode.trim(),
+          username: username.trim(),
+          password,
+        },
         { token: null, tenantId: null }
       )
       setToken(res.access_token)
@@ -32,51 +75,64 @@ function LoginPage() {
         setError('Could not load user profile')
         return
       }
-      navigate({ to: '/' })
+      navigate({ to: redirectPathOnly })
     } catch (err: unknown) {
-      const detail =
-        err && typeof err === 'object' && 'detail' in err
-          ? String((err as { detail: unknown }).detail)
-          : 'Login failed'
-      setError(detail)
+      setError(getApiErrorDetail(err) || 'Login failed. Please try again.')
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
+  if (ready && getAuthUser()) {
+    return null
+  }
+
   return (
-    <div className="fixed inset-0 overflow-hidden overscroll-none bg-[var(--background)] flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-[400px]">
-        {/* Centered card */}
-        <div className="border border-[var(--border)] bg-[var(--card)] p-10">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-semibold text-[var(--foreground)]">
+    <AuthPageLayout>
+      <div className="w-full max-w-md">
+        <div className="bg-[var(--card)]/80 backdrop-blur-md border border-white/10 shadow-xl rounded-lg p-8">
+          <div className="flex justify-center mb-6">
+            <span className="text-2xl font-bold text-[var(--foreground)]">
               Vitalis
-            </h1>
-            <p className="mt-2 text-sm text-[var(--foreground-muted)]">
-              Sign in to your account
-            </p>
+            </span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <h1 className="text-2xl font-bold text-center mb-6 text-[var(--foreground)]">
+            Sign In
+          </h1>
+
+          {error && (
+            <div className="mb-4 p-3 bg-[var(--destructive)]/10 border border-[var(--destructive)]/20 rounded-none">
+              <p className="text-sm text-[var(--destructive)]">{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="tenant_code" className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
-                Tenant code
+              <label
+                htmlFor="tenant-code"
+                className="block text-sm font-medium text-[var(--foreground)] mb-1.5"
+              >
+                Tenant Code
               </label>
               <input
-                id="tenant_code"
+                id="tenant-code"
                 type="text"
                 value={tenantCode}
-                onChange={(e) => setTenantCode(e.target.value)}
+                onChange={(e) => setTenantCode(e.target.value.toLowerCase())}
                 required
+                placeholder="e.g. acme-corp"
                 autoComplete="organization"
-                disabled={loading}
-                placeholder="e.g. acme"
-                className="w-full border border-[var(--border)] bg-[var(--background)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:outline-none focus:border-[var(--foreground-muted)]"
+                disabled={isSubmitting}
+                className="w-full rounded-none bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--ring)] px-3 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
+
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-[var(--foreground)] mb-1.5"
+              >
                 Username
               </label>
               <input
@@ -85,49 +141,82 @@ function LoginPage() {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 required
+                placeholder="username"
                 autoComplete="username"
-                disabled={loading}
-                placeholder="Your username"
-                className="w-full border border-[var(--border)] bg-[var(--background)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:outline-none focus:border-[var(--foreground-muted)]"
+                disabled={isSubmitting}
+                className="w-full rounded-none bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--ring)] px-3 py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </div>
+
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-[var(--foreground)] mb-1.5">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-[var(--foreground)] mb-1.5"
+              >
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                disabled={loading}
-                placeholder="Password"
-                className="w-full border border-[var(--border)] bg-[var(--background)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-subtle)] focus:outline-none focus:border-[var(--foreground-muted)]"
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                  disabled={isSubmitting}
+                  className="w-full rounded-none bg-[var(--input)] border border-[var(--border)] text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none focus:ring-1 focus:ring-[var(--ring)] px-3 py-2 pr-10 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-1 top-1/2 -translate-y-1/2 px-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)]"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
             </div>
 
-            {error && (
-              <p className="text-sm text-[var(--destructive)]" role="alert">
-                {error}
-              </p>
-            )}
-
-            <button
+            <Button
               type="submit"
-              disabled={loading}
-              className="w-full mt-1 bg-[var(--primary)] text-[var(--primary-foreground)] py-3 text-sm font-medium hover:opacity-90 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:ring-offset-2 focus:ring-offset-[var(--card)]"
+              disabled={isSubmitting}
+              className="w-full"
             >
-              {loading ? 'Signing in…' : 'Sign in'}
-            </button>
+              {isSubmitting ? 'Signing in...' : 'Sign In'}
+            </Button>
           </form>
-        </div>
 
-        <p className="mt-6 text-center text-xs text-[var(--foreground-subtle)]">
-          Healthcare management platform
-        </p>
+          <div className="mt-6 flex flex-col items-center gap-3 text-center">
+            <p className="text-sm text-[var(--foreground-muted)]">
+              Don't have an account?{' '}
+              <Link
+                to="/register"
+                className="text-[var(--foreground)] font-medium hover:underline"
+              >
+                Register your tenant
+              </Link>
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                window.location.href = '/'
+              }}
+              className="inline-flex items-center gap-2 text-sm text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
+              aria-label="Back to home"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to home
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+    </AuthPageLayout>
   )
 }

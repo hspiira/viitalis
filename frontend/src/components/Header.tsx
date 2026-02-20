@@ -11,8 +11,8 @@ export default function Header() {
   }
 
   return (
-    <header className="fixed left-0 right-0 z-20 flex h-14 shrink-0 items-center justify-between border-b border-[var(--border-subtle)] bg-[var(--background)] px-6">
-      <Link to="/" className="text-lg font-semibold text-[var(--foreground)]">
+    <header className="fixed left-0 right-0 z-20 flex h-14 shrink-0 items-center justify-between bg-[var(--background)] px-6">
+      <Link to="/dashboard" className="text-lg font-semibold text-[var(--foreground)]">
         Vitalis
       </Link>
       <nav className="flex items-center gap-4">

@@ -13,6 +13,7 @@ import { Route as TenantsRouteImport } from './routes/tenants'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ReimbursementsRouteImport } from './routes/reimbursements'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ReferenceDataRouteImport } from './routes/reference-data'
 import { Route as MembersRouteImport } from './routes/members'
 import { Route as MedicinesRouteImport } from './routes/medicines'
@@ -23,6 +24,7 @@ import { Route as HealthRouteImport } from './routes/health'
 import { Route as DoctorsRouteImport } from './routes/doctors'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DiagnosesRouteImport } from './routes/diagnoses'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CompaniesRouteImport } from './routes/companies'
 import { Route as ClaimsRouteImport } from './routes/claims'
 import { Route as ClaimPaymentsRouteImport } from './routes/claim-payments'
@@ -50,6 +52,11 @@ const ReportsRoute = ReportsRouteImport.update({
 const ReimbursementsRoute = ReimbursementsRouteImport.update({
   id: '/reimbursements',
   path: '/reimbursements',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReferenceDataRoute = ReferenceDataRouteImport.update({
@@ -102,6 +109,11 @@ const DiagnosesRoute = DiagnosesRouteImport.update({
   path: '/diagnoses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompaniesRoute = CompaniesRouteImport.update({
   id: '/companies',
   path: '/companies',
@@ -151,6 +163,7 @@ export interface FileRoutesByFullPath {
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
   '/companies': typeof CompaniesRoute
+  '/dashboard': typeof DashboardRoute
   '/diagnoses': typeof DiagnosesRoute
   '/docs': typeof DocsRoute
   '/doctors': typeof DoctorsRoute
@@ -161,6 +174,7 @@ export interface FileRoutesByFullPath {
   '/medicines': typeof MedicinesRoute
   '/members': typeof MembersRoute
   '/reference-data': typeof ReferenceDataRoute
+  '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
   '/services': typeof ServicesRoute
@@ -175,6 +189,7 @@ export interface FileRoutesByTo {
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
   '/companies': typeof CompaniesRoute
+  '/dashboard': typeof DashboardRoute
   '/diagnoses': typeof DiagnosesRoute
   '/docs': typeof DocsRoute
   '/doctors': typeof DoctorsRoute
@@ -185,6 +200,7 @@ export interface FileRoutesByTo {
   '/medicines': typeof MedicinesRoute
   '/members': typeof MembersRoute
   '/reference-data': typeof ReferenceDataRoute
+  '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
   '/services': typeof ServicesRoute
@@ -200,6 +216,7 @@ export interface FileRoutesById {
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
   '/companies': typeof CompaniesRoute
+  '/dashboard': typeof DashboardRoute
   '/diagnoses': typeof DiagnosesRoute
   '/docs': typeof DocsRoute
   '/doctors': typeof DoctorsRoute
@@ -210,6 +227,7 @@ export interface FileRoutesById {
   '/medicines': typeof MedicinesRoute
   '/members': typeof MembersRoute
   '/reference-data': typeof ReferenceDataRoute
+  '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
   '/services': typeof ServicesRoute
@@ -226,6 +244,7 @@ export interface FileRouteTypes {
     | '/claim-payments'
     | '/claims'
     | '/companies'
+    | '/dashboard'
     | '/diagnoses'
     | '/docs'
     | '/doctors'
@@ -236,6 +255,7 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/members'
     | '/reference-data'
+    | '/register'
     | '/reimbursements'
     | '/reports'
     | '/services'
@@ -250,6 +270,7 @@ export interface FileRouteTypes {
     | '/claim-payments'
     | '/claims'
     | '/companies'
+    | '/dashboard'
     | '/diagnoses'
     | '/docs'
     | '/doctors'
@@ -260,6 +281,7 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/members'
     | '/reference-data'
+    | '/register'
     | '/reimbursements'
     | '/reports'
     | '/services'
@@ -274,6 +296,7 @@ export interface FileRouteTypes {
     | '/claim-payments'
     | '/claims'
     | '/companies'
+    | '/dashboard'
     | '/diagnoses'
     | '/docs'
     | '/doctors'
@@ -284,6 +307,7 @@ export interface FileRouteTypes {
     | '/medicines'
     | '/members'
     | '/reference-data'
+    | '/register'
     | '/reimbursements'
     | '/reports'
     | '/services'
@@ -299,6 +323,7 @@ export interface RootRouteChildren {
   ClaimPaymentsRoute: typeof ClaimPaymentsRoute
   ClaimsRoute: typeof ClaimsRoute
   CompaniesRoute: typeof CompaniesRoute
+  DashboardRoute: typeof DashboardRoute
   DiagnosesRoute: typeof DiagnosesRoute
   DocsRoute: typeof DocsRoute
   DoctorsRoute: typeof DoctorsRoute
@@ -309,6 +334,7 @@ export interface RootRouteChildren {
   MedicinesRoute: typeof MedicinesRoute
   MembersRoute: typeof MembersRoute
   ReferenceDataRoute: typeof ReferenceDataRoute
+  RegisterRoute: typeof RegisterRoute
   ReimbursementsRoute: typeof ReimbursementsRoute
   ReportsRoute: typeof ReportsRoute
   ServicesRoute: typeof ServicesRoute
@@ -344,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/reimbursements'
       fullPath: '/reimbursements'
       preLoaderRoute: typeof ReimbursementsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reference-data': {
@@ -416,6 +449,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DiagnosesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/companies': {
       id: '/companies'
       path: '/companies'
@@ -483,6 +523,7 @@ const rootRouteChildren: RootRouteChildren = {
   ClaimPaymentsRoute: ClaimPaymentsRoute,
   ClaimsRoute: ClaimsRoute,
   CompaniesRoute: CompaniesRoute,
+  DashboardRoute: DashboardRoute,
   DiagnosesRoute: DiagnosesRoute,
   DocsRoute: DocsRoute,
   DoctorsRoute: DoctorsRoute,
@@ -493,6 +534,7 @@ const rootRouteChildren: RootRouteChildren = {
   MedicinesRoute: MedicinesRoute,
   MembersRoute: MembersRoute,
   ReferenceDataRoute: ReferenceDataRoute,
+  RegisterRoute: RegisterRoute,
   ReimbursementsRoute: ReimbursementsRoute,
   ReportsRoute: ReportsRoute,
   ServicesRoute: ServicesRoute,

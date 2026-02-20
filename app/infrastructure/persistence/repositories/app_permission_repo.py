@@ -43,3 +43,29 @@ class AppPermissionRepository:
         )
         p = r.scalar_one_or_none()
         return _to_result(p) if p else None
+
+    async def create(
+        self,
+        user_id: str,
+        module_id: str,
+        *,
+        can_view: bool = True,
+        can_create: bool = True,
+        can_edit: bool = True,
+        can_delete: bool = True,
+        can_approve: bool = True,
+    ) -> AppPermissionResult:
+        """Create a permission for a user on a module."""
+        p = AppPermission(
+            user_id=user_id,
+            module_id=module_id,
+            can_view=can_view,
+            can_create=can_create,
+            can_edit=can_edit,
+            can_delete=can_delete,
+            can_approve=can_approve,
+        )
+        self.db.add(p)
+        await self.db.flush()
+        await self.db.refresh(p)
+        return _to_result(p)

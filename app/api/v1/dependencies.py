@@ -269,9 +269,13 @@ async def get_authenticated_tenant_id(
 
 
 async def get_tenant_service(db: GetDbTransactional) -> TenantService:
-    """Tenant service for create/list/get (transactional session)."""
-    repo = TenantRepository(db)
-    return TenantService(repo)
+    """Tenant service for create/list/get (transactional session). Creates admin user when admin_* provided."""
+    return TenantService(
+        TenantRepository(db),
+        user_repo=AppUserRepository(db, tenant_id=None),
+        module_repo=AppModuleRepository(db),
+        permission_repo=AppPermissionRepository(db),
+    )
 
 
 async def get_company_service(

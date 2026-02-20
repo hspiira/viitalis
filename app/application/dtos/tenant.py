@@ -20,3 +20,15 @@ class TenantCreate:
     code: str
     name: str
     status: str = "active"
+
+
+@dataclass
+class TenantCreationResult:
+    """Result of tenant creation: tenant + admin user details and one-time password."""
+
+    tenant_id: str
+    tenant_code: str
+    tenant_name: str
+    admin_username: str
+    admin_email: str
+    admin_initial_password: str  # Generated once; return only in create response
