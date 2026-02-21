@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class HospitalMedicineCreateRequest(BaseModel):
@@ -14,6 +14,7 @@ class HospitalMedicineCreateRequest(BaseModel):
 
 
 class HospitalMedicineResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     hospital_id: str
@@ -31,6 +32,7 @@ class HospitalServicePriceCreateRequest(BaseModel):
 
 
 class HospitalServicePriceResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     hospital_id: str
@@ -48,6 +50,7 @@ class HospitalLabTestCreateRequest(BaseModel):
 
 
 class HospitalLabTestResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     hospital_id: str

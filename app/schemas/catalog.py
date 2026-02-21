@@ -1,6 +1,6 @@
 """Pydantic schemas for catalog API (Medicine, Service, Lab, Diagnosis)."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CatalogItemCreateRequest(BaseModel):
@@ -14,6 +14,7 @@ class CatalogItemUpdateRequest(BaseModel):
 
 
 class CatalogItemResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str

@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BillingSessionCreateRequest(BaseModel):
@@ -22,6 +22,7 @@ class BillingSessionUpdateRequest(BaseModel):
 
 
 class BillingSessionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -35,6 +36,7 @@ class BillingSessionResponse(BaseModel):
 
 
 class BillingSessionListItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str

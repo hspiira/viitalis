@@ -246,7 +246,6 @@ function CreateCompanyGroupDialog({
   const opts = useApi()
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [status, setStatus] = useState('active')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const createMutation = useMutation({
@@ -259,7 +258,6 @@ function CreateCompanyGroupDialog({
       onSuccess()
       setName('')
       setDescription('')
-      setStatus('active')
       setSubmitError(null)
     },
     onError: (err) => setSubmitError(getApiErrorDetail(err)),
@@ -269,7 +267,6 @@ function CreateCompanyGroupDialog({
     if (!openState) {
       setName('')
       setDescription('')
-      setStatus('active')
       setSubmitError(null)
     }
     onOpenChange(openState)
@@ -289,7 +286,7 @@ function CreateCompanyGroupDialog({
             createMutation.mutate({
               name: name.trim(),
               description: description.trim() || undefined,
-              status,
+              status: 'active',
             })
           }}
           className="space-y-4"
@@ -318,20 +315,6 @@ function CreateCompanyGroupDialog({
               rows={2}
               className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md resize-y"
             />
-          </div>
-          <div>
-            <label htmlFor="cg-status" className="block text-sm text-[var(--foreground-muted)] mb-1">
-              Status
-            </label>
-            <select
-              id="cg-status"
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
           </div>
           {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
           <DialogFooter>

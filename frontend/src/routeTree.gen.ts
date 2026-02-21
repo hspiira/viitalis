@@ -16,11 +16,14 @@ import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ReimbursementsRouteImport } from './routes/reimbursements'
 import { Route as RegisterRouteImport } from './routes/register'
 import { Route as ReferenceDataRouteImport } from './routes/reference-data'
+import { Route as PlansRouteImport } from './routes/plans'
 import { Route as MembersRouteImport } from './routes/members'
+import { Route as MemberDependantsRouteImport } from './routes/member-dependants'
 import { Route as MedicinesRouteImport } from './routes/medicines'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LabsRouteImport } from './routes/labs'
 import { Route as HospitalsRouteImport } from './routes/hospitals'
+import { Route as HospitalBranchesRouteImport } from './routes/hospital-branches'
 import { Route as HealthRouteImport } from './routes/health'
 import { Route as DoctorsRouteImport } from './routes/doctors'
 import { Route as DocsRouteImport } from './routes/docs'
@@ -73,9 +76,19 @@ const ReferenceDataRoute = ReferenceDataRouteImport.update({
   path: '/reference-data',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlansRoute = PlansRouteImport.update({
+  id: '/plans',
+  path: '/plans',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MembersRoute = MembersRouteImport.update({
   id: '/members',
   path: '/members',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MemberDependantsRoute = MemberDependantsRouteImport.update({
+  id: '/member-dependants',
+  path: '/member-dependants',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MedicinesRoute = MedicinesRouteImport.update({
@@ -96,6 +109,11 @@ const LabsRoute = LabsRouteImport.update({
 const HospitalsRoute = HospitalsRouteImport.update({
   id: '/hospitals',
   path: '/hospitals',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HospitalBranchesRoute = HospitalBranchesRouteImport.update({
+  id: '/hospital-branches',
+  path: '/hospital-branches',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HealthRoute = HealthRouteImport.update({
@@ -195,11 +213,14 @@ export interface FileRoutesByFullPath {
   '/docs': typeof DocsRoute
   '/doctors': typeof DoctorsRoute
   '/health': typeof HealthRoute
+  '/hospital-branches': typeof HospitalBranchesRoute
   '/hospitals': typeof HospitalsRoute
   '/labs': typeof LabsRoute
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
+  '/member-dependants': typeof MemberDependantsRoute
   '/members': typeof MembersRoute
+  '/plans': typeof PlansRoute
   '/reference-data': typeof ReferenceDataRoute
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
@@ -225,11 +246,14 @@ export interface FileRoutesByTo {
   '/docs': typeof DocsRoute
   '/doctors': typeof DoctorsRoute
   '/health': typeof HealthRoute
+  '/hospital-branches': typeof HospitalBranchesRoute
   '/hospitals': typeof HospitalsRoute
   '/labs': typeof LabsRoute
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
+  '/member-dependants': typeof MemberDependantsRoute
   '/members': typeof MembersRoute
+  '/plans': typeof PlansRoute
   '/reference-data': typeof ReferenceDataRoute
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
@@ -256,11 +280,14 @@ export interface FileRoutesById {
   '/docs': typeof DocsRoute
   '/doctors': typeof DoctorsRoute
   '/health': typeof HealthRoute
+  '/hospital-branches': typeof HospitalBranchesRoute
   '/hospitals': typeof HospitalsRoute
   '/labs': typeof LabsRoute
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
+  '/member-dependants': typeof MemberDependantsRoute
   '/members': typeof MembersRoute
+  '/plans': typeof PlansRoute
   '/reference-data': typeof ReferenceDataRoute
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
@@ -288,11 +315,14 @@ export interface FileRouteTypes {
     | '/docs'
     | '/doctors'
     | '/health'
+    | '/hospital-branches'
     | '/hospitals'
     | '/labs'
     | '/login'
     | '/medicines'
+    | '/member-dependants'
     | '/members'
+    | '/plans'
     | '/reference-data'
     | '/register'
     | '/reimbursements'
@@ -318,11 +348,14 @@ export interface FileRouteTypes {
     | '/docs'
     | '/doctors'
     | '/health'
+    | '/hospital-branches'
     | '/hospitals'
     | '/labs'
     | '/login'
     | '/medicines'
+    | '/member-dependants'
     | '/members'
+    | '/plans'
     | '/reference-data'
     | '/register'
     | '/reimbursements'
@@ -348,11 +381,14 @@ export interface FileRouteTypes {
     | '/docs'
     | '/doctors'
     | '/health'
+    | '/hospital-branches'
     | '/hospitals'
     | '/labs'
     | '/login'
     | '/medicines'
+    | '/member-dependants'
     | '/members'
+    | '/plans'
     | '/reference-data'
     | '/register'
     | '/reimbursements'
@@ -379,11 +415,14 @@ export interface RootRouteChildren {
   DocsRoute: typeof DocsRoute
   DoctorsRoute: typeof DoctorsRoute
   HealthRoute: typeof HealthRoute
+  HospitalBranchesRoute: typeof HospitalBranchesRoute
   HospitalsRoute: typeof HospitalsRoute
   LabsRoute: typeof LabsRoute
   LoginRoute: typeof LoginRoute
   MedicinesRoute: typeof MedicinesRoute
+  MemberDependantsRoute: typeof MemberDependantsRoute
   MembersRoute: typeof MembersRoute
+  PlansRoute: typeof PlansRoute
   ReferenceDataRoute: typeof ReferenceDataRoute
   RegisterRoute: typeof RegisterRoute
   ReimbursementsRoute: typeof ReimbursementsRoute
@@ -445,11 +484,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ReferenceDataRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plans': {
+      id: '/plans'
+      path: '/plans'
+      fullPath: '/plans'
+      preLoaderRoute: typeof PlansRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/members': {
       id: '/members'
       path: '/members'
       fullPath: '/members'
       preLoaderRoute: typeof MembersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/member-dependants': {
+      id: '/member-dependants'
+      path: '/member-dependants'
+      fullPath: '/member-dependants'
+      preLoaderRoute: typeof MemberDependantsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/medicines': {
@@ -478,6 +531,13 @@ declare module '@tanstack/react-router' {
       path: '/hospitals'
       fullPath: '/hospitals'
       preLoaderRoute: typeof HospitalsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/hospital-branches': {
+      id: '/hospital-branches'
+      path: '/hospital-branches'
+      fullPath: '/hospital-branches'
+      preLoaderRoute: typeof HospitalBranchesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/health': {
@@ -611,11 +671,14 @@ const rootRouteChildren: RootRouteChildren = {
   DocsRoute: DocsRoute,
   DoctorsRoute: DoctorsRoute,
   HealthRoute: HealthRoute,
+  HospitalBranchesRoute: HospitalBranchesRoute,
   HospitalsRoute: HospitalsRoute,
   LabsRoute: LabsRoute,
   LoginRoute: LoginRoute,
   MedicinesRoute: MedicinesRoute,
+  MemberDependantsRoute: MemberDependantsRoute,
   MembersRoute: MembersRoute,
+  PlansRoute: PlansRoute,
   ReferenceDataRoute: ReferenceDataRoute,
   RegisterRoute: RegisterRoute,
   ReimbursementsRoute: ReimbursementsRoute,

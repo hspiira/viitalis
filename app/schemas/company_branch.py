@@ -1,6 +1,6 @@
 """Pydantic schemas for CompanyBranch API."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CompanyBranchCreateRequest(BaseModel):
@@ -22,6 +22,7 @@ class CompanyBranchUpdateRequest(BaseModel):
 class CompanyBranchResponse(BaseModel):
     """Response for company branch (single)."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     company_id: str
@@ -33,6 +34,7 @@ class CompanyBranchResponse(BaseModel):
 class CompanyBranchListItem(BaseModel):
     """Item in list of branches."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     company_id: str

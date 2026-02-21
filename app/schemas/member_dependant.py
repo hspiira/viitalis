@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MemberDependantCreateRequest(BaseModel):
@@ -24,6 +24,7 @@ class MemberDependantUpdateRequest(BaseModel):
 class MemberDependantResponse(BaseModel):
     """Response for member dependant (single)."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     member_id: str
@@ -35,6 +36,7 @@ class MemberDependantResponse(BaseModel):
 class MemberDependantListItem(BaseModel):
     """Item in list of dependants."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     member_id: str

@@ -39,7 +39,6 @@ function ReimbursementsPage() {
   const [showForm, setShowForm] = useState(false)
   const [claimId, setClaimId] = useState('')
   const [amount, setAmount] = useState('')
-  const [status, setStatus] = useState('pending')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const createMutation = useMutation({
@@ -54,7 +53,6 @@ function ReimbursementsPage() {
       setShowForm(false)
       setClaimId('')
       setAmount('')
-      setStatus('pending')
       setSubmitError(null)
     },
     onError: (err: { detail?: string }) => {
@@ -74,7 +72,7 @@ function ReimbursementsPage() {
       setSubmitError('Amount must be a positive number')
       return
     }
-    createMutation.mutate({ claim_id: claimId.trim(), amount, status })
+    createMutation.mutate({ claim_id: claimId.trim(), amount, status: 'pending' })
   }
 
   const filtered = items
@@ -121,19 +119,6 @@ function ReimbursementsPage() {
                 className="border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)] w-28"
                 placeholder="0.00"
               />
-            </label>
-            <label className="flex flex-col gap-1">
-              <span className="text-sm text-[var(--foreground-muted)]">Status</span>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)] min-w-[8rem]"
-              >
-                <option value="pending">Pending</option>
-                <option value="approved">Approved</option>
-                <option value="rejected">Rejected</option>
-                <option value="paid">Paid</option>
-              </select>
             </label>
             <div className="flex gap-2">
               <button

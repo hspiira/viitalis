@@ -4,6 +4,7 @@ import {
   Home,
   Building2,
   Users,
+  UserCircle2,
   FileCheck,
   BarChart3,
   Pill,
@@ -17,6 +18,9 @@ import {
   Database,
   MapPin,
   Shield,
+  Layers,
+  FolderTree,
+  FileStack,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -55,6 +59,8 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
     icon: Building2,
     items: [
       { to: '/companies', label: 'Companies', icon: Building2 },
+      { to: '/company-types', label: 'Company types', icon: Layers },
+      { to: '/company-groups', label: 'Company groups', icon: FolderTree },
       { to: '/company-branches', label: 'Branches', icon: MapPin },
     ],
   },
@@ -64,7 +70,9 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
     icon: Users,
     items: [
       { to: '/members', label: 'Members', icon: Users },
+      { to: '/member-dependants', label: 'Dependants', icon: UserCircle2 },
       { to: '/schemes', label: 'Schemes', icon: Shield },
+      { to: '/plans', label: 'Plans', icon: FileStack },
     ],
   },
   {
@@ -82,6 +90,7 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
     icon: Stethoscope,
     items: [
       { to: '/hospitals', label: 'Hospitals', icon: Building2 },
+      { to: '/hospital-branches', label: 'Hospital branches', icon: MapPin },
       { to: '/doctors', label: 'Doctors', icon: Stethoscope },
     ],
   },

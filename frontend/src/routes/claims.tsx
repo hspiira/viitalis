@@ -560,7 +560,6 @@ function CreateClaimDialog({
   const [hospitalId, setHospitalId] = useState('')
   const [serviceDate, setServiceDate] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [totalAmount, setTotalAmount] = useState('')
-  const [status, setStatus] = useState('draft')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const createMutation = useMutation({
@@ -578,7 +577,6 @@ function CreateClaimDialog({
       setHospitalId('')
       setServiceDate(format(new Date(), 'yyyy-MM-dd'))
       setTotalAmount('')
-      setStatus('draft')
       setSubmitError(null)
     },
     onError: (err: { detail?: string }) => {
@@ -595,7 +593,7 @@ function CreateClaimDialog({
       hospital_id: hospitalId.trim(),
       service_date: serviceDate,
       total_amount: totalAmount ? Number(totalAmount) : undefined,
-      status,
+      status: 'draft',
       details: [],
     })
   }
@@ -649,17 +647,6 @@ function CreateClaimDialog({
               onChange={(e) => setTotalAmount(e.target.value)}
               className="w-full border border-[var(--input)] bg-[var(--background)] px-2.5 py-1.5 text-sm text-[var(--foreground)] rounded-md"
             />
-          </div>
-          <div>
-            <label className="block text-sm text-[var(--foreground-muted)] mb-1">Status</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full border border-[var(--input)] bg-[var(--background)] px-2.5 py-1.5 text-sm text-[var(--foreground)] rounded-md"
-            >
-              <option value="draft">Draft</option>
-              <option value="submitted">Submitted</option>
-            </select>
           </div>
           {submitError && (
             <p className="text-sm text-[var(--destructive)]">{submitError}</p>

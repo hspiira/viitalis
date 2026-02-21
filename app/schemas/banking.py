@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # --- Bank ---
@@ -19,6 +19,7 @@ class BankUpdateRequest(BaseModel):
 
 
 class BankResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -41,6 +42,7 @@ class BankBranchUpdateRequest(BaseModel):
 
 
 class BankBranchResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     bank_id: str
@@ -68,6 +70,7 @@ class AccountDetailUpdateRequest(BaseModel):
 
 
 class AccountDetailResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     member_id: str | None
@@ -95,6 +98,7 @@ class BankAccountDetailUpdateRequest(BaseModel):
 
 
 class BankAccountDetailResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     account_detail_id: str

@@ -517,11 +517,14 @@ function SchemeFormBody({
   update,
   companies,
   hideCompany,
+  showStatus = true,
 }: {
   fields: SchemeFormFields
   update: (key: keyof SchemeFormFields, value: string) => void
   companies: CompanyRef[]
   hideCompany?: boolean
+  /** When false, status is not shown (create mode; backend defaults to active). */
+  showStatus?: boolean
 }) {
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -585,20 +588,22 @@ function SchemeFormBody({
           className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
         />
       </div>
-      <div>
-        <label htmlFor="sch-status" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Status
-        </label>
-        <select
-          id="sch-status"
-          value={fields.status}
-          onChange={(e) => update('status', e.target.value)}
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-        >
-          <option value="active">Active</option>
-          <option value="terminated">Terminated</option>
-        </select>
-      </div>
+      {showStatus && (
+        <div>
+          <label htmlFor="sch-status" className="block text-sm text-[var(--foreground-muted)] mb-1">
+            Status
+          </label>
+          <select
+            id="sch-status"
+            value={fields.status}
+            onChange={(e) => update('status', e.target.value)}
+            className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+          >
+            <option value="active">Active</option>
+            <option value="terminated">Terminated</option>
+          </select>
+        </div>
+      )}
       <div>
         <label htmlFor="sch-begin" className="block text-sm text-[var(--foreground-muted)] mb-1">
           Begin date
@@ -669,7 +674,7 @@ function CreateSchemeDialog({
           }}
           className="space-y-4"
         >
-          <SchemeFormBody fields={form.fields} update={form.update} companies={companies} />
+          <SchemeFormBody fields={form.fields} update={form.update} companies={companies} showStatus={false} />
           {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
           <DialogFooter>
             <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>

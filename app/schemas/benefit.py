@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class BenefitCreateRequest(BaseModel):
@@ -30,6 +30,7 @@ class BenefitUpdateRequest(BaseModel):
 
 
 class BenefitResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -52,6 +53,7 @@ class SchemeBenefitAddRequest(BaseModel):
 
 
 class SchemeBenefitResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     scheme_id: str
@@ -70,6 +72,7 @@ class BenefitLinkageCreateRequest(BaseModel):
 
 
 class BenefitLinkageResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     benefit_id: str

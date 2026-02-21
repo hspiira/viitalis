@@ -5,14 +5,7 @@ import { useState } from 'react'
 import { apiGet, apiPost, apiPatch, getApiErrorDetail } from '#/lib/api-client'
 import { useApi } from '#/lib/use-api'
 import { Button } from '#/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '#/components/ui/dialog'
+import { Dialog, DialogContent } from '#/components/ui/dialog'
 import {
   Empty,
   EmptyHeader,
@@ -22,7 +15,7 @@ import {
   EmptyMedia,
 } from '#/components/ui/empty'
 import { DetailRow, TableSkeleton } from '#/components/list-page'
-import { Building2, Plus } from 'lucide-react'
+import { Building2, Plus, MapPin, Phone } from 'lucide-react'
 
 export const Route = createFileRoute('/company-branches')({
   beforeLoad: () => requireAuthBeforeLoad('/company-branches'),
@@ -36,6 +29,36 @@ interface Branch {
   name: string
   address: string | null
   phone: string | null
+}
+
+const inputBase =
+  'w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent'
+const labelBase = 'block text-sm font-medium text-[var(--foreground-muted)] mb-1.5'
+
+function FormField({
+  id,
+  label,
+  icon: Icon,
+  children,
+  className,
+}: {
+  id: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={className}>
+      <label htmlFor={id} className={labelBase}>
+        <span className="inline-flex items-center gap-2">
+          <Icon className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+          {label}
+        </span>
+      </label>
+      {children}
+    </div>
+  )
 }
 
 function CompanyBranchesPage() {
@@ -288,13 +311,20 @@ function CreateBranchDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>New branch</DialogTitle>
-          <DialogDescription>
-            {companyName ? `Add a branch for ${companyName}.` : 'Add a branch.'}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <MapPin className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">New branch</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">
+                {companyName ? `Add a branch for ${companyName}. Required fields are marked with *.` : 'Add a branch. Required fields are marked with *.'}
+              </p>
+            </div>
+          </div>
+        </header>
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -305,54 +335,50 @@ function CreateBranchDialog({
               phone: phone.trim() || undefined,
             })
           }}
-          className="space-y-4"
+          className="flex flex-col"
         >
-          <div>
-            <label htmlFor="br-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
-              Name *
-            </label>
-            <input
-              id="br-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-            />
+          <div className="flex-1 px-6 py-5 space-y-4">
+            <FormField id="br-name" label="Branch name *" icon={Building2}>
+              <input
+                id="br-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="e.g. Head office"
+                className={inputBase}
+              />
+            </FormField>
+            <FormField id="br-address" label="Address" icon={MapPin}>
+              <textarea
+                id="br-address"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                rows={3}
+                placeholder="Street, city, postal code"
+                className={inputBase + ' resize-y min-h-[80px]'}
+              />
+            </FormField>
+            <FormField id="br-phone" label="Phone" icon={Phone}>
+              <input
+                id="br-phone"
+                type="text"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="+123 456 7890"
+                className={inputBase}
+              />
+            </FormField>
+            {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
           </div>
-          <div>
-            <label htmlFor="br-address" className="block text-sm text-[var(--foreground-muted)] mb-1">
-              Address
-            </label>
-            <input
-              id="br-address"
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-            />
-          </div>
-          <div>
-            <label htmlFor="br-phone" className="block text-sm text-[var(--foreground-muted)] mb-1">
-              Phone
-            </label>
-            <input
-              id="br-phone"
-              type="text"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-            />
-          </div>
-          {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
-          <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => handleClose(false)}>
+          <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={() => handleClose(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending || !name.trim()}>
-              {createMutation.isPending ? 'Creating…' : 'Create'}
+            <Button type="submit" disabled={createMutation.isPending || !name.trim()} className="min-w-[100px]">
+              {createMutation.isPending ? 'Creating…' : 'Create branch'}
             </Button>
-          </DialogFooter>
+          </footer>
         </form>
       </DialogContent>
     </Dialog>
@@ -384,30 +410,39 @@ function BranchDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Branch details</DialogTitle>
-          <DialogDescription>Details for the selected branch.</DialogDescription>
-        </DialogHeader>
-        {isLoading || !branch ? (
-          <div className="space-y-3 py-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-4 w-full rounded bg-[var(--muted)] animate-pulse" />
-            ))}
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <MapPin className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Branch details</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">View and manage branch information.</p>
+            </div>
           </div>
-        ) : (
-          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm py-2">
-            <DetailRow label="Name" value={branch.name} />
-            <DetailRow label="Address" value={branch.address} />
-            <DetailRow label="Phone" value={branch.phone} />
-          </dl>
-        )}
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+        </header>
+        <div className="px-6 py-5">
+          {isLoading || !branch ? (
+            <div className="space-y-3 py-4">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="h-4 w-full rounded bg-[var(--muted)] animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+              <DetailRow label="Name" value={branch.name} />
+              <DetailRow label="Address" value={branch.address} />
+              <DetailRow label="Phone" value={branch.phone} />
+            </dl>
+          )}
+        </div>
+        <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          {branch && <Button onClick={() => onEdit(branch.id)}>Edit</Button>}
-        </DialogFooter>
+          {branch && <Button onClick={() => onEdit(branch.id)}>Edit branch</Button>}
+        </footer>
       </DialogContent>
     </Dialog>
   )
@@ -472,13 +507,20 @@ function EditBranchDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit branch</DialogTitle>
-          <DialogDescription>Update branch information.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <MapPin className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Edit branch</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">Update branch details. Required fields are marked with *.</p>
+            </div>
+          </div>
+        </header>
         {!branch ? (
-          <div className="space-y-3 py-4">
+          <div className="px-6 py-5 space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-4 w-full rounded bg-[var(--muted)] animate-pulse" />
             ))}
@@ -494,54 +536,50 @@ function EditBranchDialog({
                 phone: phone.trim() || undefined,
               })
             }}
-            className="space-y-4"
+            className="flex flex-col"
           >
-            <div>
-              <label htmlFor="bre-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
-                Name *
-              </label>
-              <input
-                id="bre-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-              />
+            <div className="flex-1 px-6 py-5 space-y-4">
+              <FormField id="bre-name" label="Branch name *" icon={Building2}>
+                <input
+                  id="bre-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="e.g. Head office"
+                  className={inputBase}
+                />
+              </FormField>
+              <FormField id="bre-address" label="Address" icon={MapPin}>
+                <textarea
+                  id="bre-address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  rows={3}
+                  placeholder="Street, city, postal code"
+                  className={inputBase + ' resize-y min-h-[80px]'}
+                />
+              </FormField>
+              <FormField id="bre-phone" label="Phone" icon={Phone}>
+                <input
+                  id="bre-phone"
+                  type="text"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="+123 456 7890"
+                  className={inputBase}
+                />
+              </FormField>
+              {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
             </div>
-            <div>
-              <label htmlFor="bre-address" className="block text-sm text-[var(--foreground-muted)] mb-1">
-                Address
-              </label>
-              <input
-                id="bre-address"
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-              />
-            </div>
-            <div>
-              <label htmlFor="bre-phone" className="block text-sm text-[var(--foreground-muted)] mb-1">
-                Phone
-              </label>
-              <input
-                id="bre-phone"
-                type="text"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-              />
-            </div>
-            {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
-            <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => handleClose(false)}>
+            <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => handleClose(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateMutation.isPending || !name.trim()}>
-                {updateMutation.isPending ? 'Saving…' : 'Save'}
+              <Button type="submit" disabled={updateMutation.isPending || !name.trim()} className="min-w-[100px]">
+                {updateMutation.isPending ? 'Saving…' : 'Save changes'}
               </Button>
-            </DialogFooter>
+            </footer>
           </form>
         )}
       </DialogContent>

@@ -1,6 +1,6 @@
 """Pydantic schemas for Plan API."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PlanCreateRequest(BaseModel):
@@ -20,6 +20,7 @@ class PlanUpdateRequest(BaseModel):
 class PlanResponse(BaseModel):
     """Response for plan (single)."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -29,6 +30,7 @@ class PlanResponse(BaseModel):
 class PlanListItem(BaseModel):
     """Item in list of plans."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str

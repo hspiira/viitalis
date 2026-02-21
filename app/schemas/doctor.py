@@ -1,6 +1,6 @@
 """Pydantic schemas for Doctor API."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class DoctorCreateRequest(BaseModel):
@@ -15,6 +15,7 @@ class DoctorUpdateRequest(BaseModel):
 
 
 class DoctorResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     hospital_id: str

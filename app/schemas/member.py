@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class MemberCreateRequest(BaseModel):
@@ -28,6 +28,7 @@ class MemberUpdateRequest(BaseModel):
 class MemberResponse(BaseModel):
     """Response for member (single)."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     company_id: str
@@ -41,6 +42,7 @@ class MemberResponse(BaseModel):
 class MemberListItem(BaseModel):
     """Item in list of members."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     company_id: str

@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class SchemeCreateRequest(BaseModel):
@@ -33,6 +33,7 @@ class SchemeUpdateRequest(BaseModel):
 class SchemeResponse(BaseModel):
     """Response for scheme (single)."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     company_id: str
@@ -48,6 +49,7 @@ class SchemeResponse(BaseModel):
 class SchemeListItem(BaseModel):
     """Item in list of schemes."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     company_id: str
@@ -69,6 +71,7 @@ class SchemePlanAddRequest(BaseModel):
 class SchemePlanResponse(BaseModel):
     """Response for scheme–plan link."""
 
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     scheme_id: str

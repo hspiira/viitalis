@@ -15,12 +15,7 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-} from '#/components/ui/pagination'
-import { Skeleton } from '#/components/ui/skeleton'
+import { ListPagePagination, TableSkeleton } from '#/components/list-page'
 import { Link } from '@tanstack/react-router'
 import {
   Breadcrumb,
@@ -215,34 +210,7 @@ function MembersPage() {
         )}
 
         {isLoading ? (
-          <div className="overflow-x-auto rounded-lg border border-[var(--border)] shadow-none">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                  <th className="text-left py-2 px-3 font-medium">Member</th>
-                  <th className="text-left py-2 px-3 font-medium">Card no</th>
-                  <th className="text-left py-2 px-3 font-medium">Company</th>
-                  <th className="text-left py-2 px-3 font-medium">Scheme</th>
-                  <th className="text-right py-2 px-3 font-medium">DOB</th>
-                  <th className="text-left py-2 px-3 font-medium">Status</th>
-                  <th className="text-left py-2 px-3 w-20">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i} className="border-b border-[var(--border-subtle)]">
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-24" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-20" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-24" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-24" /></td>
-                    <td className="py-2 px-3 text-right"><Skeleton className="h-4 w-20 inline-block" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-16" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-6 w-14" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <TableSkeleton columns={7} rows={5} />
         ) : filteredItems.length === 0 ? (
           <Empty className="border border-[var(--border)] rounded-lg py-8 shadow-none">
             <EmptyHeader>
@@ -328,37 +296,13 @@ function MembersPage() {
               </table>
             </div>
 
-            <div className="flex items-center justify-end gap-2">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setSkip((s) => Math.max(0, s - LIMIT))}
-                      disabled={skip === 0}
-                    >
-                      Previous
-                    </Button>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <span className="px-2 text-sm text-[var(--foreground-muted)]">
-                      {Math.floor(skip / LIMIT) + 1}
-                    </span>
-                  </PaginationItem>
-                  <PaginationItem>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => items.length === LIMIT && setSkip((s) => s + LIMIT)}
-                      disabled={items.length < LIMIT}
-                    >
-                      Next
-                    </Button>
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
+            <ListPagePagination
+              skip={skip}
+              limit={LIMIT}
+              currentPageSize={items.length}
+              onPrevious={() => setSkip((s) => Math.max(0, s - LIMIT))}
+              onNext={() => items.length === LIMIT && setSkip((s) => s + LIMIT)}
+            />
           </>
         )}
       </section>

@@ -8,14 +8,7 @@ import { buildIdToEntityMap } from '#/lib/utils'
 import { useRowSelection, isAllSelected } from '#/hooks/use-row-selection'
 import { Button } from '#/components/ui/button'
 import { Checkbox } from '#/components/ui/checkbox'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '#/components/ui/dialog'
+import { Dialog, DialogContent } from '#/components/ui/dialog'
 import {
   Empty,
   EmptyHeader,
@@ -35,6 +28,12 @@ import {
   MoreHorizontal,
   Globe,
   Trash2,
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  FileText,
+  Layers,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/companies')({
@@ -429,6 +428,36 @@ function useCompanyForm(initial: CompanyFormFields = EMPTY_FORM) {
   return { fields, update, reset, toPayload }
 }
 
+const inputBase =
+  'w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent'
+const labelBase = 'block text-sm font-medium text-[var(--foreground-muted)] mb-1.5'
+
+function FormField({
+  id,
+  label,
+  icon: Icon,
+  children,
+  className,
+}: {
+  id: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={className}>
+      <label htmlFor={id} className={labelBase}>
+        <span className="inline-flex items-center gap-2">
+          <Icon className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+          {label}
+        </span>
+      </label>
+      {children}
+    </div>
+  )
+}
+
 function CompanyFormBody({
   fields,
   update,
@@ -439,65 +468,34 @@ function CompanyFormBody({
   companyTypes: CompanyType[]
 }) {
   return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="col-span-2">
-        <label htmlFor="cmp-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Name *
-        </label>
+    <div className="grid grid-cols-2 gap-5">
+      <FormField id="cmp-name" label="Company name *" icon={Building2} className="col-span-2">
         <input
           id="cmp-name"
           type="text"
           value={fields.name}
           onChange={(e) => update('name', e.target.value)}
           required
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+          placeholder="e.g. Acme Health Ltd"
+          className={inputBase}
         />
-      </div>
-      <div>
-        <label htmlFor="cmp-contact" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Contact person
-        </label>
+      </FormField>
+      <FormField id="cmp-contact" label="Contact person" icon={User}>
         <input
           id="cmp-contact"
           type="text"
           value={fields.contact_person}
           onChange={(e) => update('contact_person', e.target.value)}
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+          placeholder="Full name"
+          className={inputBase}
         />
-      </div>
-      <div>
-        <label htmlFor="cmp-email" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Email
-        </label>
-        <input
-          id="cmp-email"
-          type="email"
-          value={fields.email}
-          onChange={(e) => update('email', e.target.value)}
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-        />
-      </div>
-      <div>
-        <label htmlFor="cmp-phone" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Phone
-        </label>
-        <input
-          id="cmp-phone"
-          type="text"
-          value={fields.phone}
-          onChange={(e) => update('phone', e.target.value)}
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-        />
-      </div>
-      <div>
-        <label htmlFor="cmp-type" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Company type
-        </label>
+      </FormField>
+      <FormField id="cmp-type" label="Company type" icon={Layers}>
         <select
           id="cmp-type"
           value={fields.company_type}
           onChange={(e) => update('company_type', e.target.value)}
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+          className={inputBase}
         >
           <option value="">— None —</option>
           {companyTypes.map((t) => (
@@ -506,56 +504,67 @@ function CompanyFormBody({
             </option>
           ))}
         </select>
-      </div>
-      <div className="col-span-2">
-        <label htmlFor="cmp-address" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Address
-        </label>
+      </FormField>
+      <FormField id="cmp-email" label="Email" icon={Mail}>
         <input
-          id="cmp-address"
+          id="cmp-email"
+          type="email"
+          value={fields.email}
+          onChange={(e) => update('email', e.target.value)}
+          placeholder="contact@company.com"
+          className={inputBase}
+        />
+      </FormField>
+      <FormField id="cmp-phone" label="Phone" icon={Phone}>
+        <input
+          id="cmp-phone"
           type="text"
+          value={fields.phone}
+          onChange={(e) => update('phone', e.target.value)}
+          placeholder="+123 456 7890"
+          className={inputBase}
+        />
+      </FormField>
+      <FormField id="cmp-address" label="Address" icon={MapPin} className="col-span-2">
+        <textarea
+          id="cmp-address"
           value={fields.address}
           onChange={(e) => update('address', e.target.value)}
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+          rows={3}
+          placeholder="Street, city, postal code"
+          className={inputBase + ' resize-y min-h-[80px]'}
         />
-      </div>
-      <div>
-        <label htmlFor="cmp-location" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Location
-        </label>
+      </FormField>
+      <FormField id="cmp-location" label="Location" icon={MapPin}>
         <input
           id="cmp-location"
           type="text"
           value={fields.location}
           onChange={(e) => update('location', e.target.value)}
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+          placeholder="Area or region"
+          className={inputBase}
         />
-      </div>
-      <div>
-        <label htmlFor="cmp-website" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Website
-        </label>
+      </FormField>
+      <FormField id="cmp-website" label="Website" icon={Globe}>
         <input
           id="cmp-website"
           type="url"
           value={fields.website}
           onChange={(e) => update('website', e.target.value)}
           placeholder="https://"
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+          className={inputBase}
         />
-      </div>
-      <div className="col-span-2">
-        <label htmlFor="cmp-remarks" className="block text-sm text-[var(--foreground-muted)] mb-1">
-          Remarks
-        </label>
+      </FormField>
+      <FormField id="cmp-remarks" label="Remarks" icon={FileText} className="col-span-2">
         <textarea
           id="cmp-remarks"
           value={fields.remarks}
           onChange={(e) => update('remarks', e.target.value)}
           rows={2}
-          className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md resize-y"
+          placeholder="Optional notes"
+          className={inputBase + ' resize-y'}
         />
-      </div>
+      </FormField>
     </div>
   )
 }
@@ -588,28 +597,37 @@ function CreateCompanyDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>New company</DialogTitle>
-          <DialogDescription>Fill in the details to create a company.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <Building2 className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">New company</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">Add a new company to your tenant. Required fields are marked with *.</p>
+            </div>
+          </div>
+        </header>
         <form
           onSubmit={(e) => {
             e.preventDefault()
             createMutation.mutate(form.toPayload())
           }}
-          className="space-y-4"
+          className="flex flex-col"
         >
-          <CompanyFormBody fields={form.fields} update={form.update} companyTypes={companyTypes} />
-          {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
-          <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => onOpenChange(false)}>
+          <div className="flex-1 px-6 py-5 space-y-4">
+            <CompanyFormBody fields={form.fields} update={form.update} companyTypes={companyTypes} />
+            {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
+          </div>
+          <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending || !form.fields.name.trim()}>
-              {createMutation.isPending ? 'Creating…' : 'Create'}
+            <Button type="submit" disabled={createMutation.isPending || !form.fields.name.trim()} className="min-w-[100px]">
+              {createMutation.isPending ? 'Creating…' : 'Create company'}
             </Button>
-          </DialogFooter>
+          </footer>
         </form>
       </DialogContent>
     </Dialog>
@@ -641,45 +659,54 @@ function CompanyDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Company details</DialogTitle>
-          <DialogDescription>Details for the selected company.</DialogDescription>
-        </DialogHeader>
-        {isLoading || !company ? (
-          <div className="space-y-3 py-4">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className="h-4 w-full" />
-            ))}
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <Building2 className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Company details</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">View and manage company information.</p>
+            </div>
           </div>
-        ) : (
-          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm py-2">
-            <DetailRow label="Name" value={company.name} />
-            <DetailRow label="Contact" value={company.contact_person} />
-            <DetailRow label="Email" value={company.email} />
-            <DetailRow label="Phone" value={company.phone} />
-            <DetailRow label="Address" value={company.address} />
-            <DetailRow label="Location" value={company.location} />
-            <DetailRow
-              label="Type"
-              value={
-                company.company_type != null
-                  ? companyTypeById[String(company.company_type)]?.name ?? '—'
-                  : null
-              }
-            />
-            <DetailRow label="Website" value={company.website} />
-            <DetailRow label="Remarks" value={company.remarks} />
-          </dl>
-        )}
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+        </header>
+        <div className="px-6 py-5">
+          {isLoading || !company ? (
+            <div className="space-y-3 py-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton key={i} className="h-4 w-full" />
+              ))}
+            </div>
+          ) : (
+            <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm">
+              <DetailRow label="Name" value={company.name} />
+              <DetailRow label="Contact" value={company.contact_person} />
+              <DetailRow label="Email" value={company.email} />
+              <DetailRow label="Phone" value={company.phone} />
+              <DetailRow label="Address" value={company.address} />
+              <DetailRow label="Location" value={company.location} />
+              <DetailRow
+                label="Type"
+                value={
+                  company.company_type != null
+                    ? companyTypeById[String(company.company_type)]?.name ?? '—'
+                    : null
+                }
+              />
+              <DetailRow label="Website" value={company.website} />
+              <DetailRow label="Remarks" value={company.remarks} />
+            </dl>
+          )}
+        </div>
+        <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Close
           </Button>
           {company && (
-            <Button onClick={() => onEdit(company.id)}>Edit</Button>
+            <Button onClick={() => onEdit(company.id)}>Edit company</Button>
           )}
-        </DialogFooter>
+        </footer>
       </DialogContent>
     </Dialog>
   )
@@ -747,13 +774,20 @@ function EditCompanyDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Edit company</DialogTitle>
-          <DialogDescription>Update company information.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-2xl p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <Building2 className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Edit company</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">Update company information. Required fields are marked with *.</p>
+            </div>
+          </div>
+        </header>
         {!company ? (
-          <div className="space-y-3 py-4">
+          <div className="px-6 py-5 space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
               <Skeleton key={i} className="h-4 w-full" />
             ))}
@@ -764,18 +798,24 @@ function EditCompanyDialog({
               e.preventDefault()
               updateMutation.mutate(form.toPayload())
             }}
-            className="space-y-4"
+            className="flex flex-col"
           >
-            <CompanyFormBody fields={form.fields} update={form.update} companyTypes={companyTypes} />
-            {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
-            <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => handleClose(false)}>
+            <div className="flex-1 px-6 py-5 space-y-4">
+              <CompanyFormBody fields={form.fields} update={form.update} companyTypes={companyTypes} />
+              {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
+            </div>
+            <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => handleClose(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateMutation.isPending || !form.fields.name.trim()}>
-                {updateMutation.isPending ? 'Saving…' : 'Save'}
+              <Button
+                type="submit"
+                disabled={updateMutation.isPending || !form.fields.name.trim()}
+                className="min-w-[100px]"
+              >
+                {updateMutation.isPending ? 'Saving…' : 'Save changes'}
               </Button>
-            </DialogFooter>
+            </footer>
           </form>
         )}
       </DialogContent>

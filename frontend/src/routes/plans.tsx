@@ -22,25 +22,23 @@ import {
   EmptyMedia,
 } from '#/components/ui/empty'
 import { DetailRow, ListPagePagination, TableSkeleton } from '#/components/list-page'
-import { Layers, Search, Plus } from 'lucide-react'
+import { FileStack, Search, Plus } from 'lucide-react'
 
-export const Route = createFileRoute('/company-types')({
-  beforeLoad: () => requireAuthBeforeLoad('/company-types'),
-  component: CompanyTypesPage,
+export const Route = createFileRoute('/plans')({
+  beforeLoad: () => requireAuthBeforeLoad('/plans'),
+  component: PlansPage,
 })
 
-interface CompanyType {
+interface Plan {
   id: string
   tenant_id: string
   name: string
   code: string | null
-  description: string | null
-  status: string
 }
 
 const LIMIT = 50
 
-function CompanyTypesPage() {
+function PlansPage() {
   const opts = useApi()
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
@@ -57,16 +55,16 @@ function CompanyTypesPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['company-types', skip, LIMIT, opts.tenantId],
-    queryFn: () => apiGet<CompanyType[]>(`/company-types?${params}`, opts),
+    queryKey: ['plans', skip, LIMIT, opts.tenantId],
+    queryFn: () => apiGet<Plan[]>(`/plans?${params}`, opts),
     enabled: !!opts.tenantId && !!opts.token,
   })
 
   const filteredItems = searchQuery.trim()
     ? items.filter(
-        (t) =>
-          t.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-          (t.code || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
+        (p) =>
+          p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+          (p.code || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
       )
     : items
 
@@ -74,10 +72,10 @@ function CompanyTypesPage() {
     return (
       <div className="w-full">
         <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">
-          Company types
+          Plans
         </h1>
         <p className="text-[var(--foreground-muted)]">
-          Sign in and select a tenant to manage company types.
+          Sign in and select a tenant to manage plans.
         </p>
       </div>
     )
@@ -90,14 +88,14 @@ function CompanyTypesPage() {
           <Search className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
           <input
             type="search"
-            placeholder="Search types"
+            placeholder="Search plans"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
               setSkip(0)
             }}
             className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none"
-            aria-label="Search company types"
+            aria-label="Search plans"
           />
         </div>
         <div className="ml-auto flex shrink-0">
@@ -106,7 +104,7 @@ function CompanyTypesPage() {
             className="h-8 bg-[var(--primary)] px-3 text-[var(--primary-foreground)]"
           >
             <Plus className="size-3.5 mr-1" aria-hidden />
-            Add type
+            Add plan
           </Button>
         </div>
       </div>
@@ -123,16 +121,16 @@ function CompanyTypesPage() {
       )}
 
       {isLoading ? (
-        <TableSkeleton columns={4} rows={5} />
+        <TableSkeleton columns={3} rows={5} />
       ) : filteredItems.length === 0 ? (
         <Empty className="border border-[var(--border)] rounded-lg py-8 shadow-none mt-2">
           <EmptyHeader>
             <EmptyMedia variant="icon">
-              <Layers className="size-6" />
+              <FileStack className="size-6" />
             </EmptyMedia>
-            <EmptyTitle>No company types</EmptyTitle>
+            <EmptyTitle>No plans</EmptyTitle>
             <EmptyDescription>
-              No company types match your search. Add one to get started.
+              No plans match your search. Add one to get started.
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
@@ -146,7 +144,7 @@ function CompanyTypesPage() {
             >
               Clear search
             </Button>
-            <Button onClick={() => setShowCreate(true)}>Add type</Button>
+            <Button onClick={() => setShowCreate(true)}>Add plan</Button>
           </EmptyContent>
         </Empty>
       ) : (
@@ -157,30 +155,26 @@ function CompanyTypesPage() {
                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
                   <th className="text-left py-2.5 px-3 font-medium">Name</th>
                   <th className="text-left py-2.5 px-3 font-medium">Code</th>
-                  <th className="text-left py-2.5 px-3 font-medium">Status</th>
                   <th className="text-left py-2.5 px-3 w-20">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredItems.map((t) => (
+                {filteredItems.map((p) => (
                   <tr
-                    key={t.id}
+                    key={p.id}
                     className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--muted)]/20"
                   >
                     <td className="py-2.5 px-3 font-medium text-[var(--foreground)]">
-                      {t.name}
+                      {p.name}
                     </td>
                     <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
-                      {t.code ?? '—'}
-                    </td>
-                    <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
-                      {t.status}
+                      {p.code ?? '—'}
                     </td>
                     <td className="py-2.5 px-3">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setDetailId(t.id)}
+                        onClick={() => setDetailId(p.id)}
                       >
                         View
                       </Button>
@@ -201,17 +195,17 @@ function CompanyTypesPage() {
         </>
       )}
 
-      <CreateCompanyTypeDialog
+      <CreatePlanDialog
         open={showCreate}
         onOpenChange={(open) => !open && setShowCreate(false)}
         onSuccess={() => {
           setShowCreate(false)
-          queryClient.invalidateQueries({ queryKey: ['company-types'] })
+          queryClient.invalidateQueries({ queryKey: ['plans'] })
         }}
       />
 
-      <CompanyTypeDetailDialog
-        typeId={detailId ?? ''}
+      <PlanDetailDialog
+        planId={detailId ?? ''}
         open={!!detailId}
         onOpenChange={(open) => !open && setDetailId(null)}
         onEdit={(id) => {
@@ -220,23 +214,21 @@ function CompanyTypesPage() {
         }}
       />
 
-      <EditCompanyTypeDialog
-        typeId={editId ?? ''}
+      <EditPlanDialog
+        planId={editId ?? ''}
         open={!!editId}
         onOpenChange={(open) => !open && setEditId(null)}
         onSuccess={() => {
           setEditId(null)
-          queryClient.invalidateQueries({ queryKey: ['company-types'] })
-          queryClient.invalidateQueries({ queryKey: ['company-type'] })
+          queryClient.invalidateQueries({ queryKey: ['plans'] })
+          queryClient.invalidateQueries({ queryKey: ['plan'] })
         }}
       />
     </div>
   )
 }
 
-/* ─── Create dialog ─── */
-
-function CreateCompanyTypeDialog({
+function CreatePlanDialog({
   open,
   onOpenChange,
   onSuccess,
@@ -248,21 +240,15 @@ function CreateCompanyTypeDialog({
   const opts = useApi()
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  const [description, setDescription] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const createMutation = useMutation({
-    mutationFn: (body: {
-      name: string
-      code?: string
-      description?: string
-      status: string
-    }) => apiPost<CompanyType>('/company-types', body, opts),
+    mutationFn: (body: { name: string; code?: string }) =>
+      apiPost<Plan>('/plans', body, opts),
     onSuccess: () => {
       onSuccess()
       setName('')
       setCode('')
-      setDescription('')
       setSubmitError(null)
     },
     onError: (err) => setSubmitError(getApiErrorDetail(err)),
@@ -272,7 +258,6 @@ function CreateCompanyTypeDialog({
     if (!openState) {
       setName('')
       setCode('')
-      setDescription('')
       setSubmitError(null)
     }
     onOpenChange(openState)
@@ -282,28 +267,23 @@ function CreateCompanyTypeDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>New company type</DialogTitle>
-          <DialogDescription>Add a new company type.</DialogDescription>
+          <DialogTitle>New plan</DialogTitle>
+          <DialogDescription>Add a plan.</DialogDescription>
         </DialogHeader>
         <form
           onSubmit={(e) => {
             e.preventDefault()
             if (!name.trim()) return
-            createMutation.mutate({
-              name: name.trim(),
-              code: code.trim() || undefined,
-              description: description.trim() || undefined,
-              status: 'active',
-            })
+            createMutation.mutate({ name: name.trim(), code: code.trim() || undefined })
           }}
           className="space-y-4"
         >
           <div>
-            <label htmlFor="ct-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
+            <label htmlFor="plan-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
               Name *
             </label>
             <input
-              id="ct-name"
+              id="plan-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -312,27 +292,15 @@ function CreateCompanyTypeDialog({
             />
           </div>
           <div>
-            <label htmlFor="ct-code" className="block text-sm text-[var(--foreground-muted)] mb-1">
+            <label htmlFor="plan-code" className="block text-sm text-[var(--foreground-muted)] mb-1">
               Code
             </label>
             <input
-              id="ct-code"
+              id="plan-code"
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-            />
-          </div>
-          <div>
-            <label htmlFor="ct-desc" className="block text-sm text-[var(--foreground-muted)] mb-1">
-              Description
-            </label>
-            <textarea
-              id="ct-desc"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md resize-y"
             />
           </div>
           {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
@@ -350,36 +318,34 @@ function CreateCompanyTypeDialog({
   )
 }
 
-/* ─── Detail dialog ─── */
-
-function CompanyTypeDetailDialog({
-  typeId,
+function PlanDetailDialog({
+  planId,
   open,
   onOpenChange,
   onEdit,
 }: {
-  typeId: string
+  planId: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onEdit: (id: string) => void
 }) {
   const opts = useApi()
   const { data: item, isLoading } = useQuery({
-    queryKey: ['company-type', typeId],
-    queryFn: () => apiGet<CompanyType>(`/company-types/${typeId}`, opts),
-    enabled: open && !!typeId && !!opts.tenantId && !!opts.token,
+    queryKey: ['plan', planId],
+    queryFn: () => apiGet<Plan>(`/plans/${planId}`, opts),
+    enabled: open && !!planId && !!opts.tenantId && !!opts.token,
   })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Company type details</DialogTitle>
-          <DialogDescription>Details for the selected type.</DialogDescription>
+          <DialogTitle>Plan details</DialogTitle>
+          <DialogDescription>Details for the selected plan.</DialogDescription>
         </DialogHeader>
         {isLoading || !item ? (
           <div className="space-y-3 py-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-4 w-full rounded bg-[var(--muted)] animate-pulse" />
             ))}
           </div>
@@ -387,8 +353,6 @@ function CompanyTypeDetailDialog({
           <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm py-2">
             <DetailRow label="Name" value={item.name} />
             <DetailRow label="Code" value={item.code} />
-            <DetailRow label="Description" value={item.description} />
-            <DetailRow label="Status" value={item.status} />
           </dl>
         )}
         <DialogFooter>
@@ -402,15 +366,13 @@ function CompanyTypeDetailDialog({
   )
 }
 
-/* ─── Edit dialog ─── */
-
-function EditCompanyTypeDialog({
-  typeId,
+function EditPlanDialog({
+  planId,
   open,
   onOpenChange,
   onSuccess,
 }: {
-  typeId: string
+  planId: string
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
@@ -418,32 +380,24 @@ function EditCompanyTypeDialog({
   const opts = useApi()
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  const [description, setDescription] = useState('')
-  const [status, setStatus] = useState('active')
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
 
   const { data: item } = useQuery({
-    queryKey: ['company-type', typeId],
-    queryFn: () => apiGet<CompanyType>(`/company-types/${typeId}`, opts),
-    enabled: open && !!typeId && !!opts.tenantId && !!opts.token,
+    queryKey: ['plan', planId],
+    queryFn: () => apiGet<Plan>(`/plans/${planId}`, opts),
+    enabled: open && !!planId && !!opts.tenantId && !!opts.token,
   })
 
   if (item && !loaded) {
     setName(item.name)
     setCode(item.code ?? '')
-    setDescription(item.description ?? '')
-    setStatus(item.status)
     setLoaded(true)
   }
 
   const updateMutation = useMutation({
-    mutationFn: (body: {
-      name: string
-      code?: string
-      description?: string
-      status: string
-    }) => apiPatch<CompanyType>(`/company-types/${typeId}`, body, opts),
+    mutationFn: (body: { name: string; code?: string }) =>
+      apiPatch<Plan>(`/plans/${planId}`, body, opts),
     onSuccess: () => {
       onSuccess()
       setLoaded(false)
@@ -464,12 +418,12 @@ function EditCompanyTypeDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Edit company type</DialogTitle>
-          <DialogDescription>Update company type information.</DialogDescription>
+          <DialogTitle>Edit plan</DialogTitle>
+          <DialogDescription>Update plan information.</DialogDescription>
         </DialogHeader>
         {!item ? (
           <div className="space-y-3 py-4">
-            {Array.from({ length: 4 }).map((_, i) => (
+            {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="h-4 w-full rounded bg-[var(--muted)] animate-pulse" />
             ))}
           </div>
@@ -478,21 +432,16 @@ function EditCompanyTypeDialog({
             onSubmit={(e) => {
               e.preventDefault()
               if (!name.trim()) return
-              updateMutation.mutate({
-                name: name.trim(),
-                code: code.trim() || undefined,
-                description: description.trim() || undefined,
-                status,
-              })
+              updateMutation.mutate({ name: name.trim(), code: code.trim() || undefined })
             }}
             className="space-y-4"
           >
             <div>
-              <label htmlFor="cte-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
+              <label htmlFor="plan-edit-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
                 Name *
               </label>
               <input
-                id="cte-name"
+                id="plan-edit-name"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -501,42 +450,16 @@ function EditCompanyTypeDialog({
               />
             </div>
             <div>
-              <label htmlFor="cte-code" className="block text-sm text-[var(--foreground-muted)] mb-1">
+              <label htmlFor="plan-edit-code" className="block text-sm text-[var(--foreground-muted)] mb-1">
                 Code
               </label>
               <input
-                id="cte-code"
+                id="plan-edit-code"
                 type="text"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
                 className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
               />
-            </div>
-            <div>
-              <label htmlFor="cte-desc" className="block text-sm text-[var(--foreground-muted)] mb-1">
-                Description
-              </label>
-              <textarea
-                id="cte-desc"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md resize-y"
-              />
-            </div>
-            <div>
-              <label htmlFor="cte-status" className="block text-sm text-[var(--foreground-muted)] mb-1">
-                Status
-              </label>
-              <select
-                id="cte-status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value)}
-                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-              >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </select>
             </div>
             {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
             <DialogFooter>

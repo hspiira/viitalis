@@ -3,7 +3,7 @@
 from datetime import date
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ClaimPaymentCreateRequest(BaseModel):
@@ -13,6 +13,7 @@ class ClaimPaymentCreateRequest(BaseModel):
 
 
 class ClaimPaymentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     claim_id: str

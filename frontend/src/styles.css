@@ -39,6 +39,7 @@ code {
   --destructive-foreground: #fff;
   --border: #d4d3cf;
   --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-dialog: #d4d3cf;
   --input: #d4d3cf;
   --ring: rgba(0, 0, 0, 0.15);
   --radius: 0;
@@ -75,8 +76,9 @@ code {
   --destructive-foreground: #fff;
   --border: #2d2d2d;
   --border-subtle: rgba(45, 45, 45, 0.5);
+  --border-dialog: #1f1f1f;
   --input: #2d2d2d;
-  --ring: rgba(255, 255, 255, 0.2);
+  --ring: rgba(255, 255, 255, 0.1);
   --sidebar: #0f0f0f;
   --sidebar-foreground: #e7e7e7;
   --sidebar-accent: #1a1a1a;

@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ReimbursementCreateRequest(BaseModel):
@@ -16,6 +16,7 @@ class ReimbursementUpdateRequest(BaseModel):
 
 
 class ReimbursementResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     claim_id: str

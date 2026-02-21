@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 # --- CompanyType ---
@@ -21,6 +21,7 @@ class CompanyTypeUpdateRequest(BaseModel):
 
 
 class CompanyTypeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -43,6 +44,7 @@ class CompanyGroupUpdateRequest(BaseModel):
 
 
 class CompanyGroupResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -64,6 +66,7 @@ class DepartmentUpdateRequest(BaseModel):
 
 
 class DepartmentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -89,6 +92,7 @@ class FinancialPeriodUpdateRequest(BaseModel):
 
 
 class FinancialPeriodResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -112,6 +116,7 @@ class InsuranceTypeUpdateRequest(BaseModel):
 
 
 class InsuranceTypeResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -133,6 +138,7 @@ class MedicalConditionUpdateRequest(BaseModel):
 
 
 class MedicalConditionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str

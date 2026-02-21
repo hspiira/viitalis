@@ -354,13 +354,12 @@ function BankForm({
 }) {
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
-  const [status, setStatus] = useState('active')
   return (
     <div className="mb-4 p-4 border border-[var(--border)] bg-[var(--card)]">
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          if (name.trim()) onSubmit(name.trim(), code.trim(), status)
+          if (name.trim()) onSubmit(name.trim(), code.trim(), 'active')
         }}
         className="flex flex-wrap gap-4 items-end"
       >
@@ -382,17 +381,6 @@ function BankForm({
             onChange={(e) => setCode(e.target.value)}
             className="border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)] w-24"
           />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-sm text-[var(--foreground-muted)]">Status</span>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)]"
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
         </label>
         <div className="flex gap-2">
           <button
@@ -423,13 +411,12 @@ function BranchForm({
 }) {
   const [name, setName] = useState('')
   const [address, setAddress] = useState('')
-  const [status, setStatus] = useState('active')
   return (
     <div className="mb-4 p-4 border border-[var(--border)] bg-[var(--card)]">
       <form
         onSubmit={(e) => {
           e.preventDefault()
-          if (name.trim()) onSubmit(name.trim(), address.trim(), status)
+          if (name.trim()) onSubmit(name.trim(), address.trim(), 'active')
         }}
         className="flex flex-wrap gap-4 items-end"
       >
@@ -451,17 +438,6 @@ function BranchForm({
             onChange={(e) => setAddress(e.target.value)}
             className="border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)] min-w-[16rem]"
           />
-        </label>
-        <label className="flex flex-col gap-1">
-          <span className="text-sm text-[var(--foreground-muted)]">Status</span>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="border border-[var(--input)] bg-[var(--background)] px-3 py-2 text-[var(--foreground)]"
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
         </label>
         <div className="flex gap-2">
           <button type="submit" disabled={isPending} className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 text-sm">
