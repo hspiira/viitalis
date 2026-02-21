@@ -51,9 +51,8 @@ function LoginPage() {
     try {
       const ok = await login(tenantCode, username, password)
       if (ok) {
-        // Full page navigation so the next load runs on the client with token in
-        // localStorage; client-side navigate() can trigger an SSR fetch that
-        // has no token and ends up rendering NotFound.
+        // Full page load so the server serves /dashboard (or index.html for client routing).
+        // SPA navigate() can receive 404 HTML and show it as raw text when only __root__/ matches.
         window.location.replace(redirectPathOnly)
         return
       }

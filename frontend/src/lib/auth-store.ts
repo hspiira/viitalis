@@ -1,9 +1,15 @@
 /**
  * Auth state: token + current user (with tenant_id for X-Tenant-ID).
- * Persists token to localStorage; user is refreshed from GET /auth/me.
+ * Uses vitalisApi (typed OpenAPI client) for login and GET /auth/me.
+ * Syncs token/tenant to api-client so requests send Authorization and X-Tenant-ID.
  */
 
-import { apiGet, apiPost, getApiErrorDetail } from '@/lib/api-client'
+import {
+  vitalisApi,
+  setAuthToken,
+  setTenantId,
+  getApiErrorDetail,
+} from '@/lib/api-client'
 
 const STORAGE_KEY = 'vitalis-auth-token'
 
@@ -61,18 +67,24 @@ export function setAuth(newToken: string, newUser: MeUser | null = null) {
   token = newToken
   user = newUser
   writeStorage(newToken)
+  setAuthToken(newToken)
+  if (newUser?.tenant_id) setTenantId(newUser.tenant_id)
+  else if (!newToken) setTenantId(null)
 }
 
 /** Set token only (e.g. right after login). Call fetchMe() to populate user. */
 export function setToken(newToken: string) {
   token = newToken
   writeStorage(newToken)
+  setAuthToken(newToken)
 }
 
 export function clearAuth() {
   token = null
   user = null
   writeStorage(null)
+  setAuthToken(null)
+  setTenantId(null)
 }
 
 /** Load token from storage (e.g. on app init). Does not fetch user. */
@@ -86,9 +98,14 @@ export async function fetchMe(): Promise<MeUser | null> {
   const t = getStoredToken()
   if (!t) return null
   try {
-    const me = await apiGet<MeUser>('/auth/me', { token: t })
-    user = me
-    return me
+    const { data, error } = await vitalisApi.users.me()
+    if (error || !data) {
+      clearAuth()
+      return null
+    }
+    user = data as MeUser
+    setTenantId(data.tenant_id)
+    return user
   } catch {
     clearAuth()
     return null
@@ -101,12 +118,21 @@ export async function loginWithPassword(
   username: string,
   password: string
 ): Promise<string> {
-  const res = await apiPost<{ access_token: string; token_type: string }>(
-    '/auth/login',
-    { tenant_code: tenant_code.trim(), username: username.trim(), password },
-    { token: null, tenantId: null }
+  const { data, error } = await vitalisApi.auth.login(
+    tenant_code.trim(),
+    username.trim(),
+    password
   )
-  return res.access_token
+  if (error) {
+    const detail =
+      (error as { detail?: string; message?: string })?.detail ??
+      (error as { detail?: string; message?: string })?.message
+    throw Object.assign(new Error(typeof detail === 'string' ? detail : 'Login failed'), {
+      detail,
+    })
+  }
+  if (!data?.access_token) throw new Error('Login failed')
+  return data.access_token
 }
 
 /** Get user-facing error message from a login/API error. */

@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 import type { ReactNode } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Outlet,
   createRootRoute,
@@ -21,24 +22,51 @@ export const Route = createRootRoute({
       { title: 'Vitalis — Healthcare Management' },
     ],
   }),
+  shellComponent: RootDocument,
   component: RootComponent,
 })
 
 function RootComponent() {
   return (
-    <RootDocument>
-      <ErrorBoundary>
-        <AuthProvider>
-          <RootWithAuth />
-        </AuthProvider>
-      </ErrorBoundary>
-    </RootDocument>
+    <ErrorBoundary>
+      <AuthProvider>
+        <RootWithAuth />
+      </AuthProvider>
+    </ErrorBoundary>
+  )
+}
+
+/** Document shell (Timeline-style). Route content is {children}; client navigation only swaps that. */
+function RootDocument({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <HeadContent />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var t=localStorage.getItem('vitalis-theme');if(t!=='light')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');})();`,
+          }}
+        />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
+    </html>
   )
 }
 
 /** Layout by auth state only (Timeline-style): when user is set show AppLayout, else just Outlet for login/register/landing. */
 function RootWithAuth() {
   const { user, isLoading } = useAuth()
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
+  // Avoid hydration mismatch: server and first client render both show Outlet when no user.
+  // Only after mount do we show loading (client may have token in localStorage; server never does).
+  if (!mounted) {
+    return <Outlet />
+  }
 
   if (isLoading && !user) {
     return (
@@ -57,23 +85,4 @@ function RootWithAuth() {
   }
 
   return <Outlet />
-}
-
-function RootDocument({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <HeadContent />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `(function(){var t=localStorage.getItem('vitalis-theme');if(t!=='light')document.documentElement.classList.add('dark');else document.documentElement.classList.remove('dark');})();`,
-          }}
-        />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  )
 }

@@ -17,6 +17,24 @@ To build this application for production:
 pnpm build
 ```
 
+## API types (generate:api)
+
+The frontend uses typed API clients generated from the Vitalis backend OpenAPI spec (like ui.timeline).
+
+- **`src/lib/vitalis-api.ts`** — Auto-generated types and paths (do not edit by hand).
+- **`src/lib/api-client.ts`** — Typed client: `vitalisApi` (auth, users, tenants, …) and legacy `apiGet` / `apiPost` helpers.
+
+**Regenerate after backend API changes:**
+
+1. Start the backend (e.g. `uv run fastapi dev`).
+2. From the frontend directory:
+
+```bash
+pnpm run generate:api
+```
+
+Optional env: `OPENAPI_URL` or `VITE_API_URL` (default `http://localhost:8000`). The script fetches `{base}/openapi.json` and overwrites `src/lib/vitalis-api.ts`.
+
 ## Testing
 
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:

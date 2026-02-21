@@ -1,8 +1,8 @@
 /**
  * 404 page. Use fullPage for the router notFoundComponent (full-screen card layout).
+ * Uses full-page navigation for links so buttons work even when the router state is broken.
  */
 
-import { Link } from '@tanstack/react-router'
 import { Home, ArrowLeft, FileQuestion } from 'lucide-react'
 
 export interface NotFoundProps {
@@ -25,23 +25,24 @@ export function NotFound({
   fullPage = false,
   className = '',
 }: NotFoundProps) {
+  const safeBackUrl = backUrl.startsWith('/') && !backUrl.startsWith('//') ? backUrl : '/'
+  const buttonClass = fullPage
+    ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+    : 'bg-muted text-muted-foreground hover:bg-muted/80'
+
   const actions = showBackButton && (
     <div className={fullPage ? 'flex flex-col gap-3' : 'flex flex-wrap gap-4 justify-center'}>
-      <Link
-        to={backUrl}
+      <a
+        href={safeBackUrl}
         className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground hover:opacity-90 font-semibold rounded-none transition-opacity"
       >
         <Home size={18} aria-hidden />
         <span>{backLabel}</span>
-      </Link>
+      </a>
       <button
         type="button"
         onClick={() => window.history.back()}
-        className={`inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-none transition-colors ${
-          fullPage
-            ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
-            : 'bg-muted text-muted-foreground hover:bg-muted/80'
-        }`}
+        className={`inline-flex items-center justify-center gap-2 px-6 py-3 font-semibold rounded-none transition-colors ${buttonClass}`}
       >
         <ArrowLeft size={18} aria-hidden />
         <span>Go back</span>

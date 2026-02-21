@@ -47,12 +47,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const initAuth = useCallback(async () => {
     const token = loadStoredToken()
     if (!token) {
-      setState({ user: null, isLoading: false })
+      setState((s) => ({ ...s, user: null, isLoading: false }))
       return
     }
     setState((s) => ({ ...s, isLoading: true }))
     const me = await fetchMe()
-    setState({ user: me, isLoading: false })
+    setState((s) => ({ ...s, user: me, isLoading: false }))
   }, [])
 
   const setUser = useCallback((user: MeUser | null) => {

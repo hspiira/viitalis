@@ -8,15 +8,19 @@ import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { nitro } from 'nitro/vite'
 
-const config = defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
     devtools(),
-    nitro({ rollupConfig: { external: [/^@sentry\//] } }),
+    // Nitro only in production: in dev it can cause only __root__/ to match, so /dashboard etc. return 404.
+    command === 'build' ? nitro({ rollupConfig: { external: [/^@sentry\//] } }) : null,
     tsconfigPaths({ projects: ['./tsconfig.json'] }),
     tailwindcss(),
-    tanstackStart(),
+    // In dev (serve), SPA mode avoids SSR so every path serves the client app and the client router handles /dashboard (no 404 HTML).
+    tanstackStart(
+      command === 'serve'
+        ? { spa: { enabled: true } }
+        : undefined
+    ),
     viteReact(),
-  ],
-})
-
-export default config
+  ].filter(Boolean),
+}))

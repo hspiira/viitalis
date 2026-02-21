@@ -1,11 +1,11 @@
 /**
  * Error Boundary – catches React errors and shows a full-page fallback.
  * Used as the top-level shell so runtime errors don't white-screen the app.
+ * Uses full-page navigation for "Go to home" so it works even when the router is broken.
  */
 
 import { Component, type ReactNode } from 'react'
 import { AlertCircle, Home } from 'lucide-react'
-import { Link } from '@tanstack/react-router'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -71,17 +71,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <button
                   type="button"
                   onClick={this.handleReset}
-                  className="px-6 py-3 bg-primary text-primary-foreground hover:opacity-90 font-semibold rounded-none transition-opacity"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground hover:opacity-90 font-semibold rounded-none transition-opacity"
                 >
                   Try again
                 </button>
-                <Link
-                  to="/"
-                  className="flex items-center justify-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold rounded-none transition-colors"
+                <a
+                  href="/"
+                  className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground hover:bg-secondary/80 font-semibold rounded-none transition-colors"
                 >
                   <Home size={18} aria-hidden />
                   Go to home
-                </Link>
+                </a>
               </div>
             </div>
           </div>
