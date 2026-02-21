@@ -16,9 +16,44 @@ code {
   font-family: ui-monospace, 'JetBrains Mono', 'Cascadia Code', monospace;
 }
 
-/* Colors from Scalar.com default dark theme (packages/themes default.css .dark-mode) */
-/* https://github.com/scalar/scalar/blob/main/packages/themes/src/presets/default.css */
+/* Light theme (default): page background #ecebe7 */
 :root {
+  --background: #ecebe7;
+  --foreground: #1a1a1a;
+  --foreground-muted: #525252;
+  --foreground-subtle: #737373;
+  --foreground-active: #0a0a0a;
+  --card: #f5f4f0;
+  --card-foreground: #1a1a1a;
+  --popover: #f5f4f0;
+  --popover-foreground: #1a1a1a;
+  --primary: #1a1a1a;
+  --primary-foreground: #ecebe7;
+  --secondary: #e5e4e0;
+  --secondary-foreground: #1a1a1a;
+  --muted: #e5e4e0;
+  --muted-foreground: #525252;
+  --accent: #e0dfdb;
+  --accent-foreground: #1a1a1a;
+  --destructive: #dc1b19;
+  --destructive-foreground: #fff;
+  --border: #d4d3cf;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --input: #d4d3cf;
+  --ring: rgba(0, 0, 0, 0.15);
+  --radius: 0;
+  --sidebar: #ecebe7;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-accent: #e5e4e0;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: #d4d3cf;
+  --chart-1: 160, 84%, 39%;
+  --chart-2: 173, 58%, 39%;
+}
+
+/* Dark theme (Scalar.com default) – applied when .dark is on <html> */
+/* https://github.com/scalar/scalar/blob/main/packages/themes/src/presets/default.css */
+.dark {
   --background: #0f0f0f;
   --foreground: #e7e7e7;
   --foreground-muted: #a4a4a4;
@@ -42,18 +77,11 @@ code {
   --border-subtle: rgba(45, 45, 45, 0.5);
   --input: #2d2d2d;
   --ring: rgba(255, 255, 255, 0.2);
-  --radius: 0;
   --sidebar: #0f0f0f;
   --sidebar-foreground: #e7e7e7;
   --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #2d2d2d;
-  --chart-1: 160, 84%, 39%;
-  --chart-2: 173, 58%, 39%;
-}
-
-.dark {
-  /* Same as :root; class used for theme toggler */
 }
 
 @theme inline {

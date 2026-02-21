@@ -1,161 +1,68 @@
-import { Link } from '@tanstack/react-router'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { Link, useLocation } from '@tanstack/react-router'
+import { ArrowRight, ChevronLeft } from 'lucide-react'
 import {
-  ArrowRight,
-  BookOpen,
-  Heart,
-  Home,
-  Building2,
-  Users,
-  FileCheck,
-  BarChart3,
-  Pill,
-  Stethoscope,
-  FlaskConical,
-  ClipboardList,
-  Landmark,
-  CreditCard,
-  FolderOpen,
-  Moon,
-  Sun,
-  Receipt,
-  Database,
-  type LucideIcon,
-} from 'lucide-react'
+  SIDEBAR_CATEGORIES,
+  getSidebarCategoryByPath,
+  type NavCategory,
+  type NavItem,
+} from '#/config/sidebar-nav'
+import { ThemeToggler } from '#/components/ThemeToggler'
 
-const THEME_KEY = 'vitalis-theme'
+const baseItemClass =
+  'group flex w-full items-center gap-2 px-2.5 py-1.5 text-[14px] text-[var(--foreground-muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]'
+const activeItemClass = 'active bg-[var(--secondary)] text-[var(--foreground-active)]'
 
-function ThemeToggler() {
-  const [isDark, setIsDark] = useState(true)
-
-  useEffect(() => {
-    const stored = localStorage.getItem(THEME_KEY)
-    const dark = stored !== 'light'
-    setIsDark(dark)
-    if (dark) document.documentElement.classList.add('dark')
-    else document.documentElement.classList.remove('dark')
-  }, [])
-
-  const toggle = () => {
-    const next = !isDark
-    setIsDark(next)
-    if (next) {
-      document.documentElement.classList.add('dark')
-      localStorage.setItem(THEME_KEY, 'dark')
-    } else {
-      document.documentElement.classList.remove('dark')
-      localStorage.setItem(THEME_KEY, 'light')
-    }
-  }
-
-  return (
-    <div className="sidebar-footer flex shrink-0 justify-end border-t border-[var(--border-subtle)] p-3">
-      <button
-        type="button"
-        role="switch"
-        aria-checked={isDark}
-        onClick={toggle}
-        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-        className="flex items-center"
-      >
-        <span className="relative inline-flex h-1.5 w-9 shrink-0 rounded-full bg-[var(--muted)]">
-          <span
-            className={`absolute top-1/2 size-4 -translate-y-1/2 rounded-full border border-[var(--border-subtle)] bg-[var(--secondary)] shadow transition-[left] duration-200 ${
-              isDark ? 'left-5' : 'left-0.5'
-            }`}
-          >
-            {isDark ? (
-              <Moon className="absolute inset-0 m-auto size-2.5 text-[var(--foreground-active)]" aria-hidden />
-            ) : (
-              <Sun className="absolute inset-0 m-auto size-2.5 text-[var(--foreground-active)]" aria-hidden />
-            )}
-          </span>
-        </span>
-      </button>
-    </div>
-  )
-}
-
-type NavItem = { to: string; label: string; icon: LucideIcon }
-
-const navGroups: { label: string; items: NavItem[] }[] = [
-  {
-    label: 'Main',
-    items: [
-      { to: '/dashboard', label: 'Introduction', icon: Home },
-    ],
-  },
-  {
-    label: 'API',
-    items: [
-      { to: '/docs', label: 'API Docs', icon: BookOpen },
-      { to: '/health', label: 'Health', icon: Heart },
-    ],
-  },
-  {
-    label: 'Core',
-    items: [
-      { to: '/tenants', label: 'Tenants', icon: Building2 },
-      { to: '/companies', label: 'Companies', icon: Building2 },
-      { to: '/members', label: 'Members', icon: Users },
-      { to: '/claims', label: 'Claims', icon: FileCheck },
-      { to: '/reports', label: 'Reports', icon: BarChart3 },
-      { to: '/hospitals', label: 'Hospitals', icon: Building2 },
-      { to: '/doctors', label: 'Doctors', icon: Stethoscope },
-    ],
-  },
-  {
-    label: 'Catalogs',
-    items: [
-      { to: '/medicines', label: 'Medicines', icon: Pill },
-      { to: '/services', label: 'Services', icon: Stethoscope },
-      { to: '/labs', label: 'Labs', icon: FlaskConical },
-      { to: '/diagnoses', label: 'Diagnoses', icon: ClipboardList },
-    ],
-  },
-  {
-    label: 'Reference & Banking',
-    items: [
-      { to: '/banks', label: 'Banks', icon: Landmark },
-      { to: '/reimbursements', label: 'Reimbursements', icon: Receipt },
-      { to: '/reference-data', label: 'Reference data', icon: Database },
-      { to: '/card-replacements', label: 'Card replacements', icon: CreditCard },
-      { to: '/billing-sessions', label: 'Billing sessions', icon: FolderOpen },
-      { to: '/claim-payments', label: 'Claim payments', icon: FileCheck },
-    ],
-  },
-]
-
-function SidebarItem({ item }: { item: NavItem }) {
+function ChildLink({ item }: { item: NavItem }) {
   const Icon = item.icon
-  const content = (
-    <>
-      <div className="flex min-w-0 flex-1 items-center gap-2">
-        <Icon className="size-3.5 shrink-0 text-inherit" aria-hidden />
-        <span className="min-w-0 truncate">{item.label}</span>
-      </div>
-      <ArrowRight className="size-3.5 shrink-0 ml-auto text-inherit" aria-hidden />
-    </>
-  )
-  const baseClass =
-    'group flex w-full items-center gap-2 px-2.5 py-1.5 text-[14px] text-[var(--foreground-muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]'
-  const activeClass = 'active bg-[var(--secondary)] text-[var(--foreground-active)]'
-
   return (
     <Link
       to={item.to}
-      className={baseClass}
-      activeProps={{ className: `${baseClass} ${activeClass}` }}
+      className={baseItemClass}
+      activeProps={{ className: `${baseItemClass} ${activeItemClass}` }}
     >
-      {content}
+      <Icon className="size-3.5 shrink-0 text-inherit" aria-hidden />
+      <span className="min-w-0 truncate">{item.label}</span>
     </Link>
   )
 }
 
+function ParentRow({
+  category,
+  isActive,
+  onClick,
+}: {
+  category: NavCategory
+  isActive: boolean
+  onClick: () => void
+}) {
+  const Icon = category.icon ?? category.items[0]?.icon
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`${baseItemClass} w-full text-left ${isActive ? activeItemClass : ''}`}
+      aria-expanded={isActive}
+    >
+      {Icon && <Icon className="size-3.5 shrink-0 text-inherit" aria-hidden />}
+      <span className="min-w-0 flex-1 truncate">{category.label}</span>
+      <ArrowRight className="size-3.5 shrink-0 text-inherit" aria-hidden />
+    </button>
+  )
+}
+
 export default function Sidebar() {
+  const [drawerCategoryId, setDrawerCategoryId] = useState<string | null>(null)
+  const openCategory = drawerCategoryId
+    ? SIDEBAR_CATEGORIES.find((c) => c.id === drawerCategoryId)
+    : null
+
+  const { pathname } = useLocation()
+  const activeCategory = getSidebarCategoryByPath(pathname)
+
   return (
     <aside className="fixed left-0 top-14 z-10 flex h-[calc(100vh-3.5rem)] w-64 flex-col border-r border-[var(--border-subtle)] bg-[var(--background)]">
-      <div className="shrink-0 p-3">
+      <div className="shrink-0 p-3 pt-4">
         <input
           type="search"
           placeholder="Search..."
@@ -163,23 +70,50 @@ export default function Sidebar() {
           aria-label="Search"
         />
       </div>
-      <nav className="min-h-0 flex-1 overflow-y-auto p-3">
-        {navGroups.map((group) => (
-          <div key={group.label} className="mb-4">
+
+      <nav className="min-h-0 flex-1 overflow-y-auto p-3 pt-1">
+        {!openCategory ? (
+          <>
+            <ul className="space-y-0">
+              {SIDEBAR_CATEGORIES.map((category) => (
+                <li key={category.id}>
+                  <ParentRow
+                    category={category}
+                    isActive={activeCategory?.id === category.id}
+                    onClick={() => setDrawerCategoryId(category.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : (
+          <div className="flex flex-col">
+            <button
+              type="button"
+              onClick={() => setDrawerCategoryId(null)}
+              className="mb-2 flex w-full items-center gap-2 px-2.5 py-1.5 text-[14px] text-[var(--foreground-muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]"
+              aria-label="Back to menu"
+            >
+              <ChevronLeft className="size-4 shrink-0" aria-hidden />
+              Back
+            </button>
             <h3 className="mb-1.5 px-2.5 text-xs font-semibold text-[var(--foreground-subtle)]">
-              {group.label}
+              {openCategory.label}
             </h3>
             <ul className="space-y-0">
-              {group.items.map((item) => (
-                <li key={item.label}>
-                  <SidebarItem item={item} />
+              {openCategory.items.map((item) => (
+                <li key={item.to}>
+                  <ChildLink item={item} />
                 </li>
               ))}
             </ul>
           </div>
-        ))}
+        )}
       </nav>
-      <ThemeToggler />
+
+      <div className="sidebar-footer flex shrink-0 justify-end border-t border-[var(--border-subtle)] p-3">
+        <ThemeToggler />
+      </div>
     </aside>
   )
 }
