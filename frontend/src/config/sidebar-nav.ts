@@ -15,9 +15,8 @@ import {
   FolderOpen,
   Receipt,
   Database,
-  Tag,
-  UsersRound,
   MapPin,
+  Shield,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -56,8 +55,6 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
     icon: Building2,
     items: [
       { to: '/companies', label: 'Companies', icon: Building2 },
-      { to: '/company-types', label: 'Company types', icon: Tag },
-      { to: '/company-groups', label: 'Company groups', icon: UsersRound },
       { to: '/company-branches', label: 'Branches', icon: MapPin },
     ],
   },
@@ -65,7 +62,10 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
     id: 'membership',
     label: 'Membership',
     icon: Users,
-    items: [{ to: '/members', label: 'Members', icon: Users }],
+    items: [
+      { to: '/members', label: 'Members', icon: Users },
+      { to: '/schemes', label: 'Schemes', icon: Shield },
+    ],
   },
   {
     id: 'claims',

@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TenantsRouteImport } from './routes/tenants'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as SchemesRouteImport } from './routes/schemes'
 import { Route as ReportsRouteImport } from './routes/reports'
 import { Route as ReimbursementsRouteImport } from './routes/reimbursements'
 import { Route as RegisterRouteImport } from './routes/register'
@@ -45,6 +46,11 @@ const TenantsRoute = TenantsRouteImport.update({
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SchemesRoute = SchemesRouteImport.update({
+  id: '/schemes',
+  path: '/schemes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ReportsRoute = ReportsRouteImport.update({
@@ -198,6 +204,7 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
+  '/schemes': typeof SchemesRoute
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -227,6 +234,7 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
+  '/schemes': typeof SchemesRoute
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -257,6 +265,7 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
+  '/schemes': typeof SchemesRoute
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reimbursements'
     | '/reports'
+    | '/schemes'
     | '/services'
     | '/tenants'
     | '/api/trpc/$'
@@ -317,6 +327,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reimbursements'
     | '/reports'
+    | '/schemes'
     | '/services'
     | '/tenants'
     | '/api/trpc/$'
@@ -346,6 +357,7 @@ export interface FileRouteTypes {
     | '/register'
     | '/reimbursements'
     | '/reports'
+    | '/schemes'
     | '/services'
     | '/tenants'
     | '/api/trpc/$'
@@ -376,6 +388,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ReimbursementsRoute: typeof ReimbursementsRoute
   ReportsRoute: typeof ReportsRoute
+  SchemesRoute: typeof SchemesRoute
   ServicesRoute: typeof ServicesRoute
   TenantsRoute: typeof TenantsRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
@@ -395,6 +408,13 @@ declare module '@tanstack/react-router' {
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/schemes': {
+      id: '/schemes'
+      path: '/schemes'
+      fullPath: '/schemes'
+      preLoaderRoute: typeof SchemesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reports': {
@@ -600,6 +620,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ReimbursementsRoute: ReimbursementsRoute,
   ReportsRoute: ReportsRoute,
+  SchemesRoute: SchemesRoute,
   ServicesRoute: ServicesRoute,
   TenantsRoute: TenantsRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,

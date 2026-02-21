@@ -23,3 +23,8 @@ export function formatPercent(value: number, options?: { signed?: boolean }): st
   const prefix = signed && value > 0 ? '+' : ''
   return `${prefix}${value.toFixed(1)}%`
 }
+
+/** Build a map of id -> entity for list lookups. Single responsibility: list → lookup map. */
+export function buildIdToEntityMap<T extends { id: string }>(list: T[]): Record<string, T> {
+  return Object.fromEntries(list.map((item) => [item.id, item]))
+}

@@ -4,10 +4,11 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect, useMemo } from 'react'
 import { format, sub } from 'date-fns'
 import { apiGet, apiPost, apiPatch, getApiErrorDetail } from '#/lib/api-client'
-import { getStoredToken, getTenantId } from '#/lib/auth-store'
-import { formatCurrency } from '#/lib/utils'
+import { useApi } from '#/lib/use-api'
+import { formatCurrency, buildIdToEntityMap } from '#/lib/utils'
+import { useRowSelection, isAllSelected } from '#/hooks/use-row-selection'
 import { Button } from '#/components/ui/button'
-import { Card, CardHeader, CardTitle } from '#/components/ui/card'
+import { Checkbox } from '#/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -30,28 +31,23 @@ import {
   PaginationItem,
 } from '#/components/ui/pagination'
 import { Skeleton } from '#/components/ui/skeleton'
-import { Link } from '@tanstack/react-router'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '#/components/ui/breadcrumb'
 import {
   FileText,
   Search,
   Calendar,
-  Send,
-  Receipt,
   Filter,
   Building2,
   Hospital as HospitalIcon,
+  Plus,
+  ArrowUpDown,
+  MoreHorizontal,
 } from 'lucide-react'
 
 export const Route = createFileRoute('/claims')({
   beforeLoad: () => requireAuthBeforeLoad('/claims'),
+  validateSearch: (search: Record<string, unknown>) => ({
+    member_id: typeof search.member_id === 'string' ? search.member_id : undefined,
+  }),
   component: ClaimsPage,
 })
 
@@ -73,7 +69,6 @@ interface Claim {
 }
 
 const LIMIT = 20
-const STATS_LIMIT = 500
 const STATUS_OPTIONS = [
   { value: '', label: 'All' },
   { value: 'draft', label: 'Draft' },
@@ -99,41 +94,46 @@ function getPresetDates(presetId: string): { from: string; to: string } {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  const dotColor =
+    status === 'approved'
+      ? 'bg-emerald-500'
+      : status === 'rejected'
+        ? 'bg-red-500'
+        : status === 'submitted'
+          ? 'bg-blue-500'
+          : 'bg-[var(--foreground-muted)]'
   const variant =
     status === 'approved'
-      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+      ? 'text-emerald-700 dark:text-emerald-300'
       : status === 'rejected'
-        ? 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300'
+        ? 'text-red-700 dark:text-red-300'
         : status === 'submitted'
-          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300'
-          : 'bg-[var(--muted)] text-[var(--foreground-muted)]'
+          ? 'text-blue-700 dark:text-blue-300'
+          : 'text-[var(--foreground-muted)]'
   return (
-    <span
-      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium capitalize ${variant}`}
-    >
+    <span className={`inline-flex items-center gap-1.5 text-sm font-medium capitalize ${variant}`}>
+      <span className={`size-2 shrink-0 rounded-full ${dotColor}`} aria-hidden />
       {status}
     </span>
   )
 }
 
-function useApiOpts() {
-  return { token: getStoredToken(), tenantId: getTenantId() }
-}
-
 function ClaimsPage() {
-  const opts = useApiOpts()
+  const opts = useApi()
+  const { member_id: memberIdFromUrl } = Route.useSearch()
   const [datePreset, setDatePreset] = useState('7')
   const [dateFrom, setDateFrom] = useState(() => getPresetDates('7').from)
   const [dateTo, setDateTo] = useState(() => getPresetDates('7').to)
   const [statusFilter, setStatusFilter] = useState('')
   const [companyFilter, setCompanyFilter] = useState('')
   const [hospitalFilter, setHospitalFilter] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState(memberIdFromUrl ?? '')
   const [skip, setSkip] = useState(0)
   const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [detailClaimId, setDetailClaimId] = useState<string | null>(null)
   const [editClaimId, setEditClaimId] = useState<string | null>(null)
+  const { selectedIds, toggleAll, toggleOne, clearSelection } = useRowSelection()
 
   useEffect(() => {
     const { from, to } = getPresetDates(datePreset)
@@ -151,12 +151,6 @@ function ClaimsPage() {
   if (dateFrom) params.set('service_date_from', dateFrom)
   if (dateTo) params.set('service_date_to', dateTo)
   if (searchQuery.trim()) params.set('member_id', searchQuery.trim())
-
-  const statsParams = new URLSearchParams({ limit: String(STATS_LIMIT) })
-  if (dateFrom) statsParams.set('service_date_from', dateFrom)
-  if (dateTo) statsParams.set('service_date_to', dateTo)
-  if (companyFilter) statsParams.set('company_id', companyFilter)
-  if (hospitalFilter) statsParams.set('hospital_id', hospitalFilter)
 
   const {
     data: items = [],
@@ -181,28 +175,7 @@ function ClaimsPage() {
     enabled: !!opts.tenantId && !!opts.token,
   })
 
-  const { data: statsItems = [] } = useQuery({
-    queryKey: ['claims-stats', dateFrom, dateTo, companyFilter, hospitalFilter, opts.tenantId],
-    queryFn: () => apiGet<Claim[]>(`/claims?${statsParams}`, opts),
-    enabled: !!opts.tenantId && !!opts.token,
-  })
-
-  const hospitalById = useMemo(
-    () => Object.fromEntries((hospitals as { id: string; name: string }[]).map((h) => [h.id, h])),
-    [hospitals]
-  )
-
-  const stats = useMemo(() => {
-    const draft = statsItems.filter((c) => c.status === 'draft').length
-    const submitted = statsItems.filter((c) => c.status === 'submitted').length
-    const approved = statsItems.filter((c) => c.status === 'approved').length
-    const rejected = statsItems.filter((c) => c.status === 'rejected').length
-    const totalAmount = statsItems.reduce(
-      (sum, c) => sum + (c.total_amount != null ? Number(c.total_amount) : 0),
-      0
-    )
-    return { draft, submitted, approved, rejected, totalAmount, total: statsItems.length }
-  }, [statsItems])
+  const hospitalById = useMemo(() => buildIdToEntityMap(hospitals as { id: string; name: string }[]), [hospitals])
 
   const dateRangeLabel =
     dateFrom && dateTo
@@ -222,35 +195,38 @@ function ClaimsPage() {
     )
   }
 
+  const itemIds = useMemo(() => items.map((c) => c.id), [items])
+  const allSelected = isAllSelected(itemIds, selectedIds)
+  const someSelected = selectedIds.size > 0
+  const handleToggleAll = () => toggleAll(itemIds)
+
   return (
-    <div className="flex flex-col gap-3">
-      <header className="space-y-0.5">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/dashboard" className="text-[var(--foreground-muted)] hover:text-[var(--foreground)]">
-                  Home
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Claims</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <p className="text-sm text-[var(--foreground-muted)]">
-          Monitor and manage claims, approvals, and payments.
-        </p>
-        <div className="flex flex-wrap items-center gap-2 pt-1">
+    <div className="flex flex-col gap-0">
+      {/* Toolbar: filters on one row */}
+      <div className="flex flex-nowrap items-center gap-2 border-b border-[var(--border)] py-2.5 text-sm">
+        <div className="flex h-8 min-w-0 max-w-[200px] shrink-0 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
+          <Search className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+          <input
+            type="search"
+            placeholder="Search by member ID"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value)
+              setSkip(0)
+            }}
+            className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none"
+            aria-label="Search claims"
+          />
+        </div>
+        <div className="flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2 text-xs">
+          <Calendar className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
           <select
             value={datePreset}
             onChange={(e) => {
               setDatePreset(e.target.value)
               setSkip(0)
             }}
-            className="rounded-md border border-[var(--input)] bg-[var(--card)] px-3 py-2 text-sm text-[var(--foreground)]"
+            className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
             aria-label="Date range"
           >
             {DATE_PRESETS.map((p) => (
@@ -259,181 +235,80 @@ function ClaimsPage() {
               </option>
             ))}
           </select>
-          <div className="flex items-center gap-2 rounded-md bg-[var(--card)] px-3 py-2 text-sm text-[var(--foreground)]">
-            <Calendar className="size-4 text-[var(--foreground-muted)]" aria-hidden />
-            {dateRangeLabel}
-          </div>
+        </div>
+        <span className="shrink-0 text-xs text-[var(--foreground-muted)]">{dateRangeLabel}</span>
+        <div className="flex h-8 w-[120px] shrink-0 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
+          <Filter className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+          <select
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value)
+              setSkip(0)
+            }}
+            className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
+            aria-label="Status"
+          >
+            {STATUS_OPTIONS.map((o) => (
+              <option key={o.value || 'all'} value={o.value}>
+                Status: {o.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex h-8 w-[140px] shrink-0 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
+          <Building2 className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+          <select
+            value={companyFilter}
+            onChange={(e) => {
+              setCompanyFilter(e.target.value)
+              setSkip(0)
+            }}
+            className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
+            aria-label="Company"
+          >
+            <option value="">All companies</option>
+            {companies.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex h-8 w-[140px] shrink-0 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
+          <HospitalIcon className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+          <select
+            value={hospitalFilter}
+            onChange={(e) => {
+              setHospitalFilter(e.target.value)
+              setSkip(0)
+            }}
+            className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
+            aria-label="Hospital"
+          >
+            <option value="">All hospitals</option>
+            {hospitals.map((h) => (
+              <option key={h.id} value={h.id}>
+                {h.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="ml-auto flex shrink-0 items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Sort">
+            <ArrowUpDown className="size-3.5" />
+          </Button>
+          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="More options">
+            <MoreHorizontal className="size-3.5" />
+          </Button>
           <Button
             onClick={() => setShowCreate(true)}
-            className="ml-auto bg-[var(--primary)] text-[var(--primary-foreground)]"
+            className="h-8 bg-[var(--primary)] px-3 text-[var(--primary-foreground)]"
           >
+            <Plus className="size-3.5 mr-1" aria-hidden />
             New claim
           </Button>
         </div>
-      </header>
-
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="border-0 bg-[var(--card)] py-2 shadow-none">
-          <CardHeader className="flex flex-col gap-1 px-3 pb-0">
-            <div className="flex items-end gap-2">
-              <FileText className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-              <CardTitle className="text-xs font-medium text-[var(--foreground-muted)] leading-none">
-                Submission
-              </CardTitle>
-            </div>
-            <div className="flex flex-wrap gap-3 pt-0.5">
-              <div>
-                <p className="text-base font-semibold tabular-nums text-[var(--foreground)]">
-                  {stats.draft}
-                </p>
-                <p className="text-xs text-[var(--foreground-muted)]">Draft</p>
-              </div>
-              <div>
-                <p className="text-base font-semibold tabular-nums text-[var(--foreground)]">
-                  {stats.submitted}
-                </p>
-                <p className="text-xs text-[var(--foreground-muted)]">Submitted</p>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-        <Card className="border-0 bg-[var(--card)] py-2 shadow-none">
-          <CardHeader className="flex flex-col gap-1 px-3 pb-0">
-            <div className="flex items-end gap-2">
-              <Send className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-              <CardTitle className="text-xs font-medium text-[var(--foreground-muted)] leading-none">
-                Approvals
-              </CardTitle>
-            </div>
-            <div className="flex flex-wrap gap-3 pt-0.5">
-              <div>
-                <p className="text-base font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">
-                  {stats.approved}
-                </p>
-                <p className="text-xs text-[var(--foreground-muted)]">Approved</p>
-              </div>
-              <div>
-                <p className="text-base font-semibold tabular-nums text-red-500 dark:text-red-400">
-                  {stats.rejected}
-                </p>
-                <p className="text-xs text-[var(--foreground-muted)]">Rejected</p>
-              </div>
-            </div>
-          </CardHeader>
-        </Card>
-        <Card className="border-0 bg-[var(--card)] py-2 shadow-none sm:col-span-2 lg:col-span-1">
-          <CardHeader className="flex flex-col gap-1 px-3 pb-0">
-            <div className="flex items-end gap-2">
-              <Receipt className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-              <CardTitle className="text-xs font-medium text-[var(--foreground-muted)] leading-none">
-                Total amount
-              </CardTitle>
-            </div>
-            <p className="text-lg font-semibold tabular-nums tracking-tight text-[var(--foreground)] pt-0.5">
-              {formatCurrency(stats.totalAmount)}
-            </p>
-            <p className="text-xs text-[var(--foreground-muted)]">
-              {stats.total} claims in range
-            </p>
-          </CardHeader>
-        </Card>
       </div>
-
-      <section className="space-y-2">
-        <h2 className="text-base font-semibold text-[var(--foreground)]">Recent claims</h2>
-        <div className="flex flex-wrap items-center gap-2 text-xs">
-          <div className="flex h-8 min-w-[200px] max-w-[280px] flex-1 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
-            <Search className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-            <input
-              type="search"
-              placeholder="Search by Member ID"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-                setSkip(0)
-              }}
-              className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none"
-              aria-label="Search claims"
-            />
-          </div>
-          <div className="flex h-8 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
-            <Calendar className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-            <select
-              value={datePreset}
-              onChange={(e) => {
-                setDatePreset(e.target.value)
-                setSkip(0)
-              }}
-              className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
-              aria-label="Date range"
-            >
-              {DATE_PRESETS.map((p) => (
-                <option key={p.id || 'all'} value={p.id}>
-                  {p.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <span className="min-w-[120px] text-[var(--foreground-muted)]">
-            {dateRangeLabel}
-          </span>
-          <div className="flex h-8 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
-            <Filter className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value)
-                setSkip(0)
-              }}
-              className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
-              aria-label="Status"
-            >
-              {STATUS_OPTIONS.map((o) => (
-                <option key={o.value || 'all'} value={o.value}>
-                  Status: {o.label}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex h-8 min-w-[160px] items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
-            <Building2 className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-            <select
-              value={companyFilter}
-              onChange={(e) => {
-                setCompanyFilter(e.target.value)
-                setSkip(0)
-              }}
-              className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
-              aria-label="Company"
-            >
-              <option value="">All companies</option>
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="flex h-8 min-w-[160px] items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
-            <HospitalIcon className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-            <select
-              value={hospitalFilter}
-              onChange={(e) => {
-                setHospitalFilter(e.target.value)
-                setSkip(0)
-              }}
-              className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
-              aria-label="Hospital"
-            >
-              <option value="">All hospitals</option>
-              {hospitals.map((h) => (
-                <option key={h.id} value={h.id}>
-                  {h.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
 
         {error && (
           <div className="flex flex-col gap-2">
@@ -448,28 +323,30 @@ function ClaimsPage() {
 
         {isLoading ? (
           <div className="overflow-x-auto rounded-lg border border-[var(--border)] shadow-none">
-            <table className="w-full text-xs">
+            <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                  <th className="text-left py-2 px-3 font-medium">Claim</th>
-                  <th className="text-left py-2 px-3 font-medium">Member</th>
-                  <th className="text-left py-2 px-3 font-medium">Hospital</th>
-                  <th className="text-right py-2 px-3 font-medium">Service date</th>
-                  <th className="text-right py-2 px-3 font-medium">Amount</th>
-                  <th className="text-left py-2 px-3 font-medium">Status</th>
-                  <th className="text-left py-2 px-3 font-medium w-20">Actions</th>
+                  <th className="w-10 py-2.5 pl-3 pr-2"><span className="sr-only">Select</span></th>
+                  <th className="text-left py-2.5 px-3 font-medium">Claim</th>
+                  <th className="text-left py-2.5 px-3 font-medium">Member</th>
+                  <th className="text-left py-2.5 px-3 font-medium">Hospital</th>
+                  <th className="text-right py-2.5 px-3 font-medium">Service date</th>
+                  <th className="text-right py-2.5 px-3 font-medium">Amount</th>
+                  <th className="text-left py-2.5 px-3 font-medium">Status</th>
+                  <th className="text-left py-2.5 px-3 w-20">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="border-b border-[var(--border-subtle)]">
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-20" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-24" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-24" /></td>
-                    <td className="py-2 px-3 text-right"><Skeleton className="h-4 w-24 inline-block" /></td>
-                    <td className="py-2 px-3 text-right"><Skeleton className="h-4 w-16 inline-block" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-4 w-16" /></td>
-                    <td className="py-2 px-3"><Skeleton className="h-6 w-14" /></td>
+                    <td className="py-2.5 pl-3 pr-2"><Skeleton className="h-4 w-4" /></td>
+                    <td className="py-2.5 px-3"><Skeleton className="h-4 w-20" /></td>
+                    <td className="py-2.5 px-3"><Skeleton className="h-4 w-24" /></td>
+                    <td className="py-2.5 px-3"><Skeleton className="h-4 w-24" /></td>
+                    <td className="py-2.5 px-3 text-right"><Skeleton className="h-4 w-24 inline-block" /></td>
+                    <td className="py-2.5 px-3 text-right"><Skeleton className="h-4 w-16 inline-block" /></td>
+                    <td className="py-2.5 px-3"><Skeleton className="h-4 w-16" /></td>
+                    <td className="py-2.5 px-3"><Skeleton className="h-6 w-14" /></td>
                   </tr>
                 ))}
               </tbody>
@@ -511,45 +388,61 @@ function ClaimsPage() {
         ) : (
           <>
             <div className="overflow-x-auto rounded-lg border border-[var(--border)] shadow-none">
-              <table className="w-full text-xs">
+              <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                    <th className="text-left py-2 px-3 font-medium">Claim</th>
-                    <th className="text-left py-2 px-3 font-medium">Member</th>
-                    <th className="text-left py-2 px-3 font-medium">Hospital</th>
-                    <th className="text-right py-2 px-3 font-medium">Service date</th>
-                    <th className="text-right py-2 px-3 font-medium">Amount</th>
-                    <th className="text-left py-2 px-3 font-medium">Status</th>
-                    <th className="text-left py-2 px-3 w-20">Actions</th>
+                    <th className="w-10 py-2.5 pl-3 pr-2">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={handleToggleAll}
+                        aria-label="Select all"
+                      />
+                    </th>
+                    <th className="text-left py-2.5 px-3 font-medium">Claim</th>
+                    <th className="text-left py-2.5 px-3 font-medium">Member</th>
+                    <th className="text-left py-2.5 px-3 font-medium">Hospital</th>
+                    <th className="text-right py-2.5 px-3 font-medium">Service date</th>
+                    <th className="text-right py-2.5 px-3 font-medium">Amount</th>
+                    <th className="text-left py-2.5 px-3 font-medium">Status</th>
+                    <th className="text-left py-2.5 px-3 w-20">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {items.map((claim) => (
                     <tr
                       key={claim.id}
-                      className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--muted)]/20"
+                      className={`border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--muted)]/20 ${
+                        selectedIds.has(claim.id) ? 'bg-[var(--muted)]/40' : ''
+                      }`}
                     >
-                      <td className="py-2 px-3 font-mono text-xs text-[var(--foreground-muted)]">
+                      <td className="py-2.5 pl-3 pr-2">
+                        <Checkbox
+                          checked={selectedIds.has(claim.id)}
+                          onCheckedChange={() => toggleOne(claim.id)}
+                          aria-label={`Select claim ${claim.id.slice(-8)}`}
+                        />
+                      </td>
+                      <td className="py-2.5 px-3 font-mono text-sm text-[var(--foreground-muted)]">
                         {claim.id.slice(-8)}
                       </td>
-                      <td className="py-2 px-3">{claim.member_id}</td>
-                      <td className="max-w-[200px] truncate py-2 px-3" title={hospitalById[claim.hospital_id]?.name ?? claim.hospital_id}>
+                      <td className="py-2.5 px-3">{claim.member_id}</td>
+                      <td className="max-w-[200px] truncate py-2.5 px-3" title={hospitalById[claim.hospital_id]?.name ?? claim.hospital_id}>
                         {hospitalById[claim.hospital_id]?.name ?? claim.hospital_id}
                       </td>
-                      <td className="py-2 px-3 text-right tabular-nums">
+                      <td className="py-2.5 px-3 text-right tabular-nums">
                         {claim.service_date
                           ? format(new Date(claim.service_date), 'dd MMM yyyy')
                           : '—'}
                       </td>
-                      <td className="py-2 px-3 text-right tabular-nums">
+                      <td className="py-2.5 px-3 text-right tabular-nums">
                         {claim.total_amount != null
                           ? formatCurrency(Number(claim.total_amount))
                           : '—'}
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2.5 px-3">
                         <StatusBadge status={claim.status} />
                       </td>
-                      <td className="py-2 px-3">
+                      <td className="py-2.5 px-3">
                         <Button
                           variant="ghost"
                           size="sm"
@@ -564,7 +457,29 @@ function ClaimsPage() {
               </table>
             </div>
 
-            <div className="flex items-center justify-end gap-2">
+            {/* Selection bar (Deals-style: appears when rows selected) */}
+            {someSelected && (
+              <div className="flex items-center gap-3 border-t border-[var(--border)] bg-[var(--muted)]/30 px-4 py-2.5 text-sm">
+                <span className="text-[var(--foreground-muted)]">
+                  {selectedIds.size} claim{selectedIds.size !== 1 ? 's' : ''} selected
+                </span>
+                <Button variant="secondary" size="sm">
+                  Approve
+                </Button>
+                <Button variant="secondary" size="sm">
+                  Reject
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearSelection}
+                >
+                  Clear selection
+                </Button>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2 py-2">
               <Pagination>
                 <PaginationContent>
                   <PaginationItem>
@@ -597,7 +512,6 @@ function ClaimsPage() {
             </div>
           </>
         )}
-      </section>
 
       <CreateClaimDialog
         open={showCreate}
@@ -641,7 +555,7 @@ function CreateClaimDialog({
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }) {
-  const opts = useApiOpts()
+  const opts = useApi()
   const [memberId, setMemberId] = useState('')
   const [hospitalId, setHospitalId] = useState('')
   const [serviceDate, setServiceDate] = useState(format(new Date(), 'yyyy-MM-dd'))
@@ -775,7 +689,7 @@ function EditClaimDialog({
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
 }) {
-  const opts = useApiOpts()
+  const opts = useApi()
   const { data: claim, isLoading } = useQuery({
     queryKey: ['claim', claimId, opts.tenantId],
     queryFn: () => apiGet<Claim>(`/claims/${claimId}`, opts),
@@ -906,7 +820,7 @@ function ClaimDetailDialog({
   onOpenChange: (open: boolean) => void
   onEdit: (claimId: string) => void
 }) {
-  const opts = useApiOpts()
+  const opts = useApi()
   const { data: claim, isLoading, error } = useQuery({
     queryKey: ['claim', claimId, opts.tenantId],
     queryFn: () => apiGet<Claim>(`/claims/${claimId}`, opts),
