@@ -1,11 +1,12 @@
 """Company API: create, list, get by id, update. Requires X-Tenant-ID."""
 
+import dataclasses
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Query
 
 from app.api.v1.dependencies import get_company_service
-from app.application.dtos.company import CompanyCreate, CompanyUpdate
+from app.application.dtos.company import CompanyCreate, CompanyResult, CompanyUpdate
 from app.application.use_cases.companies import CompanyService
 from app.schemas.company import (
     CompanyCreateRequest,
@@ -17,14 +18,14 @@ from app.schemas.company import (
 router = APIRouter()
 
 
-def _to_response(r) -> CompanyResponse:
+def _to_response(r: CompanyResult) -> CompanyResponse:
     """Map CompanyResult DTO to API response (DRY)."""
-    return CompanyResponse.model_validate(r)
+    return CompanyResponse.model_validate(dataclasses.asdict(r))
 
 
-def _to_list_item(c) -> CompanyListItem:
+def _to_list_item(c: CompanyResult) -> CompanyListItem:
     """Map CompanyResult to list item response (DRY)."""
-    return CompanyListItem.model_validate(c)
+    return CompanyListItem.model_validate(dataclasses.asdict(c))
 
 
 @router.post("", response_model=CompanyResponse, status_code=201)

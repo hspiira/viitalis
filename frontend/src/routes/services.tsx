@@ -91,7 +91,7 @@ function ServicesPage() {
 
   if (!opts.tenantId) {
     return (
-      <div className="px-8 py-12 max-w-4xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">Services</h1>
         <p className="text-[var(--foreground-muted)]">Sign in and select a tenant to manage the services catalog.</p>
       </div>
@@ -99,7 +99,7 @@ function ServicesPage() {
   }
 
   return (
-    <div className="px-8 py-12 max-w-4xl">
+    <div className="w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-[var(--foreground)]">Services</h1>
         <div className="flex gap-2">

@@ -15,6 +15,7 @@ from app.application.dtos.claim import (
 )
 from app.infrastructure.persistence.models.claim import Claim
 from app.infrastructure.persistence.models.claim_detail import ClaimDetail
+from app.infrastructure.persistence.models.member import Member
 
 
 def _claim_to_result(c: Claim) -> ClaimResult:
@@ -96,10 +97,15 @@ class ClaimRepository:
         member_id: str | None = None,
         status: str | None = None,
         hospital_id: str | None = None,
+        company_id: str | None = None,
         service_date_from: date | None = None,
         service_date_to: date | None = None,
     ) -> list[ClaimResult]:
         q = select(Claim).where(Claim.tenant_id == self.tenant_id)
+        if company_id is not None:
+            q = q.join(Member, Claim.member_id == Member.id).where(
+                Member.company_id == company_id
+            )
         if member_id is not None:
             q = q.where(Claim.member_id == member_id)
         if status is not None:

@@ -56,7 +56,7 @@ function DiagnosesPage() {
 
   if (!opts.tenantId) {
     return (
-      <div className="px-8 py-12 max-w-4xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">Diagnoses</h1>
         <p className="text-[var(--foreground-muted)]">Sign in and select a tenant to manage the diagnoses catalog.</p>
       </div>
@@ -64,7 +64,7 @@ function DiagnosesPage() {
   }
 
   return (
-    <div className="px-8 py-12 max-w-4xl">
+    <div className="w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-[var(--foreground)]">Diagnoses</h1>
         <button type="button" onClick={() => setShowForm((v) => !v)} className="bg-[var(--primary)] text-[var(--primary-foreground)] px-4 py-2 text-sm font-medium">{showForm ? 'Cancel' : 'Add item'}</button>

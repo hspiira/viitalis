@@ -25,6 +25,9 @@ import { Route as DoctorsRouteImport } from './routes/doctors'
 import { Route as DocsRouteImport } from './routes/docs'
 import { Route as DiagnosesRouteImport } from './routes/diagnoses'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CompanyTypesRouteImport } from './routes/company-types'
+import { Route as CompanyGroupsRouteImport } from './routes/company-groups'
+import { Route as CompanyBranchesRouteImport } from './routes/company-branches'
 import { Route as CompaniesRouteImport } from './routes/companies'
 import { Route as ClaimsRouteImport } from './routes/claims'
 import { Route as ClaimPaymentsRouteImport } from './routes/claim-payments'
@@ -114,6 +117,21 @@ const DashboardRoute = DashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CompanyTypesRoute = CompanyTypesRouteImport.update({
+  id: '/company-types',
+  path: '/company-types',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompanyGroupsRoute = CompanyGroupsRouteImport.update({
+  id: '/company-groups',
+  path: '/company-groups',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CompanyBranchesRoute = CompanyBranchesRouteImport.update({
+  id: '/company-branches',
+  path: '/company-branches',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompaniesRoute = CompaniesRouteImport.update({
   id: '/companies',
   path: '/companies',
@@ -163,6 +181,9 @@ export interface FileRoutesByFullPath {
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
   '/companies': typeof CompaniesRoute
+  '/company-branches': typeof CompanyBranchesRoute
+  '/company-groups': typeof CompanyGroupsRoute
+  '/company-types': typeof CompanyTypesRoute
   '/dashboard': typeof DashboardRoute
   '/diagnoses': typeof DiagnosesRoute
   '/docs': typeof DocsRoute
@@ -189,6 +210,9 @@ export interface FileRoutesByTo {
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
   '/companies': typeof CompaniesRoute
+  '/company-branches': typeof CompanyBranchesRoute
+  '/company-groups': typeof CompanyGroupsRoute
+  '/company-types': typeof CompanyTypesRoute
   '/dashboard': typeof DashboardRoute
   '/diagnoses': typeof DiagnosesRoute
   '/docs': typeof DocsRoute
@@ -216,6 +240,9 @@ export interface FileRoutesById {
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
   '/companies': typeof CompaniesRoute
+  '/company-branches': typeof CompanyBranchesRoute
+  '/company-groups': typeof CompanyGroupsRoute
+  '/company-types': typeof CompanyTypesRoute
   '/dashboard': typeof DashboardRoute
   '/diagnoses': typeof DiagnosesRoute
   '/docs': typeof DocsRoute
@@ -244,6 +271,9 @@ export interface FileRouteTypes {
     | '/claim-payments'
     | '/claims'
     | '/companies'
+    | '/company-branches'
+    | '/company-groups'
+    | '/company-types'
     | '/dashboard'
     | '/diagnoses'
     | '/docs'
@@ -270,6 +300,9 @@ export interface FileRouteTypes {
     | '/claim-payments'
     | '/claims'
     | '/companies'
+    | '/company-branches'
+    | '/company-groups'
+    | '/company-types'
     | '/dashboard'
     | '/diagnoses'
     | '/docs'
@@ -296,6 +329,9 @@ export interface FileRouteTypes {
     | '/claim-payments'
     | '/claims'
     | '/companies'
+    | '/company-branches'
+    | '/company-groups'
+    | '/company-types'
     | '/dashboard'
     | '/diagnoses'
     | '/docs'
@@ -323,6 +359,9 @@ export interface RootRouteChildren {
   ClaimPaymentsRoute: typeof ClaimPaymentsRoute
   ClaimsRoute: typeof ClaimsRoute
   CompaniesRoute: typeof CompaniesRoute
+  CompanyBranchesRoute: typeof CompanyBranchesRoute
+  CompanyGroupsRoute: typeof CompanyGroupsRoute
+  CompanyTypesRoute: typeof CompanyTypesRoute
   DashboardRoute: typeof DashboardRoute
   DiagnosesRoute: typeof DiagnosesRoute
   DocsRoute: typeof DocsRoute
@@ -456,6 +495,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/company-types': {
+      id: '/company-types'
+      path: '/company-types'
+      fullPath: '/company-types'
+      preLoaderRoute: typeof CompanyTypesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/company-groups': {
+      id: '/company-groups'
+      path: '/company-groups'
+      fullPath: '/company-groups'
+      preLoaderRoute: typeof CompanyGroupsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/company-branches': {
+      id: '/company-branches'
+      path: '/company-branches'
+      fullPath: '/company-branches'
+      preLoaderRoute: typeof CompanyBranchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/companies': {
       id: '/companies'
       path: '/companies'
@@ -523,6 +583,9 @@ const rootRouteChildren: RootRouteChildren = {
   ClaimPaymentsRoute: ClaimPaymentsRoute,
   ClaimsRoute: ClaimsRoute,
   CompaniesRoute: CompaniesRoute,
+  CompanyBranchesRoute: CompanyBranchesRoute,
+  CompanyGroupsRoute: CompanyGroupsRoute,
+  CompanyTypesRoute: CompanyTypesRoute,
   DashboardRoute: DashboardRoute,
   DiagnosesRoute: DiagnosesRoute,
   DocsRoute: DocsRoute,

@@ -99,7 +99,7 @@ function BillingSessionsPage() {
 
   if (!opts.tenantId) {
     return (
-      <div className="px-8 py-12 max-w-4xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">
           Billing sessions
         </h1>
@@ -111,7 +111,7 @@ function BillingSessionsPage() {
   }
 
   return (
-    <div className="px-8 py-12 max-w-4xl">
+    <div className="w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-[var(--foreground)]">
           Billing sessions

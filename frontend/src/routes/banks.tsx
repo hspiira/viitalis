@@ -110,7 +110,7 @@ function BanksPage() {
 
   if (!tenantId) {
     return (
-      <div className="px-8 py-12 max-w-5xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">Banks & account details</h1>
         <p className="text-[var(--foreground-muted)]">Sign in and select a tenant to manage banks and account details.</p>
       </div>
@@ -118,7 +118,7 @@ function BanksPage() {
   }
 
   return (
-    <div className="px-8 py-12 max-w-5xl">
+    <div className="w-full">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-[var(--foreground)]">Banks & account details</h1>

@@ -6,7 +6,7 @@ export const Route = createFileRoute('/docs')({
 
 function DocsPage() {
   return (
-    <div className="px-8 py-12 max-w-4xl">
+    <div className="w-full">
       <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">API Docs</h1>
       <p className="text-[var(--foreground-muted)] mb-6">
         OpenAPI documentation. You can embed or link to your backend docs here.

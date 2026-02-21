@@ -283,6 +283,7 @@ class IClaimRepository(Protocol):
         member_id: str | None = None,
         status: str | None = None,
         hospital_id: str | None = None,
+        company_id: str | None = None,
         service_date_from: date | None = None,
         service_date_to: date | None = None,
     ) -> list[ClaimResult]:

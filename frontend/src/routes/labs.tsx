@@ -83,7 +83,7 @@ function LabsPage() {
 
   if (!opts.tenantId) {
     return (
-      <div className="px-8 py-12 max-w-4xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">Labs</h1>
         <p className="text-[var(--foreground-muted)]">Sign in and select a tenant to manage the lab tests catalog.</p>
       </div>
@@ -91,7 +91,7 @@ function LabsPage() {
   }
 
   return (
-    <div className="px-8 py-12 max-w-4xl">
+    <div className="w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-[var(--foreground)]">Labs</h1>
         <div className="flex gap-2">

@@ -67,7 +67,7 @@ function DashboardPage() {
         <div className="space-y-1">
           <button
             type="button"
-            className="flex h-9 items-center gap-2 rounded-md bg-[var(--secondary)] px-3 text-sm text-[var(--foreground-muted)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
+            className="flex h-9 min-w-[280px] max-w-md items-center justify-start gap-2 rounded-md bg-[var(--secondary)] px-3 text-left text-sm text-[var(--foreground-muted)] transition-colors hover:bg-[var(--accent)] hover:text-[var(--foreground)]"
           >
             <Search className="size-4" aria-hidden />
             <span>Search</span>

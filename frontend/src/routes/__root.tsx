@@ -10,6 +10,7 @@ import {
 import AppLayout from '#/components/AppLayout'
 import { ErrorBoundary } from '#/components/ErrorBoundary'
 import { NotFound } from '#/components/NotFound'
+import TanStackQueryProvider from '#/integrations/tanstack-query/root-provider'
 import { AuthProvider, useAuth } from '#/lib/auth-context'
 import '#/styles.css'
 
@@ -29,9 +30,11 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <ErrorBoundary>
-      <AuthProvider>
-        <RootWithAuth />
-      </AuthProvider>
+      <TanStackQueryProvider>
+        <AuthProvider>
+          <RootWithAuth />
+        </AuthProvider>
+      </TanStackQueryProvider>
     </ErrorBoundary>
   )
 }

@@ -36,6 +36,9 @@ function CompaniesPage() {
   const [formContact, setFormContact] = useState('')
   const [formEmail, setFormEmail] = useState('')
   const [formPhone, setFormPhone] = useState('')
+  const [formAddress, setFormAddress] = useState('')
+  const [formWebsite, setFormWebsite] = useState('')
+  const [formRemarks, setFormRemarks] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
 
@@ -65,6 +68,9 @@ function CompaniesPage() {
     setFormContact('')
     setFormEmail('')
     setFormPhone('')
+    setFormAddress('')
+    setFormWebsite('')
+    setFormRemarks('')
     setSubmitError(null)
     setShowForm(true)
   }
@@ -75,6 +81,9 @@ function CompaniesPage() {
     setFormContact(c.contact_person ?? '')
     setFormEmail(c.email ?? '')
     setFormPhone(c.phone ?? '')
+    setFormAddress(c.address ?? '')
+    setFormWebsite(c.website ?? '')
+    setFormRemarks(c.remarks ?? '')
     setSubmitError(null)
     setShowForm(true)
   }
@@ -91,28 +100,19 @@ function CompaniesPage() {
     setSubmitting(true)
     setSubmitError(null)
     try {
+      const payload = {
+        name: formName.trim(),
+        contact_person: formContact.trim() || null,
+        email: formEmail.trim() || null,
+        phone: formPhone.trim() || null,
+        address: formAddress.trim() || null,
+        website: formWebsite.trim() || null,
+        remarks: formRemarks.trim() || null,
+      }
       if (editing) {
-        await apiPatch(
-          `/companies/${editing.id}`,
-          {
-            name: formName.trim(),
-            contact_person: formContact.trim() || null,
-            email: formEmail.trim() || null,
-            phone: formPhone.trim() || null,
-          },
-          opts
-        )
+        await apiPatch(`/companies/${editing.id}`, payload, opts)
       } else {
-        await apiPost(
-          '/companies',
-          {
-            name: formName.trim(),
-            contact_person: formContact.trim() || null,
-            email: formEmail.trim() || null,
-            phone: formPhone.trim() || null,
-          },
-          opts
-        )
+        await apiPost('/companies', payload, opts)
       }
       closeForm()
       load()
@@ -124,7 +124,7 @@ function CompaniesPage() {
   }
 
   return (
-    <div className="px-8 py-12 max-w-4xl">
+    <div className="w-full">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold text-[var(--foreground)]">Companies</h1>
         <button
@@ -141,7 +141,7 @@ function CompaniesPage() {
           <h2 className="text-lg font-medium text-[var(--foreground)] mb-4">
             {editing ? 'Edit company' : 'New company'}
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-4 max-w-md">
+          <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">
             <div>
               <label htmlFor="company-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
                 Name
@@ -191,6 +191,43 @@ function CompaniesPage() {
                 className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-[var(--foreground)]"
               />
             </div>
+            <div>
+              <label htmlFor="company-address" className="block text-sm text-[var(--foreground-muted)] mb-1">
+                Address
+              </label>
+              <input
+                id="company-address"
+                type="text"
+                value={formAddress}
+                onChange={(e) => setFormAddress(e.target.value)}
+                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-[var(--foreground)]"
+              />
+            </div>
+            <div>
+              <label htmlFor="company-website" className="block text-sm text-[var(--foreground-muted)] mb-1">
+                Website
+              </label>
+              <input
+                id="company-website"
+                type="url"
+                value={formWebsite}
+                onChange={(e) => setFormWebsite(e.target.value)}
+                placeholder="https://"
+                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-[var(--foreground)]"
+              />
+            </div>
+            <div>
+              <label htmlFor="company-remarks" className="block text-sm text-[var(--foreground-muted)] mb-1">
+                Remarks
+              </label>
+              <textarea
+                id="company-remarks"
+                value={formRemarks}
+                onChange={(e) => setFormRemarks(e.target.value)}
+                rows={2}
+                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-[var(--foreground)] resize-y"
+              />
+            </div>
             {submitError && (
               <p className="text-sm text-[var(--destructive)]">{submitError}</p>
             )}
@@ -223,7 +260,7 @@ function CompaniesPage() {
       ) : list.length === 0 ? (
         <p className="text-[var(--foreground-muted)]">No companies yet. Add one to get started.</p>
       ) : (
-        <div className="border border-[var(--border)]">
+        <div className="border border-[var(--border)] rounded-sm overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--secondary)]">
@@ -231,21 +268,36 @@ function CompaniesPage() {
                 <th className="text-left p-3 font-medium text-[var(--foreground)]">Contact</th>
                 <th className="text-left p-3 font-medium text-[var(--foreground)]">Email</th>
                 <th className="text-left p-3 font-medium text-[var(--foreground)]">Phone</th>
+                <th className="text-left p-3 font-medium text-[var(--foreground)]">Website</th>
                 <th className="w-20 p-3" aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
               {list.map((c) => (
-                <tr key={c.id} className="border-b border-[var(--border-subtle)]">
-                  <td className="p-3 text-[var(--foreground)]">{c.name}</td>
+                <tr key={c.id} className="border-b border-[var(--border-subtle)] hover:bg-[var(--secondary)]/50">
+                  <td className="p-3 font-medium text-[var(--foreground)]">{c.name}</td>
                   <td className="p-3 text-[var(--foreground-muted)]">{c.contact_person ?? '—'}</td>
                   <td className="p-3 text-[var(--foreground-muted)]">{c.email ?? '—'}</td>
                   <td className="p-3 text-[var(--foreground-muted)]">{c.phone ?? '—'}</td>
+                  <td className="p-3 text-[var(--foreground-muted)]">
+                    {c.website ? (
+                      <a
+                        href={c.website.startsWith('http') ? c.website : `https://${c.website}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--primary)] hover:underline truncate block max-w-[140px]"
+                      >
+                        {c.website}
+                      </a>
+                    ) : (
+                      '—'
+                    )}
+                  </td>
                   <td className="p-3">
                     <button
                       type="button"
                       onClick={() => openEdit(c)}
-                      className="text-[var(--primary)] hover:underline"
+                      className="text-[var(--primary)] hover:underline text-left"
                     >
                       Edit
                     </button>

@@ -130,7 +130,7 @@ function ReportsPage() {
 
   if (!opts.tenantId) {
     return (
-      <div className="px-8 py-12 max-w-4xl">
+      <div className="w-full">
         <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">
           Reports
         </h1>
@@ -159,7 +159,7 @@ function ReportsPage() {
           : hospitalError
 
   return (
-    <div className="px-8 py-12 max-w-5xl">
+    <div className="w-full">
       <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-6">
         Reports
       </h1>

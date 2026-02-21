@@ -8,7 +8,7 @@ export const Route = createFileRoute('/tenants')({
 
 function TenantsPage() {
   return (
-    <div className="px-8 py-12 max-w-4xl">
+    <div className="w-full">
       <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">Tenants</h1>
       <p className="text-[var(--foreground-muted)]">Tenant management — coming soon.</p>
     </div>

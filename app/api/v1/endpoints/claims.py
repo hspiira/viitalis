@@ -77,6 +77,7 @@ async def list_claims(
     member_id: str | None = Query(None),
     status: str | None = Query(None),
     hospital_id: str | None = Query(None),
+    company_id: str | None = Query(None),
     service_date_from: date | None = Query(None),
     service_date_to: date | None = Query(None),
 ):
@@ -86,6 +87,7 @@ async def list_claims(
         member_id=member_id,
         status=status,
         hospital_id=hospital_id,
+        company_id=company_id,
         service_date_from=service_date_from,
         service_date_to=service_date_to,
     )
