@@ -14,6 +14,14 @@ class MemberDependantResult:
     name: str
     card_no: str | None
     dob: date | None
+    relationship: str | None = None
+    gender: str | None = None
+    address: str | None = None
+    tel_home: str | None = None
+    tel_mobile: str | None = None
+    status: str | None = None
+    next_of_kin: str | None = None
+    extra: dict | None = None
 
 
 @dataclass
@@ -24,6 +32,14 @@ class MemberDependantCreate:
     name: str
     card_no: str | None = None
     dob: date | None = None
+    relationship: str | None = None
+    gender: str | None = None
+    address: str | None = None
+    tel_home: str | None = None
+    tel_mobile: str | None = None
+    status: str | None = None
+    next_of_kin: str | None = None
+    extra: dict | None = None
 
 
 @dataclass
@@ -33,3 +49,11 @@ class MemberDependantUpdate:
     name: str | None = None
     card_no: str | None = None
     dob: date | None = None
+    relationship: str | None = None
+    gender: str | None = None
+    address: str | None = None
+    tel_home: str | None = None
+    tel_mobile: str | None = None
+    status: str | None = None
+    next_of_kin: str | None = None
+    extra: dict | None = None

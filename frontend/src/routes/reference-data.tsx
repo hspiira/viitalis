@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState, useEffect } from 'react'
@@ -14,11 +14,17 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import { DetailRow, TableSkeleton } from '#/components/list-page'
-import { Database, Plus, Tag, FileText, Calendar, ToggleRight, Activity, Hash, X, type LucideIcon } from 'lucide-react'
+import { TableSkeleton } from '#/components/list-page'
+import { Database, Plus, Tag, FileText, Calendar, ToggleRight, Activity, Hash, X, User, Clock, type LucideIcon } from 'lucide-react'
 
 export const Route = createFileRoute('/reference-data')({
   beforeLoad: () => requireAuthBeforeLoad('/reference-data'),
+  validateSearch: (search: Record<string, unknown>) => ({
+    tab:
+      typeof search.tab === 'string' && (TAB_IDS as string[]).includes(search.tab)
+        ? (search.tab as TabId)
+        : DEFAULT_TAB,
+  }),
   component: ReferenceDataPage,
 })
 
@@ -39,6 +45,9 @@ const TABS: { id: TabId; label: string; path: string }[] = [
   { id: 'medical-conditions', label: 'Medical conditions', path: '/medical-conditions' },
 ]
 
+const TAB_IDS: TabId[] = TABS.map((t) => t.id)
+const DEFAULT_TAB: TabId = 'company-types'
+
 interface BaseItem {
   id: string
   tenant_id: string
@@ -49,6 +58,20 @@ interface BaseItem {
   start_date?: string
   end_date?: string
   is_current?: boolean
+  created_at?: string | null
+  updated_at?: string | null
+  created_by?: string | null
+  updated_by?: string | null
+}
+
+function formatDateTime(iso: string | null | undefined): string {
+  if (!iso) return '—'
+  try {
+    const d = new Date(iso)
+    return Number.isNaN(d.getTime()) ? '—' : d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })
+  } catch {
+    return '—'
+  }
 }
 
 const inputBase =
@@ -81,6 +104,28 @@ function FormField({
   )
 }
 
+function DetailRowBlock({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: LucideIcon
+  label: string
+  value: string
+}) {
+  return (
+    <div className="p-2.5 bg-[var(--muted)]/40 rounded-md border border-[var(--border)]">
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded bg-[var(--primary)]/15 text-[var(--primary)]">
+          <Icon className="size-3.5" aria-hidden />
+        </span>
+        <span className="text-xs font-medium text-[var(--foreground-muted)] shrink-0">{label}:</span>
+        <span className="text-sm text-[var(--foreground)] break-words min-w-0">{value}</span>
+      </div>
+    </div>
+  )
+}
+
 function ReferenceDetailPanel({
   item,
   columnMeta,
@@ -94,12 +139,15 @@ function ReferenceDetailPanel({
   onClose: () => void
   className?: string
 }) {
+  const hasDescription = item.description != null && item.description !== ''
+  const showDescription = hasDescription && !columns.includes('description')
+
   return (
     <aside
-      className={`flex flex-col min-h-0 border-l border-[var(--border)] bg-[var(--card)] ${className ?? ''}`}
+      className={`flex flex-col min-h-0 rounded-xl border border-[var(--border)] bg-transparent ${className ?? ''}`}
       aria-label="Item details"
     >
-      <div className="flex items-start justify-between gap-3 shrink-0 px-4 py-3 border-b border-[var(--border)] bg-[var(--muted)]/30">
+      <div className="flex items-start justify-between gap-3 shrink-0 px-4 py-3 border-b border-[var(--border)]">
         <div className="min-w-0">
           <h3 className="text-sm font-semibold text-[var(--foreground)] truncate">{item.name}</h3>
           <p className="text-xs text-[var(--foreground-muted)] font-mono truncate mt-0.5" title={item.id}>
@@ -116,28 +164,45 @@ function ReferenceDetailPanel({
           <X className="size-4" />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto px-4 py-3">
-        <dl className="grid grid-cols-1 gap-2">
-          {columns.map((col) => {
-            const meta = columnMeta[col] ?? { label: String(col).replace(/_/g, ' ') }
-            const value =
-              col === 'is_current'
-                ? item.is_current
-                  ? 'Yes'
-                  : 'No'
-                : (item[col] as string | number | boolean | null | undefined) ?? '—'
-            return <DetailRow key={String(col)} label={meta.label} value={String(value)} />
-          })}
-        </dl>
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+        {columns.map((col) => {
+          const meta = columnMeta[col] ?? { label: String(col).replace(/_/g, ' '), icon: Tag }
+          const Icon = meta.icon
+          const value =
+            col === 'is_current'
+              ? item.is_current
+                ? 'Yes'
+                : 'No'
+              : (item[col] as string | number | boolean | null | undefined) ?? '—'
+          return (
+            <DetailRowBlock key={String(col)} icon={Icon} label={meta.label} value={String(value)} />
+          )
+        })}
+        {showDescription && (
+          <DetailRowBlock icon={FileText} label="Description" value={item.description!} />
+        )}
+        {(item.created_by != null && item.created_by !== '') && (
+          <DetailRowBlock icon={User} label="Created by" value={item.created_by} />
+        )}
+        {(item.created_at != null && item.created_at !== '') && (
+          <DetailRowBlock icon={Clock} label="Created on" value={formatDateTime(item.created_at)} />
+        )}
+        {(item.updated_by != null && item.updated_by !== '') && (
+          <DetailRowBlock icon={User} label="Updated by" value={item.updated_by} />
+        )}
+        {(item.updated_at != null && item.updated_at !== '') && (
+          <DetailRowBlock icon={Clock} label="Updated on" value={formatDateTime(item.updated_at)} />
+        )}
       </div>
     </aside>
   )
 }
 
 function ReferenceDataPage() {
+  const navigate = useNavigate()
+  const { tab: activeTab } = Route.useSearch()
   const { token, tenantId } = useApi()
   const queryClient = useQueryClient()
-  const [activeTab, setActiveTab] = useState<TabId>('company-types')
   const opts = { token: token ?? undefined, tenantId: tenantId ?? undefined }
 
   const path = TABS.find((t) => t.id === activeTab)?.path ?? '/company-types'
@@ -262,69 +327,80 @@ function ReferenceDataPage() {
         </Button>
       </div>
 
-      {/* Tab bar — selected tab has background (secondary contrasts with card in light and dark) */}
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)]">
-        <div className="flex flex-wrap gap-0" role="tablist" aria-label="Reference data categories">
-          {TABS.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative rounded-md px-4 py-2.5 text-sm font-medium transition-colors ${
-                activeTab === tab.id
-                  ? 'bg-[var(--secondary)] text-[var(--foreground)]'
-                  : 'text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--secondary)]/50'
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      {/* Standalone tab bar (separate from table) */}
+      <div
+        className="flex flex-nowrap items-center gap-0 border-b border-[var(--border)] bg-[var(--muted)]/20 overflow-x-auto shrink-0"
+        role="tablist"
+        aria-label="Reference data categories"
+      >
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            onClick={() => navigate({ to: '/reference-data', search: { tab: tab.id } })}
+            className={`shrink-0 px-4 py-3 text-sm font-medium transition-colors border-b-2 ${
+              activeTab === tab.id
+                ? 'border-[var(--primary)] bg-[var(--primary)]/10 text-[var(--foreground)]'
+                : 'border-transparent text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--muted)]/50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Content: table + detail panel (events-style) */}
-      <div className="rounded-lg border border-[var(--border)] bg-[var(--card)] overflow-hidden flex flex-col min-h-0">
-        {isLoading && <TableSkeleton columns={columns.length} rows={8} />}
-        {error && (
-          <div className="px-6 py-8 text-center">
-            <p className="text-sm text-[var(--destructive)]">Failed to load: {(error as Error).message}</p>
-          </div>
-        )}
-        {!isLoading && !error && items.length === 0 && (
-          <Empty className="border-0 py-12">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Database className="size-6" />
-              </EmptyMedia>
-              <EmptyTitle>No {activeLabel.toLowerCase()} yet</EmptyTitle>
-              <EmptyDescription>Add your first {singularLabel} to get started.</EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button onClick={openCreate}>
-                <Plus className="size-4 mr-2" aria-hidden />
+      {/* Table card (left) + Detail card (right), side by side */}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch min-h-0">
+        {/* Left: table in its own card (companies-style) */}
+        <div className="flex flex-1 flex-col min-h-0 rounded-lg border border-[var(--border)] bg-transparent overflow-hidden">
+          <div className="flex flex-nowrap items-center gap-2 border-b border-[var(--border)] py-2.5 px-3 shrink-0">
+            <div className="ml-auto flex shrink-0">
+              <Button onClick={openCreate} size="sm" className="h-8">
+                <Plus className="size-3.5 mr-1" aria-hidden />
                 Add {singularLabel}
               </Button>
-            </EmptyContent>
-          </Empty>
-        )}
-        {!isLoading && !error && items.length > 0 && (
-          <div className="flex flex-1 min-h-0">
-            <div className="flex-1 min-w-0 overflow-x-auto">
-              <table className="w-full text-left text-sm">
-                <thead className="border-b border-[var(--border)] bg-[var(--muted)]/50">
-                  <tr>
+            </div>
+          </div>
+          {isLoading && <TableSkeleton columns={columns.length} rows={8} />}
+          {error && (
+            <div className="px-6 py-8 text-center">
+              <p className="text-sm text-[var(--destructive)]">Failed to load: {(error as Error).message}</p>
+            </div>
+          )}
+          {!isLoading && !error && items.length === 0 && (
+            <Empty className="border-0 py-12">
+              <EmptyHeader>
+                <EmptyMedia variant="icon">
+                  <Database className="size-6" />
+                </EmptyMedia>
+                <EmptyTitle>No {activeLabel.toLowerCase()} yet</EmptyTitle>
+                <EmptyDescription>Add your first {singularLabel} to get started.</EmptyDescription>
+              </EmptyHeader>
+              <EmptyContent>
+                <Button onClick={openCreate}>
+                  <Plus className="size-4 mr-2" aria-hidden />
+                  Add {singularLabel}
+                </Button>
+              </EmptyContent>
+            </Empty>
+          )}
+          {!isLoading && !error && items.length > 0 && (
+            <div className="min-h-0 overflow-y-auto overflow-x-auto">
+              <table className="w-full text-sm border-collapse min-w-[640px]">
+                <thead>
+                  <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
                     {columns.map((col) => {
                       const meta = columnMeta[col] ?? { label: String(col).replace(/_/g, ' '), icon: Tag }
                       const Icon = meta.icon
                       return (
                         <th
                           key={String(col)}
-                          className="px-4 py-3 font-medium text-[var(--foreground-muted)]"
+                          className="py-2.5 px-3 text-left font-medium text-[var(--foreground-muted)]"
                         >
                           <span className="inline-flex items-center gap-2">
-                            <span className="flex size-7 shrink-0 items-center justify-center rounded bg-[var(--primary)]/15 text-[var(--primary)]">
+                            <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
                               <Icon className="size-3.5" aria-hidden />
                             </span>
                             {meta.label}
@@ -334,65 +410,83 @@ function ReferenceDataPage() {
                     })}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[var(--border-subtle)]">
-                  {items.map((row) => (
-                    <tr
-                      key={row.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => setSelectedId(row.id)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          setSelectedId(row.id)
-                        }
-                      }}
-                      className={`cursor-pointer text-[var(--foreground)] transition-colors ${
-                        selectedId === row.id
-                          ? 'bg-[var(--primary)]/10'
-                          : 'bg-[var(--card)] hover:bg-[var(--muted)]/30'
-                      }`}
-                    >
-                      {columns.map((col) => (
-                        <td key={String(col)} className="px-4 py-3">
-                          {col === 'is_current'
-                            ? row.is_current
-                              ? 'Yes'
-                              : 'No'
-                            : (row[col] as string | number | boolean | null | undefined) ?? '—'}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
+                <tbody>
+                  {items.map((row) => {
+                    const isSelected = selectedId === row.id
+                    return (
+                      <tr
+                        key={row.id}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setSelectedId(row.id)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            setSelectedId(row.id)
+                          }
+                        }}
+                        className={`border-b border-[var(--border-subtle)] last:border-b-0 cursor-pointer transition-colors ${
+                          isSelected ? 'bg-[var(--primary)]/8' : 'hover:bg-[var(--muted)]/20'
+                        }`}
+                      >
+                        {columns.map((col) => {
+                          const raw =
+                            col === 'is_current'
+                              ? row.is_current
+                                ? 'Yes'
+                                : 'No'
+                              : (row[col] as string | number | boolean | null | undefined) ?? '—'
+                          const isEmpty = raw === '—'
+                          const isName = col === 'name'
+                          return (
+                            <td
+                              key={String(col)}
+                              className={`py-2.5 px-3 ${
+                                isName
+                                  ? 'font-medium text-[var(--foreground)]'
+                                  : isEmpty
+                                    ? 'text-[var(--foreground-muted)]'
+                                    : 'text-[var(--foreground)]'
+                              }`}
+                            >
+                              {String(raw)}
+                            </td>
+                          )
+                        })}
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
-            <div className="hidden lg:flex lg:w-[min(400px,28rem)] lg:shrink-0 lg:flex-col lg:min-h-0 lg:overflow-hidden">
-              {selectedId ? (
-                (() => {
-                  const item = items.find((i) => i.id === selectedId)
-                  return item ? (
-                    <ReferenceDetailPanel
-                      item={item}
-                      columnMeta={columnMeta}
-                      columns={columns}
-                      onClose={() => setSelectedId(null)}
-                      className="flex-1 min-h-0 overflow-hidden"
-                    />
-                  ) : null
-                })()
-              ) : (
-                <div className="flex flex-col items-center justify-center gap-2 flex-1 px-4 py-8 text-center text-[var(--foreground-muted)] min-h-0 border-l border-[var(--border)] bg-[var(--muted)]/20">
-                  <FileText className="size-10 opacity-40" strokeWidth={1.25} aria-hidden />
-                  <p className="text-sm font-medium">Select an item</p>
-                  <p className="text-xs max-w-[200px]">
-                    Click a row in the table to view its details here.
-                  </p>
-                </div>
-              )}
-            </div>
+          )}
+        </div>
+
+        {/* Right: detail card (standalone, not attached to table) */}
+        <div className="hidden lg:flex lg:w-[min(400px,28rem)] lg:shrink-0 lg:flex-col lg:min-h-0">
+          <div className="flex flex-1 flex-col min-h-0 rounded-xl border border-[var(--border)] bg-transparent overflow-hidden">
+            {selectedId ? (
+              (() => {
+                const item = items.find((i) => i.id === selectedId)
+                return item ? (
+                  <ReferenceDetailPanel
+                    item={item}
+                    columnMeta={columnMeta}
+                    columns={columns}
+                    onClose={() => setSelectedId(null)}
+                    className="flex-1 min-h-0 overflow-hidden p-0"
+                  />
+                ) : null
+              })()
+            ) : (
+              <div className="flex flex-1 flex-col items-center justify-center gap-2 px-4 py-8 text-center text-[var(--foreground-muted)] min-h-[200px]">
+                <FileText className="size-10 opacity-40" strokeWidth={1.25} aria-hidden />
+                <p className="text-sm font-medium">Select an item</p>
+                <p className="text-xs max-w-[200px]">Click a row in the table to view its details here.</p>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Create modal */}
@@ -438,13 +532,13 @@ function ReferenceDataPage() {
               )}
               {(activeTab === 'company-types' || activeTab === 'company-groups') && (
                 <FormField id="ref-description" label="Description" icon={FileText}>
-                  <input
+                  <textarea
                     id="ref-description"
-                    type="text"
                     value={(formData.description as string) ?? ''}
                     onChange={(e) => setFormData((p) => ({ ...p, description: e.target.value }))}
+                    rows={3}
                     placeholder="Optional"
-                    className={inputBase}
+                    className={inputBase + ' resize-y min-h-[80px]'}
                   />
                 </FormField>
               )}

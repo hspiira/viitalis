@@ -36,6 +36,7 @@ async def create_company(
     """Create a company. Requires X-Tenant-ID header."""
     data = CompanyCreate(
         name=body.name,
+        id=body.id,
         contact_person=body.contact_person,
         address=body.address,
         phone=body.phone,
@@ -45,6 +46,7 @@ async def create_company(
         location=body.location,
         district_id=body.district_id,
         company_type=body.company_type,
+        status=body.status,
     )
     created = await company_svc.create_company(data)
     return _to_response(created)
@@ -89,6 +91,7 @@ async def update_company(
         location=body.location,
         district_id=body.district_id,
         company_type=body.company_type,
+        status=body.status,
     )
     updated = await company_svc.update_company(company_id, data)
     return _to_response(updated)

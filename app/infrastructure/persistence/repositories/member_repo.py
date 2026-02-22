@@ -38,6 +38,19 @@ def _member_to_result(m: Member) -> MemberResult:
         name=m.name,
         dob=m.dob,
         status=m.status,
+        employee_no=m.employee_no,
+        gender=m.gender,
+        address=m.address,
+        tel_home=m.tel_home,
+        tel_mobile=m.tel_mobile,
+        email=m.email,
+        department=m.department,
+        branch=m.branch,
+        occupation=m.occupation,
+        date_of_joining=m.date_of_joining,
+        date_of_leaving=m.date_of_leaving,
+        remarks=m.remarks,
+        extra=m.extra,
     )
 
 
@@ -99,6 +112,19 @@ class MemberRepository:
             name=data.name.strip(),
             dob=data.dob,
             status=data.status,
+            employee_no=data.employee_no.strip() if data.employee_no else None,
+            gender=data.gender.strip() if data.gender else None,
+            address=data.address.strip() if data.address else None,
+            tel_home=data.tel_home.strip() if data.tel_home else None,
+            tel_mobile=data.tel_mobile.strip() if data.tel_mobile else None,
+            email=data.email.strip() if data.email else None,
+            department=data.department.strip() if data.department else None,
+            branch=data.branch.strip() if data.branch else None,
+            occupation=data.occupation.strip() if data.occupation else None,
+            date_of_joining=data.date_of_joining,
+            date_of_leaving=data.date_of_leaving,
+            remarks=data.remarks.strip() if data.remarks else None,
+            extra=data.extra,
         )
         self.db.add(member)
         await self.db.flush()
@@ -125,6 +151,32 @@ class MemberRepository:
             member.dob = data.dob
         if data.status is not None:
             member.status = data.status
+        if data.employee_no is not None:
+            member.employee_no = data.employee_no.strip() or None
+        if data.gender is not None:
+            member.gender = data.gender.strip() or None
+        if data.address is not None:
+            member.address = data.address.strip() or None
+        if data.tel_home is not None:
+            member.tel_home = data.tel_home.strip() or None
+        if data.tel_mobile is not None:
+            member.tel_mobile = data.tel_mobile.strip() or None
+        if data.email is not None:
+            member.email = data.email.strip() or None
+        if data.department is not None:
+            member.department = data.department.strip() or None
+        if data.branch is not None:
+            member.branch = data.branch.strip() or None
+        if data.occupation is not None:
+            member.occupation = data.occupation.strip() or None
+        if data.date_of_joining is not None:
+            member.date_of_joining = data.date_of_joining
+        if data.date_of_leaving is not None:
+            member.date_of_leaving = data.date_of_leaving
+        if data.remarks is not None:
+            member.remarks = data.remarks.strip() or None
+        if data.extra is not None:
+            member.extra = data.extra
         await self.db.flush()
         await self.db.refresh(member)
         return _member_to_result(member)

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CardReplacementReasonCreateRequest(BaseModel):
@@ -18,6 +18,7 @@ class CardReplacementReasonUpdateRequest(BaseModel):
 
 
 class CardReplacementReasonResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     name: str
@@ -40,6 +41,7 @@ class CardReplacementApproveRequest(BaseModel):
 
 
 class CardReplacementResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: str
     tenant_id: str
     member_id: str | None

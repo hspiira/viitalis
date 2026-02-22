@@ -58,7 +58,23 @@ async def create_hospital(
     body: HospitalCreateRequest,
     svc: Annotated[HospitalService, Depends(get_hospital_service)],
 ):
-    data = HospitalCreate(name=body.name, address=body.address)
+    data = HospitalCreate(
+        name=body.name,
+        address=body.address,
+        code=body.code,
+        reference=body.reference,
+        contact_person=body.contact_person,
+        phone=body.phone,
+        email=body.email,
+        website=body.website,
+        remarks=body.remarks,
+        district_id=body.district_id,
+        outpatient_capacity=body.outpatient_capacity,
+        inpatient_capacity=body.inpatient_capacity,
+        out_or_in_patient=body.out_or_in_patient,
+        dental=body.dental,
+        status=body.status,
+    )
     created = await svc.create(data)
     return _hospital_to_response(created)
 
@@ -236,7 +252,14 @@ async def create_branch(
     body: HospitalBranchCreateRequest,
     svc: Annotated[HospitalBranchService, Depends(get_hospital_branch_service)],
 ):
-    data = HospitalBranchCreate(hospital_id=hospital_id, name=body.name, address=body.address)
+    data = HospitalBranchCreate(
+        hospital_id=hospital_id,
+        name=body.name,
+        address=body.address,
+        contact_person=body.contact_person,
+        location=body.location,
+        remarks=body.remarks,
+    )
     created = await svc.create(data)
     return _branch_to_response(created)
 
@@ -274,6 +297,12 @@ async def update_branch(
     b = await svc.get_by_id(branch_id)
     if b.hospital_id != hospital_id:
         raise HTTPException(status_code=404, detail="Branch not found")
-    data = HospitalBranchUpdate(name=body.name, address=body.address)
+    data = HospitalBranchUpdate(
+        name=body.name,
+        address=body.address,
+        contact_person=body.contact_person,
+        location=body.location,
+        remarks=body.remarks,
+    )
     updated = await svc.update(branch_id, data)
     return _branch_to_response(updated)

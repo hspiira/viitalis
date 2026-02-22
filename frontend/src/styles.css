@@ -50,6 +50,13 @@ code {
   --sidebar-border: #d4d3cf;
   --chart-1: 160, 84%, 39%;
   --chart-2: 173, 58%, 39%;
+  /* Semantic icon/UI colors */
+  --icon-primary: #1a1a1a;
+  --icon-destructive: #dc1b19;
+  --icon-warning: #b45309;
+  --icon-success: #15803d;
+  --icon-muted: #737373;
+  --icon-accent: #2563eb;
 }
 
 /* Dark theme (Scalar.com default) – applied when .dark is on <html> */
@@ -84,6 +91,12 @@ code {
   --sidebar-accent: #1a1a1a;
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #2d2d2d;
+  --icon-primary: #e7e7e7;
+  --icon-destructive: #dc1b19;
+  --icon-warning: #f59e0b;
+  --icon-success: #22c55e;
+  --icon-muted: #a4a4a4;
+  --icon-accent: #60a5fa;
 }
 
 @theme inline {

@@ -22,6 +22,14 @@ def _dependant_to_result(d: MemberDependant) -> MemberDependantResult:
         name=d.name,
         card_no=d.card_no,
         dob=d.dob,
+        relationship=d.relationship_type,
+        gender=d.gender,
+        address=d.address,
+        tel_home=d.tel_home,
+        tel_mobile=d.tel_mobile,
+        status=d.status,
+        next_of_kin=d.next_of_kin,
+        extra=d.extra,
     )
 
 
@@ -98,6 +106,14 @@ class MemberDependantRepository:
             name=data.name.strip(),
             card_no=data.card_no.strip() if data.card_no else None,
             dob=data.dob,
+            relationship_type=data.relationship.strip() if data.relationship else None,
+            gender=data.gender.strip() if data.gender else None,
+            address=data.address.strip() if data.address else None,
+            tel_home=data.tel_home.strip() if data.tel_home else None,
+            tel_mobile=data.tel_mobile.strip() if data.tel_mobile else None,
+            status=data.status.strip() if data.status else None,
+            next_of_kin=data.next_of_kin.strip() if data.next_of_kin else None,
+            extra=data.extra,
         )
         self.db.add(dep)
         await self.db.flush()
@@ -124,6 +140,22 @@ class MemberDependantRepository:
             dep.card_no = data.card_no.strip() or None
         if data.dob is not None:
             dep.dob = data.dob
+        if data.relationship is not None:
+            dep.relationship_type = data.relationship.strip() or None
+        if data.gender is not None:
+            dep.gender = data.gender.strip() or None
+        if data.address is not None:
+            dep.address = data.address.strip() or None
+        if data.tel_home is not None:
+            dep.tel_home = data.tel_home.strip() or None
+        if data.tel_mobile is not None:
+            dep.tel_mobile = data.tel_mobile.strip() or None
+        if data.status is not None:
+            dep.status = data.status.strip() or None
+        if data.next_of_kin is not None:
+            dep.next_of_kin = data.next_of_kin.strip() or None
+        if data.extra is not None:
+            dep.extra = data.extra
         await self.db.flush()
         await self.db.refresh(dep)
         return _dependant_to_result(dep)

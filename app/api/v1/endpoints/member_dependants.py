@@ -42,6 +42,14 @@ async def create_dependant(
         name=body.name,
         card_no=body.card_no,
         dob=body.dob,
+        relationship=body.relationship,
+        gender=body.gender,
+        address=body.address,
+        tel_home=body.tel_home,
+        tel_mobile=body.tel_mobile,
+        status=body.status,
+        next_of_kin=body.next_of_kin,
+        extra=body.extra,
     )
     created = await dep_svc.create_dependant(data)
     return _to_response(created)
@@ -83,7 +91,19 @@ async def update_dependant(
     dep = await dep_svc.get_by_id(dependant_id)
     if dep.member_id != member_id:
         raise HTTPException(status_code=404, detail="Dependant not found")
-    data = MemberDependantUpdate(name=body.name, card_no=body.card_no, dob=body.dob)
+    data = MemberDependantUpdate(
+        name=body.name,
+        card_no=body.card_no,
+        dob=body.dob,
+        relationship=body.relationship,
+        gender=body.gender,
+        address=body.address,
+        tel_home=body.tel_home,
+        tel_mobile=body.tel_mobile,
+        status=body.status,
+        next_of_kin=body.next_of_kin,
+        extra=body.extra,
+    )
     updated = await dep_svc.update_dependant(dependant_id, data)
     return _to_response(updated)
 

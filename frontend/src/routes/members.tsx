@@ -1,317 +1,434 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Outlet } from '@tanstack/react-router'
 import { requireAuthBeforeLoad } from '#/lib/route-auth'
-import { useQuery } from '@tanstack/react-query'
-import { useState, useMemo } from 'react'
-import { format } from 'date-fns'
-import { apiGet, getApiErrorDetail } from '#/lib/api-client'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useState, useEffect } from 'react'
+import { apiGet, apiPost, apiPatch, getApiErrorDetail } from '#/lib/api-client'
 import { useApi } from '#/lib/use-api'
-import { buildIdToEntityMap } from '#/lib/utils'
 import { Button } from '#/components/ui/button'
-import {
-  Empty,
-  EmptyHeader,
-  EmptyTitle,
-  EmptyDescription,
-  EmptyContent,
-  EmptyMedia,
-} from '#/components/ui/empty'
-import { ListPagePagination, TableSkeleton } from '#/components/list-page'
-import { Link } from '@tanstack/react-router'
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '#/components/ui/breadcrumb'
-import {
-  Users,
-  Search,
-  Building2,
-  UserPlus,
-  Filter,
-} from 'lucide-react'
+import { Dialog, DialogContent } from '#/components/ui/dialog'
+import { FORM_INPUT_CLASS, FORM_LABEL_CLASS } from '#/components/ui/form-styles'
+import { Skeleton } from '#/components/ui/skeleton'
+import { Building2, CreditCard, User, UserCircle2 } from 'lucide-react'
 
 export const Route = createFileRoute('/members')({
   beforeLoad: () => requireAuthBeforeLoad('/members'),
-  component: MembersPage,
+  component: MembersLayout,
 })
 
-interface Member {
-  id: string
-  tenant_id: string
+function MembersLayout() {
+  return <Outlet />
+}
+
+/** Shared dialog layout: icon + title + subtitle, then body, then footer. */
+function FormDialogShell({
+  icon: Icon,
+  title,
+  subtitle,
+  children,
+  footer,
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  title: string
+  subtitle: string
+  children: React.ReactNode
+  footer: React.ReactNode
+}) {
+  return (
+    <>
+      <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+            <Icon className="size-5" aria-hidden />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold text-[var(--foreground)]">{title}</h2>
+            <p className="text-sm text-[var(--foreground-muted)] mt-0.5">{subtitle}</p>
+          </div>
+        </div>
+      </header>
+      <div className="flex-1 px-6 py-5 space-y-4">{children}</div>
+      <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+        {footer}
+      </footer>
+    </>
+  )
+}
+
+/** Card no, name, DOB, status. Single source of truth for member core fields. */
+function MemberCoreFields({
+  idPrefix,
+  cardNo,
+  name,
+  dob,
+  status,
+  onCardNo,
+  onName,
+  onDob,
+  onStatus,
+  cardRequired = false,
+  nameRequired = false,
+}: {
+  idPrefix: string
+  cardNo: string
+  name: string
+  dob: string
+  status: string
+  onCardNo: (v: string) => void
+  onName: (v: string) => void
+  onDob: (v: string) => void
+  onStatus: (v: string) => void
+  cardRequired?: boolean
+  nameRequired?: boolean
+}) {
+  return (
+    <>
+      <div>
+        <label htmlFor={`${idPrefix}-card`} className={FORM_LABEL_CLASS}>
+          <span className="inline-flex items-center gap-2">
+            <CreditCard className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+            Card no {cardRequired && '*'}
+          </span>
+        </label>
+        <input
+          id={`${idPrefix}-card`}
+          type="text"
+          value={cardNo}
+          onChange={(e) => onCardNo(e.target.value)}
+          required={cardRequired}
+          placeholder="e.g. EMP001"
+          className={FORM_INPUT_CLASS}
+        />
+      </div>
+      <div>
+        <label htmlFor={`${idPrefix}-name`} className={FORM_LABEL_CLASS}>
+          <span className="inline-flex items-center gap-2">
+            <User className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+            Name {nameRequired && '*'}
+          </span>
+        </label>
+        <input
+          id={`${idPrefix}-name`}
+          type="text"
+          value={name}
+          onChange={(e) => onName(e.target.value)}
+          required={nameRequired}
+          placeholder="Full name"
+          className={FORM_INPUT_CLASS}
+        />
+      </div>
+      <div>
+        <label htmlFor={`${idPrefix}-dob`} className={FORM_LABEL_CLASS}>Date of birth</label>
+        <input
+          id={`${idPrefix}-dob`}
+          type="date"
+          value={dob}
+          onChange={(e) => onDob(e.target.value)}
+          className={FORM_INPUT_CLASS}
+        />
+      </div>
+      <div>
+        <label htmlFor={`${idPrefix}-status`} className={FORM_LABEL_CLASS}>Status</label>
+        <select
+          id={`${idPrefix}-status`}
+          value={status}
+          onChange={(e) => onStatus(e.target.value)}
+          className={FORM_INPUT_CLASS}
+        >
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+    </>
+  )
+}
+
+/* ─── Create member dialog ─── */
+
+interface MemberCreatePayload {
   company_id: string
   scheme_id: string
   card_no: string
   name: string
-  dob: string | null
+  dob?: string | null
   status: string
 }
 
-const LIMIT = 20
-
-function MembersPage() {
+export function CreateMemberDialog({
+  open,
+  onOpenChange,
+  initialCompanyId,
+  companies,
+  schemes,
+  onSuccess,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  initialCompanyId?: string
+  companies: { id: string; name: string }[]
+  schemes: { id: string; name: string }[]
+  onSuccess: () => void
+}) {
   const opts = useApi()
-  const [companyFilter, setCompanyFilter] = useState('')
-  const [schemeFilter, setSchemeFilter] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [skip, setSkip] = useState(0)
-  const [showCreate, setShowCreate] = useState(false)
+  const [companyId, setCompanyId] = useState(initialCompanyId ?? '')
+  const [schemeId, setSchemeId] = useState('')
+  const [cardNo, setCardNo] = useState('')
+  const [name, setName] = useState('')
+  const [dob, setDob] = useState('')
+  const [status, setStatus] = useState('active')
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const params = new URLSearchParams({
-    skip: String(skip),
-    limit: String(LIMIT),
-  })
-  if (companyFilter) params.set('company_id', companyFilter)
-  if (schemeFilter) params.set('scheme_id', schemeFilter)
-
-  const {
-    data: items = [],
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ['members', skip, LIMIT, companyFilter, schemeFilter, opts.tenantId],
-    queryFn: () => apiGet<Member[]>(`/members?${params}`, opts),
-    enabled: !!opts.tenantId && !!opts.token,
-  })
-
-  const { data: companies = [] } = useQuery({
-    queryKey: ['companies', opts.tenantId],
-    queryFn: () => apiGet<{ id: string; name: string }[]>('/companies', opts),
-    enabled: !!opts.tenantId && !!opts.token,
+  const createMutation = useMutation({
+    mutationFn: (body: MemberCreatePayload) => apiPost<{ id: string }>('/members', body, opts),
+    onSuccess: () => {
+      onSuccess()
+      setCompanyId(initialCompanyId ?? '')
+      setSchemeId('')
+      setCardNo('')
+      setName('')
+      setDob('')
+      setStatus('active')
+      setSubmitError(null)
+    },
+    onError: (err) => setSubmitError(getApiErrorDetail(err)),
   })
 
-  const { data: schemes = [] } = useQuery({
-    queryKey: ['schemes-list', opts.tenantId],
-    queryFn: () => apiGet<{ id: string; name: string }[]>(`/schemes?skip=0&limit=500`, opts),
-    enabled: !!opts.tenantId && !!opts.token,
+  const handleClose = (openState: boolean) => {
+    if (!openState) setSubmitError(null)
+    onOpenChange(openState)
+  }
+
+  useEffect(() => {
+    if (open && initialCompanyId && initialCompanyId !== companyId) {
+      setCompanyId(initialCompanyId)
+      setSchemeId('')
+    }
+  }, [open, initialCompanyId])
+
+  const schemesForCompany = companyId
+    ? schemes.filter((s) => 'company_id' in s && (s as { company_id: string }).company_id === companyId)
+    : schemes
+  const schemesOptions = schemesForCompany.length > 0 ? schemesForCompany : schemes
+
+  const valid = name.trim() && cardNo.trim() && companyId && schemeId
+
+  return (
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="z-[60] sm:max-w-2xl p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            if (!valid) return
+            createMutation.mutate({
+              company_id: companyId,
+              scheme_id: schemeId,
+              card_no: cardNo.trim(),
+              name: name.trim(),
+              dob: dob.trim() || undefined,
+              status,
+            })
+          }}
+          className="flex flex-col"
+        >
+          <FormDialogShell
+            icon={UserCircle2}
+            title="New member"
+            subtitle="Add a member (company staff). Required fields are marked with *."
+            footer={
+              <>
+                <Button type="button" variant="ghost" onClick={() => handleClose(false)}>Cancel</Button>
+                <Button type="submit" disabled={createMutation.isPending || !valid} className="min-w-[100px]">
+                  {createMutation.isPending ? 'Creating…' : 'Create member'}
+                </Button>
+              </>
+            }
+          >
+            <div className="grid grid-cols-2 gap-5">
+              <div>
+                <label htmlFor="mem-company" className={FORM_LABEL_CLASS}>
+                  <span className="inline-flex items-center gap-2">
+                    <Building2 className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+                    Company *
+                  </span>
+                </label>
+                <select
+                  id="mem-company"
+                  value={companyId}
+                  onChange={(e) => {
+                    setCompanyId(e.target.value)
+                    setSchemeId('')
+                  }}
+                  required
+                  className={FORM_INPUT_CLASS}
+                >
+                  <option value="">— Select company —</option>
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="mem-scheme" className={FORM_LABEL_CLASS}>
+                  <span className="inline-flex items-center gap-2">
+                    <Building2 className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+                    Scheme *
+                  </span>
+                </label>
+                <select
+                  id="mem-scheme"
+                  value={schemeId}
+                  onChange={(e) => setSchemeId(e.target.value)}
+                  required
+                  className={FORM_INPUT_CLASS}
+                >
+                  <option value="">— Select scheme —</option>
+                  {schemesOptions.map((s) => (
+                    <option key={s.id} value={s.id}>{s.name}</option>
+                  ))}
+                </select>
+              </div>
+              <MemberCoreFields
+                idPrefix="mem"
+                cardNo={cardNo}
+                name={name}
+                dob={dob}
+                status={status}
+                onCardNo={setCardNo}
+                onName={setName}
+                onDob={setDob}
+                onStatus={setStatus}
+                cardRequired
+                nameRequired
+              />
+              {submitError && <p className="text-sm text-[var(--destructive)] col-span-2">{submitError}</p>}
+            </div>
+          </FormDialogShell>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/* ─── Edit member dialog ─── */
+
+interface MemberUpdatePayload {
+  card_no?: string | null
+  name?: string | null
+  dob?: string | null
+  status?: string | null
+}
+
+export function EditMemberDialog({
+  memberId,
+  open,
+  onOpenChange,
+  onSuccess,
+}: {
+  memberId: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSuccess: () => void
+}) {
+  const opts = useApi()
+  const [cardNo, setCardNo] = useState('')
+  const [name, setName] = useState('')
+  const [dob, setDob] = useState('')
+  const [status, setStatus] = useState('active')
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [loaded, setLoaded] = useState(false)
+
+  const { data: member } = useQuery({
+    queryKey: ['member', memberId],
+    queryFn: () =>
+      apiGet<{ card_no: string; name: string; dob: string | null; status: string }>(
+        `/members/${memberId}`,
+        opts
+      ),
+    enabled: open && !!memberId && !!opts.tenantId && !!opts.token,
   })
 
-  const companyById = useMemo(() => buildIdToEntityMap(companies as { id: string; name: string }[]), [companies])
-  const schemeById = useMemo(() => buildIdToEntityMap(schemes as { id: string; name: string }[]), [schemes])
+  useEffect(() => {
+    if (member && !loaded) {
+      setCardNo(member.card_no)
+      setName(member.name)
+      setDob(member.dob ? member.dob.slice(0, 10) : '')
+      setStatus(member.status)
+      setLoaded(true)
+    }
+  }, [member, loaded])
 
-  const filteredItems = useMemo(() => {
-    if (!searchQuery.trim()) return items
-    const q = searchQuery.trim().toLowerCase()
-    return items.filter(
-      (m) =>
-        m.card_no.toLowerCase().includes(q) ||
-        (m.name || '').toLowerCase().includes(q)
-    )
-  }, [items, searchQuery])
+  const updateMutation = useMutation({
+    mutationFn: (body: MemberUpdatePayload) => apiPatch<{ id: string }>(`/members/${memberId}`, body, opts),
+    onSuccess: () => {
+      onSuccess()
+      setLoaded(false)
+      setSubmitError(null)
+    },
+    onError: (err) => setSubmitError(getApiErrorDetail(err)),
+  })
 
-  if (!opts.tenantId || !opts.token) {
-    return (
-      <div className="w-full">
-        <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">
-          Members
-        </h1>
-        <p className="text-[var(--foreground-muted)]">
-          Sign in and select a tenant to manage members.
-        </p>
-      </div>
-    )
+  const handleClose = (openState: boolean) => {
+    if (!openState) {
+      setLoaded(false)
+      setSubmitError(null)
+    }
+    onOpenChange(openState)
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      <header className="space-y-0.5">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to="/dashboard" className="text-[var(--foreground-muted)] hover:text-[var(--foreground)]">
-                  Home
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Members</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <p className="text-sm text-[var(--foreground-muted)]">
-          Manage members and their coverage.
-        </p>
-      </header>
-
-      <section className="space-y-2">
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <div className="flex h-9 min-w-[200px] max-w-[280px] flex-1 items-center gap-2 rounded-md border border-[var(--input)] bg-[var(--background)] px-3">
-            <Search className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-            <input
-              type="search"
-              placeholder="Search by name or card no"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none"
-              aria-label="Search members"
-            />
-          </div>
-          <div className="flex h-9 min-w-[160px] items-center gap-2 rounded-md border border-[var(--input)] bg-[var(--background)] px-3">
-            <Building2 className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-            <select
-              value={companyFilter}
-              onChange={(e) => {
-                setCompanyFilter(e.target.value)
-                setSkip(0)
-              }}
-              className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
-              aria-label="Company"
-            >
-              <option value="">All companies</option>
-              {companies.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="z-[60] sm:max-w-2xl p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        {!member ? (
+          <div className="px-6 py-5 space-y-3">
+            <div className="grid grid-cols-2 gap-5">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-10 w-full" />
               ))}
-            </select>
-          </div>
-          <div className="flex h-9 min-w-[160px] items-center gap-2 rounded-md border border-[var(--input)] bg-[var(--background)] px-3">
-            <Filter className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
-            <select
-              value={schemeFilter}
-              onChange={(e) => {
-                setSchemeFilter(e.target.value)
-                setSkip(0)
-              }}
-              className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
-              aria-label="Scheme"
-            >
-              <option value="">All schemes</option>
-              {schemes.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Button
-            onClick={() => setShowCreate(true)}
-            className="ml-auto h-9 bg-[var(--primary)] px-4 text-[var(--primary-foreground)]"
-          >
-            <UserPlus className="size-4 mr-1.5" aria-hidden />
-            New member
-          </Button>
-        </div>
-
-        {error && (
-          <div className="flex flex-col gap-2">
-            <p className="text-[var(--destructive)]">
-              {getApiErrorDetail(error as { detail?: string })}
-            </p>
-            <Button variant="secondary" size="sm" onClick={() => refetch()}>
-              Retry
-            </Button>
-          </div>
-        )}
-
-        {isLoading ? (
-          <TableSkeleton columns={7} rows={5} />
-        ) : filteredItems.length === 0 ? (
-          <Empty className="border border-[var(--border)] rounded-lg py-8 shadow-none">
-            <EmptyHeader>
-              <EmptyMedia variant="icon">
-                <Users className="size-6" />
-              </EmptyMedia>
-              <EmptyTitle>No members</EmptyTitle>
-              <EmptyDescription>
-                No members match your filters. Try changing the filters or add a new member.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setCompanyFilter('')
-                  setSchemeFilter('')
-                  setSearchQuery('')
-                  setSkip(0)
-                  refetch()
-                }}
-              >
-                Clear filters
-              </Button>
-              <Button onClick={() => setShowCreate(true)}>
-                New member
-              </Button>
-            </EmptyContent>
-          </Empty>
-        ) : (
-          <>
-            <div className="overflow-x-auto rounded-lg border border-[var(--border)] shadow-none">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                    <th className="text-left py-2 px-3 font-medium">Member</th>
-                    <th className="text-left py-2 px-3 font-medium">Card no</th>
-                    <th className="text-left py-2 px-3 font-medium">Company</th>
-                    <th className="text-left py-2 px-3 font-medium">Scheme</th>
-                    <th className="text-right py-2 px-3 font-medium">DOB</th>
-                    <th className="text-left py-2 px-3 font-medium">Status</th>
-                    <th className="text-left py-2 px-3 w-20">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredItems.map((member) => (
-                    <tr
-                      key={member.id}
-                      className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--muted)]/20"
-                    >
-                      <td className="py-2 px-3 font-medium">{member.name || '—'}</td>
-                      <td className="py-2 px-3 font-mono text-[var(--foreground-muted)]">{member.card_no}</td>
-                      <td className="max-w-[200px] truncate py-2 px-3" title={companyById[member.company_id]?.name ?? member.company_id}>
-                        {companyById[member.company_id]?.name ?? member.company_id}
-                      </td>
-                      <td className="max-w-[200px] truncate py-2 px-3" title={schemeById[member.scheme_id]?.name ?? member.scheme_id}>
-                        {schemeById[member.scheme_id]?.name ?? member.scheme_id}
-                      </td>
-                      <td className="py-2 px-3 text-right tabular-nums">
-                        {member.dob ? format(new Date(member.dob), 'dd MMM yyyy') : '—'}
-                      </td>
-                      <td className="py-2 px-3">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2 py-0.5 text-sm font-medium capitalize ${
-                            (member.status || '').toLowerCase() === 'active'
-                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
-                              : 'bg-[var(--muted)] text-[var(--foreground-muted)]'
-                          }`}
-                        >
-                          {member.status || '—'}
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <Button variant="ghost" size="sm" asChild>
-                          <Link to="/claims" search={{ member_id: member.id }}>
-                            View claims
-                          </Link>
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
             </div>
-
-            <ListPagePagination
-              skip={skip}
-              limit={LIMIT}
-              currentPageSize={items.length}
-              onPrevious={() => setSkip((s) => Math.max(0, s - LIMIT))}
-              onNext={() => items.length === LIMIT && setSkip((s) => s + LIMIT)}
-            />
-          </>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              updateMutation.mutate({
+                card_no: cardNo.trim() || undefined,
+                name: name.trim() || undefined,
+                dob: dob.trim() || undefined,
+                status,
+              })
+            }}
+            className="flex flex-col"
+          >
+            <FormDialogShell
+              icon={UserCircle2}
+              title="Edit member"
+              subtitle="Update member information."
+              footer={
+                <>
+                  <Button type="button" variant="ghost" onClick={() => handleClose(false)}>Cancel</Button>
+                  <Button type="submit" disabled={updateMutation.isPending} className="min-w-[100px]">
+                    {updateMutation.isPending ? 'Saving…' : 'Save changes'}
+                  </Button>
+                </>
+              }
+            >
+              <div className="grid grid-cols-2 gap-5">
+                <MemberCoreFields
+                  idPrefix="mem-edit"
+                  cardNo={cardNo}
+                  name={name}
+                  dob={dob}
+                  status={status}
+                  onCardNo={setCardNo}
+                  onName={setName}
+                  onDob={setDob}
+                  onStatus={setStatus}
+                />
+                {submitError && <p className="text-sm text-[var(--destructive)] col-span-2">{submitError}</p>}
+              </div>
+            </FormDialogShell>
+          </form>
         )}
-      </section>
-
-      {showCreate && (
-        <p className="text-sm text-[var(--foreground-muted)]">
-          New member form — coming soon.
-        </p>
-      )}
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

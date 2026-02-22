@@ -1,7 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { apiGet, apiPost, apiPatch, getApiErrorDetail } from '#/lib/api-client'
 import { useApi } from '#/lib/use-api'
@@ -27,6 +27,9 @@ import { Users, Plus } from 'lucide-react'
 
 export const Route = createFileRoute('/member-dependants')({
   beforeLoad: () => requireAuthBeforeLoad('/member-dependants'),
+  validateSearch: (search: Record<string, unknown>) => ({
+    memberId: typeof search.memberId === 'string' && search.memberId.trim() ? search.memberId.trim() : undefined,
+  }),
   component: MemberDependantsPage,
 })
 
@@ -48,10 +51,20 @@ interface MemberRef {
 function MemberDependantsPage() {
   const opts = useApi()
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const { memberId: searchMemberId } = Route.useSearch()
   const [selectedMemberId, setSelectedMemberId] = useState('')
   const [showCreate, setShowCreate] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (searchMemberId && searchMemberId !== selectedMemberId) {
+      setSelectedMemberId(searchMemberId)
+      setDetailId(null)
+      setEditId(null)
+    }
+  }, [searchMemberId])
 
   const { data: members = [] } = useQuery({
     queryKey: ['members-list', opts.tenantId],
@@ -98,9 +111,11 @@ function MemberDependantsPage() {
           <select
             value={selectedMemberId}
             onChange={(e) => {
-              setSelectedMemberId(e.target.value)
+              const id = e.target.value
+              setSelectedMemberId(id)
               setDetailId(null)
               setEditId(null)
+              navigate({ to: '/member-dependants', search: id ? { memberId: id } : {} })
             }}
             className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] focus:outline-none"
             aria-label="Member"
@@ -247,7 +262,7 @@ function MemberDependantsPage() {
   )
 }
 
-function CreateDependantDialog({
+export function CreateDependantDialog({
   memberId,
   memberName,
   open,
@@ -364,7 +379,7 @@ function CreateDependantDialog({
   )
 }
 
-function DependantDetailDialog({
+export function DependantDetailDialog({
   memberId,
   dependantId,
   open,
@@ -419,7 +434,7 @@ function DependantDetailDialog({
   )
 }
 
-function EditDependantDialog({
+export function EditDependantDialog({
   memberId,
   dependantId,
   open,

@@ -7,6 +7,20 @@ import {
 } from '#/config/sidebar-nav'
 import { ThemeToggler } from '#/components/ThemeToggler'
 
+/** Icon color per sidebar category for a bit of visual identity */
+const CATEGORY_ICON_COLORS: Record<string, string> = {
+  main: 'text-[var(--icon-primary)]',
+  api: 'text-[var(--icon-accent)]',
+  company: 'text-[var(--icon-primary)]',
+  membership: 'text-[var(--icon-success)]',
+  claims: 'text-[var(--icon-accent)]',
+  providers: 'text-[var(--icon-success)]',
+  catalogs: 'text-[var(--icon-warning)]',
+  reports: 'text-[var(--icon-primary)]',
+  banking: 'text-[var(--icon-success)]',
+  reference: 'text-[var(--icon-muted)]',
+}
+
 const baseItemClass =
   'group flex w-full items-center gap-2 px-2.5 py-1.5 text-[14px] text-[var(--foreground-muted)] hover:bg-[var(--secondary)] hover:text-[var(--foreground)]'
 const activeItemClass = 'active bg-[var(--secondary)] text-[var(--foreground-active)]'
@@ -20,13 +34,14 @@ function GroupLink({
 }) {
   const to = category.items[0]?.to ?? '/dashboard'
   const Icon = category.icon ?? category.items[0]?.icon
+  const iconColorClass = CATEGORY_ICON_COLORS[category.id] ?? 'text-[var(--icon-muted)]'
 
   return (
     <Link
       to={to}
       className={`${baseItemClass} ${isActive ? activeItemClass : ''}`}
     >
-      {Icon && <Icon className="size-3.5 shrink-0 text-inherit" aria-hidden />}
+      {Icon && <Icon className={`size-3.5 shrink-0 ${iconColorClass}`} aria-hidden />}
       <span className="min-w-0 flex-1 truncate">{category.label}</span>
       <ArrowRight className="size-3.5 shrink-0 text-inherit" aria-hidden />
     </Link>

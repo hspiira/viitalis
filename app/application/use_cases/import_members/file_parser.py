@@ -28,6 +28,33 @@ def _parse_dob(value: Any) -> date | None:
     return None
 
 
+# First-class member fields (our names). Legacy CSV may use aliases below.
+FIRST_CLASS_KEYS = frozenset({
+    "company_id", "scheme_id", "card_no", "name", "dob", "status",
+    "employee_no", "gender", "address", "tel_home", "tel_mobile", "email",
+    "department", "branch", "occupation", "date_of_joining", "date_of_leaving", "remarks",
+})
+# Normalized legacy headers (Members.csv) -> our first-class key (so we don't put them in extra).
+LEGACY_MEMBER_ALIASES = {
+    "employeeno": "employee_no",
+    "telhome": "tel_home",
+    "telmobile": "tel_mobile",
+    "dateofjoining": "date_of_joining",
+    "dateofleaving": "date_of_leaving",
+}
+
+
+def _get_first_class(row: dict[str, Any], our_key: str, legacy_keys: list[str] | None = None) -> str:
+    """Get string value from row by our key or legacy alias. Returns stripped or ''."""
+    v = row.get(our_key)
+    if v is None and legacy_keys:
+        for k in legacy_keys:
+            v = row.get(k)
+            if v is not None:
+                break
+    return str(v).strip() if v is not None else ""
+
+
 def _row_to_member_create(row: dict[str, Any]) -> tuple[MemberCreate | None, str | None]:
     """Convert a dict of column->value to MemberCreate. Returns (data, error_message)."""
     def get(key: str) -> str:
@@ -50,6 +77,27 @@ def _row_to_member_create(row: dict[str, Any]) -> tuple[MemberCreate | None, str
     dob = _parse_dob(row.get("dob"))
     status = (get("status") or "active").strip() or "active"
 
+    employee_no = _get_first_class(row, "employee_no", ["employeeno"]) or None
+    gender = _get_first_class(row, "gender") or None
+    address = _get_first_class(row, "address") or None
+    tel_home = _get_first_class(row, "tel_home", ["telhome"]) or None
+    tel_mobile = _get_first_class(row, "tel_mobile", ["telmobile"]) or None
+    email = _get_first_class(row, "email") or None
+    department = _get_first_class(row, "department") or None
+    branch = _get_first_class(row, "branch") or None
+    occupation = _get_first_class(row, "occupation") or None
+    date_of_joining = _parse_dob(row.get("date_of_joining") or row.get("dateofjoining"))
+    date_of_leaving = _parse_dob(row.get("date_of_leaving") or row.get("dateofleaving"))
+    remarks = _get_first_class(row, "remarks") or None
+
+    keys_used = set(FIRST_CLASS_KEYS) | set(LEGACY_MEMBER_ALIASES)
+    extra: dict[str, Any] = {}
+    for k, v in row.items():
+        if k not in keys_used and v is not None and str(v).strip() != "":
+            extra[k] = v
+    if not extra:
+        extra = None
+
     return (
         MemberCreate(
             company_id=company_id,
@@ -58,6 +106,19 @@ def _row_to_member_create(row: dict[str, Any]) -> tuple[MemberCreate | None, str
             name=name,
             dob=dob,
             status=status[:32],
+            employee_no=employee_no[:64] if employee_no else None,
+            gender=gender[:32] if gender else None,
+            address=address[:255] if address else None,
+            tel_home=tel_home[:64] if tel_home else None,
+            tel_mobile=tel_mobile[:64] if tel_mobile else None,
+            email=email[:255] if email else None,
+            department=department[:255] if department else None,
+            branch=branch[:255] if branch else None,
+            occupation=occupation[:255] if occupation else None,
+            date_of_joining=date_of_joining,
+            date_of_leaving=date_of_leaving,
+            remarks=remarks[:512] if remarks else None,
+            extra=extra,
         ),
         None,
     )

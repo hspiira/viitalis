@@ -45,6 +45,19 @@ async def create_member(
         name=body.name,
         dob=body.dob,
         status=body.status,
+        employee_no=body.employee_no,
+        gender=body.gender,
+        address=body.address,
+        tel_home=body.tel_home,
+        tel_mobile=body.tel_mobile,
+        email=body.email,
+        department=body.department,
+        branch=body.branch,
+        occupation=body.occupation,
+        date_of_joining=body.date_of_joining,
+        date_of_leaving=body.date_of_leaving,
+        remarks=body.remarks,
+        extra=body.extra,
     )
     created = await member_svc.create_member(data)
     return _to_response(created)
@@ -64,6 +77,19 @@ async def import_members(
             name=r.name,
             dob=r.dob,
             status=r.status,
+            employee_no=r.employee_no,
+            gender=r.gender,
+            address=r.address,
+            tel_home=r.tel_home,
+            tel_mobile=r.tel_mobile,
+            email=r.email,
+            department=r.department,
+            branch=r.branch,
+            occupation=r.occupation,
+            date_of_joining=r.date_of_joining,
+            date_of_leaving=r.date_of_leaving,
+            remarks=r.remarks,
+            extra=r.extra,
         )
         for r in body.members
     ]
@@ -154,6 +180,19 @@ async def update_member(
         name=body.name,
         dob=body.dob,
         status=body.status,
+        employee_no=body.employee_no,
+        gender=body.gender,
+        address=body.address,
+        tel_home=body.tel_home,
+        tel_mobile=body.tel_mobile,
+        email=body.email,
+        department=body.department,
+        branch=body.branch,
+        occupation=body.occupation,
+        date_of_joining=body.date_of_joining,
+        date_of_leaving=body.date_of_leaving,
+        remarks=body.remarks,
+        extra=body.extra,
     )
     updated = await member_svc.update_member(member_id, data)
     return _to_response(updated)

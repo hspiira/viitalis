@@ -1,4 +1,4 @@
-"""HospitalBranch domain entity. Tenant-scoped, linked to hospital."""
+"""HospitalBranch domain entity. Tenant-scoped, linked to hospital. Full parity with Hospital Branches.csv."""
 
 from dataclasses import dataclass
 
@@ -14,6 +14,9 @@ class HospitalBranchEntity:
     hospital_id: str
     name: str
     address: str | None
+    contact_person: str | None = None
+    location: str | None = None
+    remarks: str | None = None
 
     def validate(self) -> None:
         if not self.name or not self.name.strip():

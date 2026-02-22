@@ -15,6 +15,15 @@ class MemberDependantEntity:
     member_id: str
     name: str
     dob: date | None
+    card_no: str | None = None
+    # First-class legacy columns (from Member deps.csv)
+    relationship: str | None = None
+    gender: str | None = None
+    address: str | None = None
+    tel_home: str | None = None
+    tel_mobile: str | None = None
+    status: str | None = None
+    next_of_kin: str | None = None
 
     def validate(self) -> None:
         """Validate dependant business rules."""

@@ -1,4 +1,4 @@
-"""Hospital branch repository. Tenant-scoped."""
+"""Hospital branch repository. Tenant-scoped. Full parity with Hospital Branches.csv."""
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,14 @@ from app.infrastructure.persistence.models.hospital_branch import HospitalBranch
 
 def _to_result(b: HospitalBranch) -> HospitalBranchResult:
     return HospitalBranchResult(
-        id=b.id, tenant_id=b.tenant_id, hospital_id=b.hospital_id, name=b.name, address=b.address
+        id=b.id,
+        tenant_id=b.tenant_id,
+        hospital_id=b.hospital_id,
+        name=b.name,
+        address=b.address,
+        contact_person=b.contact_person,
+        location=b.location,
+        remarks=b.remarks,
     )
 
 
@@ -53,6 +60,9 @@ class HospitalBranchRepository:
             hospital_id=data.hospital_id,
             name=data.name.strip(),
             address=data.address.strip() if data.address else None,
+            contact_person=data.contact_person.strip() if data.contact_person else None,
+            location=data.location.strip() if data.location else None,
+            remarks=data.remarks.strip() if data.remarks else None,
         )
         self.db.add(b)
         await self.db.flush()
@@ -75,6 +85,12 @@ class HospitalBranchRepository:
             b.name = data.name.strip()
         if data.address is not None:
             b.address = data.address.strip() or None
+        if data.contact_person is not None:
+            b.contact_person = data.contact_person.strip() or None
+        if data.location is not None:
+            b.location = data.location.strip() or None
+        if data.remarks is not None:
+            b.remarks = data.remarks.strip() or None
         await self.db.flush()
         await self.db.refresh(b)
         return _to_result(b)

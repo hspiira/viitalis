@@ -5,14 +5,7 @@ import { useState } from 'react'
 import { apiGet, apiPost, apiPatch, getApiErrorDetail } from '#/lib/api-client'
 import { useApi } from '#/lib/use-api'
 import { Button } from '#/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from '#/components/ui/dialog'
+import { Dialog, DialogContent } from '#/components/ui/dialog'
 import {
   Empty,
   EmptyHeader,
@@ -21,8 +14,9 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import { DetailRow, TableSkeleton } from '#/components/list-page'
-import { Building2, Plus } from 'lucide-react'
+import { TableSkeleton } from '#/components/list-page'
+import { Skeleton } from '#/components/ui/skeleton'
+import { Building2, Plus, MapPin, SquareArrowOutUpRight, MoreVertical, SquarePen } from 'lucide-react'
 
 export const Route = createFileRoute('/hospital-branches')({
   beforeLoad: () => requireAuthBeforeLoad('/hospital-branches'),
@@ -44,6 +38,7 @@ function HospitalBranchesPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [detailId, setDetailId] = useState<string | null>(null)
   const [editId, setEditId] = useState<string | null>(null)
+  const [openActionsId, setOpenActionsId] = useState<string | null>(null)
 
   const { data: hospitals = [] } = useQuery({
     queryKey: ['hospitals-list', opts.tenantId],
@@ -157,13 +152,34 @@ function HospitalBranchesPage() {
           </EmptyContent>
         </Empty>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-[var(--border)] shadow-none">
+        <div className="rounded-lg border border-[var(--border)] shadow-none">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                <th className="text-left py-2.5 px-3 font-medium">Name</th>
-                <th className="text-left py-2.5 px-3 font-medium">Address</th>
-                <th className="text-left py-2.5 px-3 w-20">Actions</th>
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground-muted)]">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
+                      <Building2 className="size-3.5" aria-hidden />
+                    </span>
+                    Name
+                  </span>
+                </th>
+                <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground-muted)]">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
+                      <MapPin className="size-3.5" aria-hidden />
+                    </span>
+                    Address
+                  </span>
+                </th>
+                <th className="text-left py-2.5 px-3 w-[12rem] font-medium text-[var(--foreground-muted)]">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
+                      <SquareArrowOutUpRight className="size-3.5" aria-hidden />
+                    </span>
+                    Actions
+                  </span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -179,13 +195,57 @@ function HospitalBranchesPage() {
                     {b.address ?? '—'}
                   </td>
                   <td className="py-2.5 px-3">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDetailId(b.id)}
-                    >
-                      View
-                    </Button>
+                    <div className="relative flex items-center gap-0.5">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 shrink-0 text-[var(--primary)] hover:opacity-80"
+                        title="View"
+                        aria-label="View branch"
+                        onClick={() => setDetailId(b.id)}
+                      >
+                        <SquareArrowOutUpRight className="size-4" aria-hidden />
+                      </Button>
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 shrink-0 text-[var(--icon-muted)] hover:opacity-80"
+                          onClick={() => setOpenActionsId((id) => (id === b.id ? null : b.id))}
+                          title="More actions"
+                          aria-label="More actions"
+                          aria-expanded={openActionsId === b.id}
+                        >
+                          <MoreVertical className="size-4" aria-hidden />
+                        </Button>
+                        {openActionsId === b.id && (
+                          <>
+                            <div
+                              className="fixed inset-0 z-40"
+                              aria-hidden
+                              onClick={() => setOpenActionsId(null)}
+                            />
+                            <div
+                              className="absolute right-0 top-full z-50 mt-1 min-w-[10rem] rounded-md border border-[var(--border)] bg-[var(--card)] py-1 shadow-lg"
+                              role="menu"
+                            >
+                              <button
+                                type="button"
+                                className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-[var(--foreground)] hover:bg-[var(--secondary)]"
+                                role="menuitem"
+                                onClick={() => {
+                                  setEditId(b.id)
+                                  setOpenActionsId(null)
+                                }}
+                              >
+                                <SquarePen className="size-3.5 shrink-0 text-[var(--icon-primary)]" aria-hidden />
+                                Edit
+                              </button>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -235,6 +295,36 @@ function HospitalBranchesPage() {
   )
 }
 
+const inputBase =
+  'w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--ring)] focus:border-transparent'
+const labelBase = 'block text-sm font-medium text-[var(--foreground-muted)] mb-1.5'
+
+function FormField({
+  id,
+  label,
+  icon: Icon,
+  children,
+  className,
+}: {
+  id: string
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <div className={className}>
+      <label htmlFor={id} className={labelBase}>
+        <span className="inline-flex items-center gap-2">
+          <Icon className="size-4 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+          {label}
+        </span>
+      </label>
+      {children}
+    </div>
+  )
+}
+
 function CreateHospitalBranchDialog({
   hospitalId,
   hospitalName,
@@ -278,13 +368,20 @@ function CreateHospitalBranchDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>New branch</DialogTitle>
-          <DialogDescription>
-            {hospitalName ? `Add a branch for ${hospitalName}.` : 'Add a branch.'}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="z-[60] sm:max-w-lg p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <Building2 className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">New branch</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">
+                {hospitalName ? `Add a branch for ${hospitalName}. Required fields are marked with *.` : 'Add a branch. Required fields are marked with *.'}
+              </p>
+            </div>
+          </div>
+        </header>
         <form
           onSubmit={(e) => {
             e.preventDefault()
@@ -294,42 +391,40 @@ function CreateHospitalBranchDialog({
               address: address.trim() || undefined,
             })
           }}
-          className="space-y-4"
+          className="flex flex-col"
         >
-          <div>
-            <label htmlFor="hb-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
-              Name *
-            </label>
-            <input
-              id="hb-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-            />
+          <div className="flex-1 px-6 py-5 space-y-4">
+            <FormField id="hb-name" label="Name *" icon={Building2}>
+              <input
+                id="hb-name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="e.g. North Branch"
+                className={inputBase}
+              />
+            </FormField>
+            <FormField id="hb-address" label="Address" icon={MapPin}>
+              <input
+                id="hb-address"
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                placeholder="Street, city"
+                className={inputBase}
+              />
+            </FormField>
+            {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
           </div>
-          <div>
-            <label htmlFor="hb-address" className="block text-sm text-[var(--foreground-muted)] mb-1">
-              Address
-            </label>
-            <input
-              id="hb-address"
-              type="text"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-            />
-          </div>
-          {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
-          <DialogFooter>
-            <Button type="button" variant="secondary" onClick={() => handleClose(false)}>
+          <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+            <Button type="button" variant="ghost" onClick={() => handleClose(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={createMutation.isPending || !name.trim()}>
-              {createMutation.isPending ? 'Creating…' : 'Create'}
+            <Button type="submit" disabled={createMutation.isPending || !name.trim()} className="min-w-[100px]">
+              {createMutation.isPending ? 'Creating…' : 'Create branch'}
             </Button>
-          </DialogFooter>
+          </footer>
         </form>
       </DialogContent>
     </Dialog>
@@ -359,29 +454,52 @@ function HospitalBranchDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Branch details</DialogTitle>
-          <DialogDescription>Details for the selected branch.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="z-[60] sm:max-w-lg p-0 gap-0 overflow-hidden">
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <Building2 className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Branch details</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">Details for the selected branch.</p>
+            </div>
+          </div>
+        </header>
         {isLoading || !branch ? (
-          <div className="space-y-3 py-4">
+          <div className="px-6 py-5 space-y-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-4 w-full rounded bg-[var(--muted)] animate-pulse" />
+              <Skeleton key={i} className="h-4 w-full" />
             ))}
           </div>
         ) : (
-          <dl className="grid grid-cols-[auto_1fr] gap-x-6 gap-y-3 text-sm py-2">
-            <DetailRow label="Name" value={branch.name} />
-            <DetailRow label="Address" value={branch.address} />
-          </dl>
+          <div className="px-6 py-5 space-y-3">
+            <div className="p-2.5 bg-[var(--muted)]/40 rounded-md border border-[var(--border)]">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded bg-[var(--primary)]/15 text-[var(--primary)]">
+                  <Building2 className="size-3.5" aria-hidden />
+                </span>
+                <span className="text-xs font-medium text-[var(--foreground-muted)] shrink-0">Name:</span>
+                <span className="text-sm text-[var(--foreground)] break-words min-w-0">{branch.name}</span>
+              </div>
+            </div>
+            <div className="p-2.5 bg-[var(--muted)]/40 rounded-md border border-[var(--border)]">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="flex size-6 shrink-0 items-center justify-center rounded bg-[var(--primary)]/15 text-[var(--primary)]">
+                  <MapPin className="size-3.5" aria-hidden />
+                </span>
+                <span className="text-xs font-medium text-[var(--foreground-muted)] shrink-0">Address:</span>
+                <span className="text-sm text-[var(--foreground)] break-words min-w-0">{branch.address ?? '—'}</span>
+              </div>
+            </div>
+          </div>
         )}
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>
+        <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>
             Close
           </Button>
-          {branch && <Button onClick={() => onEdit(branch.id)}>Edit</Button>}
-        </DialogFooter>
+          {branch && <Button onClick={() => onEdit(branch.id)}><SquarePen className="size-3.5 mr-1" aria-hidden />Edit</Button>}
+        </footer>
       </DialogContent>
     </Dialog>
   )
@@ -442,15 +560,22 @@ function EditHospitalBranchDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Edit branch</DialogTitle>
-          <DialogDescription>Update branch information.</DialogDescription>
-        </DialogHeader>
+      <DialogContent className="z-[60] sm:max-w-lg p-0 gap-0 overflow-hidden" closeOnOutsideClick={false}>
+        <header className="border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 pr-14 py-4">
+          <div className="flex items-center gap-3">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-[var(--primary)]/10 text-[var(--primary)]">
+              <Building2 className="size-5" aria-hidden />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-[var(--foreground)]">Edit branch</h2>
+              <p className="text-sm text-[var(--foreground-muted)] mt-0.5">Update branch information. Required fields are marked with *.</p>
+            </div>
+          </div>
+        </header>
         {!branch ? (
-          <div className="space-y-3 py-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="h-4 w-full rounded bg-[var(--muted)] animate-pulse" />
+          <div className="px-6 py-5 space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-4 w-full" />
             ))}
           </div>
         ) : (
@@ -463,42 +588,40 @@ function EditHospitalBranchDialog({
                 address: address.trim() || undefined,
               })
             }}
-            className="space-y-4"
+            className="flex flex-col"
           >
-            <div>
-              <label htmlFor="hbe-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
-                Name *
-              </label>
-              <input
-                id="hbe-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-              />
+            <div className="flex-1 px-6 py-5 space-y-4">
+              <FormField id="hbe-name" label="Name *" icon={Building2}>
+                <input
+                  id="hbe-name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                  placeholder="e.g. North Branch"
+                  className={inputBase}
+                />
+              </FormField>
+              <FormField id="hbe-address" label="Address" icon={MapPin}>
+                <input
+                  id="hbe-address"
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Street, city"
+                  className={inputBase}
+                />
+              </FormField>
+              {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
             </div>
-            <div>
-              <label htmlFor="hbe-address" className="block text-sm text-[var(--foreground-muted)] mb-1">
-                Address
-              </label>
-              <input
-                id="hbe-address"
-                type="text"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
-              />
-            </div>
-            {submitError && <p className="text-sm text-[var(--destructive)]">{submitError}</p>}
-            <DialogFooter>
-              <Button type="button" variant="secondary" onClick={() => handleClose(false)}>
+            <footer className="border-t border-[var(--border)] bg-[var(--muted)]/30 px-6 py-4 flex flex-row items-center justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => handleClose(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={updateMutation.isPending || !name.trim()}>
-                {updateMutation.isPending ? 'Saving…' : 'Save'}
+              <Button type="submit" disabled={updateMutation.isPending || !name.trim()} className="min-w-[100px]">
+                {updateMutation.isPending ? 'Saving…' : 'Save changes'}
               </Button>
-            </DialogFooter>
+            </footer>
           </form>
         )}
       </DialogContent>

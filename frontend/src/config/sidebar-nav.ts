@@ -70,7 +70,7 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
     icon: Users,
     items: [
       { to: '/members', label: 'Members', icon: Users },
-      { to: '/member-dependants', label: 'Dependants', icon: UserCircle2 },
+      { to: '/member-dependants', label: 'Dependants (by member)', icon: UserCircle2 },
       { to: '/schemes', label: 'Schemes', icon: Shield },
       { to: '/plans', label: 'Plans', icon: FileStack },
     ],

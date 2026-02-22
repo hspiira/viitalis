@@ -18,6 +18,19 @@ class MemberEntity:
     name: str
     dob: date | None
     status: str
+    # First-class legacy columns (from Members.csv)
+    employee_no: str | None = None
+    gender: str | None = None
+    address: str | None = None
+    tel_home: str | None = None
+    tel_mobile: str | None = None
+    email: str | None = None
+    department: str | None = None
+    branch: str | None = None
+    occupation: str | None = None
+    date_of_joining: date | None = None
+    date_of_leaving: date | None = None
+    remarks: str | None = None
 
     def validate(self) -> None:
         """Validate member business rules."""

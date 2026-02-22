@@ -23,6 +23,7 @@ def _company_to_result(c: Company) -> CompanyResult:
         location=c.location,
         district_id=c.district_id,
         company_type=c.company_type,
+        status=c.status,
     )
 
 
@@ -59,20 +60,24 @@ class CompanyRepository:
         return [_company_to_result(c) for c in companies]
 
     async def create(self, data: CompanyCreate) -> CompanyResult:
-        """Create a company (tenant_id from repo scope)."""
-        company = Company(
-            tenant_id=self.tenant_id,
-            name=data.name.strip(),
-            contact_person=data.contact_person.strip() if data.contact_person else None,
-            address=data.address.strip() if data.address else None,
-            phone=data.phone.strip() if data.phone else None,
-            email=data.email.strip() if data.email else None,
-            website=data.website.strip() if data.website else None,
-            remarks=data.remarks.strip() if data.remarks else None,
-            location=data.location.strip() if data.location else None,
-            district_id=data.district_id,
-            company_type=data.company_type,
-        )
+        """Create a company (tenant_id from repo scope). id optional (e.g. legacy code)."""
+        attrs: dict = {
+            "tenant_id": self.tenant_id,
+            "name": data.name.strip(),
+            "contact_person": data.contact_person.strip() if data.contact_person else None,
+            "address": data.address.strip() if data.address else None,
+            "phone": data.phone.strip() if data.phone else None,
+            "email": data.email.strip() if data.email else None,
+            "website": data.website.strip() if data.website else None,
+            "remarks": data.remarks.strip() if data.remarks else None,
+            "location": data.location.strip() if data.location else None,
+            "district_id": data.district_id,
+            "company_type": data.company_type,
+            "status": (data.status or "active").strip() if data.status else "active",
+        }
+        if data.id and data.id.strip():
+            attrs["id"] = data.id.strip()
+        company = Company(**attrs)
         self.db.add(company)
         await self.db.flush()
         await self.db.refresh(company)
@@ -111,6 +116,8 @@ class CompanyRepository:
             company.district_id = data.district_id
         if data.company_type is not None:
             company.company_type = data.company_type
+        if data.status is not None:
+            company.status = data.status.strip() or "active"
         await self.db.flush()
         await self.db.refresh(company)
         return _company_to_result(company)

@@ -5,7 +5,7 @@ export function DashboardSkeleton() {
   return (
     <div className="grid gap-4 lg:grid-cols-5 lg:items-stretch">
       {/* Left card */}
-      <Card className="flex min-h-0 flex-col border-0 bg-[var(--card)] py-2.5 lg:col-span-2">
+      <Card className="flex min-h-0 flex-col border border-[var(--border-subtle)] bg-transparent py-2.5 lg:col-span-2">
         <CardHeader className="gap-2 px-4 pb-1.5">
           <div className="flex items-end gap-2.5">
             <Skeleton className="size-5 shrink-0 rounded" />
@@ -36,7 +36,7 @@ export function DashboardSkeleton() {
       {/* Right column */}
       <div className="flex min-h-0 flex-col gap-3 lg:col-span-3">
         <div className="grid gap-3 sm:grid-cols-2">
-          <Card className="border-0 bg-[var(--card)] py-3">
+          <Card className="border border-[var(--border-subtle)] bg-transparent py-3">
             <CardHeader className="flex flex-col gap-1.5 px-4 pb-0">
               <div className="flex items-end gap-2.5">
                 <Skeleton className="size-5 shrink-0 rounded" />
@@ -46,7 +46,7 @@ export function DashboardSkeleton() {
               <Skeleton className="h-3 w-28" />
             </CardHeader>
           </Card>
-          <Card className="border-0 bg-[var(--card)] py-3">
+          <Card className="border border-[var(--border-subtle)] bg-transparent py-3">
             <CardHeader className="flex flex-col gap-1.5 px-4 pb-0">
               <div className="flex items-end gap-2.5">
                 <Skeleton className="size-5 shrink-0 rounded" />
@@ -57,7 +57,7 @@ export function DashboardSkeleton() {
             </CardHeader>
           </Card>
         </div>
-        <Card className="flex min-h-0 flex-1 flex-col border-0 bg-[var(--card)] py-2">
+        <Card className="flex min-h-0 flex-1 flex-col border border-[var(--border-subtle)] bg-transparent py-2">
           <CardHeader className="flex flex-row items-end shrink-0 px-4 pb-1.5">
             <div className="flex items-end gap-2.5">
               <Skeleton className="size-5 shrink-0 rounded" />

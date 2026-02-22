@@ -7,6 +7,7 @@ class CompanyCreateRequest(BaseModel):
     """Request body for POST /companies."""
 
     name: str = Field(..., min_length=1, max_length=255)
+    id: str | None = Field(None, min_length=1, max_length=64)  # optional; e.g. legacy code as primary key
     contact_person: str | None = Field(None, max_length=255)
     address: str | None = None
     phone: str | None = Field(None, max_length=64)
@@ -16,6 +17,7 @@ class CompanyCreateRequest(BaseModel):
     location: str | None = Field(None, max_length=255)
     district_id: int | None = None
     company_type: int | None = None
+    status: str | None = Field(None, max_length=32)  # e.g. active, inactive; default active
 
 
 class CompanyUpdateRequest(BaseModel):
@@ -31,6 +33,7 @@ class CompanyUpdateRequest(BaseModel):
     location: str | None = Field(None, max_length=255)
     district_id: int | None = None
     company_type: int | None = None
+    status: str | None = None
 
 
 class CompanyResponse(BaseModel):
@@ -48,6 +51,7 @@ class CompanyResponse(BaseModel):
     location: str | None
     district_id: int | None
     company_type: int | None
+    status: str
 
 
 class CompanyListItem(BaseModel):
@@ -65,3 +69,4 @@ class CompanyListItem(BaseModel):
     location: str | None
     district_id: int | None
     company_type: int | None
+    status: str

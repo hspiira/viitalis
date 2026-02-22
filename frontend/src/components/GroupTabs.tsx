@@ -10,6 +10,8 @@ export default function GroupTabs() {
   const category = getSidebarCategoryByPath(pathname)
 
   if (!category || category.items.length <= 1) return null
+  // Service providers use in-page tabs (Hospital Management | Doctor Management); hide this row.
+  if (category.id === 'providers') return null
 
   const baseTab =
     'px-4 py-2 text-sm font-medium border-b-2 transition-colors'

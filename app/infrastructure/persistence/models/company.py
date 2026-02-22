@@ -22,3 +22,4 @@ class Company(MultiTenantModel, Base):
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     district_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     company_type: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="active")

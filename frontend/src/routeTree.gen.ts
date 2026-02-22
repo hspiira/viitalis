@@ -39,6 +39,10 @@ import { Route as CardReplacementsRouteImport } from './routes/card-replacements
 import { Route as BillingSessionsRouteImport } from './routes/billing-sessions'
 import { Route as BanksRouteImport } from './routes/banks'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MembersIndexRouteImport } from './routes/members.index'
+import { Route as CompaniesIndexRouteImport } from './routes/companies.index'
+import { Route as MembersMemberIdRouteImport } from './routes/members.$memberId'
+import { Route as CompaniesCompanyIdRouteImport } from './routes/companies.$companyId'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
 
 const TenantsRoute = TenantsRouteImport.update({
@@ -191,6 +195,26 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MembersIndexRoute = MembersIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => MembersRoute,
+} as any)
+const CompaniesIndexRoute = CompaniesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CompaniesRoute,
+} as any)
+const MembersMemberIdRoute = MembersMemberIdRouteImport.update({
+  id: '/$memberId',
+  path: '/$memberId',
+  getParentRoute: () => MembersRoute,
+} as any)
+const CompaniesCompanyIdRoute = CompaniesCompanyIdRouteImport.update({
+  id: '/$companyId',
+  path: '/$companyId',
+  getParentRoute: () => CompaniesRoute,
+} as any)
 const ApiTrpcSplatRoute = ApiTrpcSplatRouteImport.update({
   id: '/api/trpc/$',
   path: '/api/trpc/$',
@@ -204,7 +228,7 @@ export interface FileRoutesByFullPath {
   '/card-replacements': typeof CardReplacementsRoute
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
-  '/companies': typeof CompaniesRoute
+  '/companies': typeof CompaniesRouteWithChildren
   '/company-branches': typeof CompanyBranchesRoute
   '/company-groups': typeof CompanyGroupsRoute
   '/company-types': typeof CompanyTypesRoute
@@ -219,7 +243,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
   '/member-dependants': typeof MemberDependantsRoute
-  '/members': typeof MembersRoute
+  '/members': typeof MembersRouteWithChildren
   '/plans': typeof PlansRoute
   '/reference-data': typeof ReferenceDataRoute
   '/register': typeof RegisterRoute
@@ -228,6 +252,10 @@ export interface FileRoutesByFullPath {
   '/schemes': typeof SchemesRoute
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
+  '/companies/$companyId': typeof CompaniesCompanyIdRoute
+  '/members/$memberId': typeof MembersMemberIdRoute
+  '/companies/': typeof CompaniesIndexRoute
+  '/members/': typeof MembersIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
@@ -237,7 +265,6 @@ export interface FileRoutesByTo {
   '/card-replacements': typeof CardReplacementsRoute
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
-  '/companies': typeof CompaniesRoute
   '/company-branches': typeof CompanyBranchesRoute
   '/company-groups': typeof CompanyGroupsRoute
   '/company-types': typeof CompanyTypesRoute
@@ -252,7 +279,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
   '/member-dependants': typeof MemberDependantsRoute
-  '/members': typeof MembersRoute
   '/plans': typeof PlansRoute
   '/reference-data': typeof ReferenceDataRoute
   '/register': typeof RegisterRoute
@@ -261,6 +287,10 @@ export interface FileRoutesByTo {
   '/schemes': typeof SchemesRoute
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
+  '/companies/$companyId': typeof CompaniesCompanyIdRoute
+  '/members/$memberId': typeof MembersMemberIdRoute
+  '/companies': typeof CompaniesIndexRoute
+  '/members': typeof MembersIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesById {
@@ -271,7 +301,7 @@ export interface FileRoutesById {
   '/card-replacements': typeof CardReplacementsRoute
   '/claim-payments': typeof ClaimPaymentsRoute
   '/claims': typeof ClaimsRoute
-  '/companies': typeof CompaniesRoute
+  '/companies': typeof CompaniesRouteWithChildren
   '/company-branches': typeof CompanyBranchesRoute
   '/company-groups': typeof CompanyGroupsRoute
   '/company-types': typeof CompanyTypesRoute
@@ -286,7 +316,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
   '/member-dependants': typeof MemberDependantsRoute
-  '/members': typeof MembersRoute
+  '/members': typeof MembersRouteWithChildren
   '/plans': typeof PlansRoute
   '/reference-data': typeof ReferenceDataRoute
   '/register': typeof RegisterRoute
@@ -295,6 +325,10 @@ export interface FileRoutesById {
   '/schemes': typeof SchemesRoute
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
+  '/companies/$companyId': typeof CompaniesCompanyIdRoute
+  '/members/$memberId': typeof MembersMemberIdRoute
+  '/companies/': typeof CompaniesIndexRoute
+  '/members/': typeof MembersIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRouteTypes {
@@ -330,6 +364,10 @@ export interface FileRouteTypes {
     | '/schemes'
     | '/services'
     | '/tenants'
+    | '/companies/$companyId'
+    | '/members/$memberId'
+    | '/companies/'
+    | '/members/'
     | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -339,7 +377,6 @@ export interface FileRouteTypes {
     | '/card-replacements'
     | '/claim-payments'
     | '/claims'
-    | '/companies'
     | '/company-branches'
     | '/company-groups'
     | '/company-types'
@@ -354,7 +391,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/medicines'
     | '/member-dependants'
-    | '/members'
     | '/plans'
     | '/reference-data'
     | '/register'
@@ -363,6 +399,10 @@ export interface FileRouteTypes {
     | '/schemes'
     | '/services'
     | '/tenants'
+    | '/companies/$companyId'
+    | '/members/$memberId'
+    | '/companies'
+    | '/members'
     | '/api/trpc/$'
   id:
     | '__root__'
@@ -396,6 +436,10 @@ export interface FileRouteTypes {
     | '/schemes'
     | '/services'
     | '/tenants'
+    | '/companies/$companyId'
+    | '/members/$memberId'
+    | '/companies/'
+    | '/members/'
     | '/api/trpc/$'
   fileRoutesById: FileRoutesById
 }
@@ -406,7 +450,7 @@ export interface RootRouteChildren {
   CardReplacementsRoute: typeof CardReplacementsRoute
   ClaimPaymentsRoute: typeof ClaimPaymentsRoute
   ClaimsRoute: typeof ClaimsRoute
-  CompaniesRoute: typeof CompaniesRoute
+  CompaniesRoute: typeof CompaniesRouteWithChildren
   CompanyBranchesRoute: typeof CompanyBranchesRoute
   CompanyGroupsRoute: typeof CompanyGroupsRoute
   CompanyTypesRoute: typeof CompanyTypesRoute
@@ -421,7 +465,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MedicinesRoute: typeof MedicinesRoute
   MemberDependantsRoute: typeof MemberDependantsRoute
-  MembersRoute: typeof MembersRoute
+  MembersRoute: typeof MembersRouteWithChildren
   PlansRoute: typeof PlansRoute
   ReferenceDataRoute: typeof ReferenceDataRoute
   RegisterRoute: typeof RegisterRoute
@@ -645,6 +689,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/members/': {
+      id: '/members/'
+      path: '/'
+      fullPath: '/members/'
+      preLoaderRoute: typeof MembersIndexRouteImport
+      parentRoute: typeof MembersRoute
+    }
+    '/companies/': {
+      id: '/companies/'
+      path: '/'
+      fullPath: '/companies/'
+      preLoaderRoute: typeof CompaniesIndexRouteImport
+      parentRoute: typeof CompaniesRoute
+    }
+    '/members/$memberId': {
+      id: '/members/$memberId'
+      path: '/$memberId'
+      fullPath: '/members/$memberId'
+      preLoaderRoute: typeof MembersMemberIdRouteImport
+      parentRoute: typeof MembersRoute
+    }
+    '/companies/$companyId': {
+      id: '/companies/$companyId'
+      path: '/$companyId'
+      fullPath: '/companies/$companyId'
+      preLoaderRoute: typeof CompaniesCompanyIdRouteImport
+      parentRoute: typeof CompaniesRoute
+    }
     '/api/trpc/$': {
       id: '/api/trpc/$'
       path: '/api/trpc/$'
@@ -655,6 +727,33 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface CompaniesRouteChildren {
+  CompaniesCompanyIdRoute: typeof CompaniesCompanyIdRoute
+  CompaniesIndexRoute: typeof CompaniesIndexRoute
+}
+
+const CompaniesRouteChildren: CompaniesRouteChildren = {
+  CompaniesCompanyIdRoute: CompaniesCompanyIdRoute,
+  CompaniesIndexRoute: CompaniesIndexRoute,
+}
+
+const CompaniesRouteWithChildren = CompaniesRoute._addFileChildren(
+  CompaniesRouteChildren,
+)
+
+interface MembersRouteChildren {
+  MembersMemberIdRoute: typeof MembersMemberIdRoute
+  MembersIndexRoute: typeof MembersIndexRoute
+}
+
+const MembersRouteChildren: MembersRouteChildren = {
+  MembersMemberIdRoute: MembersMemberIdRoute,
+  MembersIndexRoute: MembersIndexRoute,
+}
+
+const MembersRouteWithChildren =
+  MembersRoute._addFileChildren(MembersRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BanksRoute: BanksRoute,
@@ -662,7 +761,7 @@ const rootRouteChildren: RootRouteChildren = {
   CardReplacementsRoute: CardReplacementsRoute,
   ClaimPaymentsRoute: ClaimPaymentsRoute,
   ClaimsRoute: ClaimsRoute,
-  CompaniesRoute: CompaniesRoute,
+  CompaniesRoute: CompaniesRouteWithChildren,
   CompanyBranchesRoute: CompanyBranchesRoute,
   CompanyGroupsRoute: CompanyGroupsRoute,
   CompanyTypesRoute: CompanyTypesRoute,
@@ -677,7 +776,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MedicinesRoute: MedicinesRoute,
   MemberDependantsRoute: MemberDependantsRoute,
-  MembersRoute: MembersRoute,
+  MembersRoute: MembersRouteWithChildren,
   PlansRoute: PlansRoute,
   ReferenceDataRoute: ReferenceDataRoute,
   RegisterRoute: RegisterRoute,
