@@ -1,6 +1,7 @@
-"""Doctor domain entity. Tenant-scoped, linked to hospital."""
+"""Doctor domain entity. Tenant-scoped, linked to hospital. Full parity with Doctors.csv."""
 
 from dataclasses import dataclass
+from datetime import date
 
 from app.domain.exceptions import ValidationException
 
@@ -14,6 +15,21 @@ class DoctorEntity:
     hospital_id: str
     name: str
     specialization: str | None
+    reference: str | None
+    date_of_birth: date | None
+    address: str | None
+    phone_home: str | None
+    phone_mobile: str | None
+    licence_no: str | None
+    department: str | None
+    doctor_category: str | None
+    email: str | None
+    website: str | None
+    gender: str | None
+    remarks: str | None
+    service_charges: float | None
+    channeling_charges: float | None
+    referring_charges: float | None
 
     def validate(self) -> None:
         if not self.name or not self.name.strip():

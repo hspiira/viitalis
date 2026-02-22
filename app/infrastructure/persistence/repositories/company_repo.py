@@ -13,6 +13,7 @@ def _company_to_result(c: Company) -> CompanyResult:
     return CompanyResult(
         id=c.id,
         tenant_id=c.tenant_id,
+        code=c.code,
         name=c.name,
         contact_person=c.contact_person,
         address=c.address,
@@ -45,16 +46,28 @@ class CompanyRepository:
         company = result.scalar_one_or_none()
         return _company_to_result(company) if company else None
 
-    async def list_by_tenant(
-        self, skip: int = 0, limit: int = 100
-    ) -> list[CompanyResult]:
-        """Return companies for the tenant with pagination."""
+    async def get_by_code(self, code: str) -> CompanyResult | None:
+        """Return company by code (within tenant). For legacy identifier lookup."""
+        if not code or not code.strip():
+            return None
         result = await self.db.execute(
-            select(Company)
-            .where(Company.tenant_id == self.tenant_id)
-            .offset(skip)
-            .limit(limit)
-            .order_by(Company.name)
+            select(Company).where(
+                Company.tenant_id == self.tenant_id,
+                Company.code == code.strip(),
+            )
+        )
+        company = result.scalar_one_or_none()
+        return _company_to_result(company) if company else None
+
+    async def list_by_tenant(
+        self, skip: int = 0, limit: int = 100, code: str | None = None
+    ) -> list[CompanyResult]:
+        """Return companies for the tenant with pagination. Optional filter by code."""
+        q = select(Company).where(Company.tenant_id == self.tenant_id)
+        if code is not None and code.strip():
+            q = q.where(Company.code == code.strip())
+        result = await self.db.execute(
+            q.offset(skip).limit(limit).order_by(Company.name)
         )
         companies = result.scalars().all()
         return [_company_to_result(c) for c in companies]
@@ -64,6 +77,7 @@ class CompanyRepository:
         attrs: dict = {
             "tenant_id": self.tenant_id,
             "name": data.name.strip(),
+            "code": data.code.strip() if data.code else None,
             "contact_person": data.contact_person.strip() if data.contact_person else None,
             "address": data.address.strip() if data.address else None,
             "phone": data.phone.strip() if data.phone else None,
@@ -98,6 +112,8 @@ class CompanyRepository:
             return None
         if data.name is not None:
             company.name = data.name.strip()
+        if data.code is not None:
+            company.code = data.code.strip() or None
         if data.contact_person is not None:
             company.contact_person = data.contact_person.strip() or None
         if data.address is not None:

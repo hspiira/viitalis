@@ -49,6 +49,7 @@ async def create_scheme(
     data = SchemeCreate(
         company_id=body.company_id,
         name=body.name,
+        code=body.code,
         description=body.description,
         limit_value=body.limit_value,
         begin_date=body.begin_date,
@@ -66,10 +67,11 @@ async def list_schemes(
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
     company_id: str | None = Query(None),
+    code: str | None = Query(None, description="Filter by legacy/reference code"),
 ):
-    """List schemes for the tenant (optionally by company_id). Requires X-Tenant-ID."""
+    """List schemes for the tenant (optionally by company_id or code). Requires X-Tenant-ID."""
     items = await scheme_svc.list_schemes(
-        skip=skip, limit=limit, company_id=company_id
+        skip=skip, limit=limit, company_id=company_id, code=code
     )
     return [_to_list_item(s) for s in items]
 
@@ -93,6 +95,7 @@ async def update_scheme(
     """Update a scheme. Requires X-Tenant-ID."""
     data = SchemeUpdate(
         name=body.name,
+        code=body.code,
         description=body.description,
         limit_value=body.limit_value,
         begin_date=body.begin_date,
@@ -110,8 +113,15 @@ async def add_plan_to_scheme(
     body: SchemePlanAddRequest,
     scheme_svc: Annotated[SchemeService, Depends(get_scheme_service)],
 ):
-    """Link a plan to a scheme. Fails if already linked. Requires X-Tenant-ID."""
-    result = await scheme_svc.add_plan_to_scheme(scheme_id, body.plan_id)
+    """Link a plan to a scheme (optional limit/dates for period rows). Requires X-Tenant-ID."""
+    result = await scheme_svc.add_plan_to_scheme(
+        scheme_id,
+        body.plan_id,
+        limit_amount=body.limit_amount,
+        begin_date=body.begin_date,
+        end_date=body.end_date,
+        status=body.status,
+    )
     return _plan_to_response(result)
 
 

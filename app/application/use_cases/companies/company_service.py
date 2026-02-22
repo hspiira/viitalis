@@ -30,9 +30,11 @@ class CompanyService:
             raise ResourceNotFoundException("Company not found")
         return company
 
-    async def list_companies(self, skip: int = 0, limit: int = 100) -> list[CompanyResult]:
-        """List companies for the tenant."""
-        return await self.company_repo.list_by_tenant(skip=skip, limit=limit)
+    async def list_companies(
+        self, skip: int = 0, limit: int = 100, code: str | None = None
+    ) -> list[CompanyResult]:
+        """List companies for the tenant. Optional filter by code (legacy identifier)."""
+        return await self.company_repo.list_by_tenant(skip=skip, limit=limit, code=code)
 
     async def update_company(self, company_id: str, data: CompanyUpdate) -> CompanyResult:
         """Update a company. Raises ResourceNotFoundException if not found."""

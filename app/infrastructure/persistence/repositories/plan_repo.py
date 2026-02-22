@@ -35,6 +35,19 @@ class PlanRepository:
         plan = result.scalar_one_or_none()
         return _plan_to_result(plan) if plan else None
 
+    async def get_by_code(self, code: str) -> PlanResult | None:
+        """Return plan by code (within tenant)."""
+        if not code or not code.strip():
+            return None
+        result = await self.db.execute(
+            select(Plan).where(
+                Plan.tenant_id == self.tenant_id,
+                Plan.code == code.strip(),
+            )
+        )
+        plan = result.scalar_one_or_none()
+        return _plan_to_result(plan) if plan else None
+
     async def list_by_tenant(
         self, skip: int = 0, limit: int = 100
     ) -> list[PlanResult]:

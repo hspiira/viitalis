@@ -12,6 +12,7 @@ class Company(MultiTenantModel, Base):
 
     __tablename__ = "company"
 
+    code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     contact_person: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(Text, nullable=True)

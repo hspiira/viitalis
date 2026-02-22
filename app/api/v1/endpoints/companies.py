@@ -37,6 +37,7 @@ async def create_company(
     data = CompanyCreate(
         name=body.name,
         id=body.id,
+        code=body.code,
         contact_person=body.contact_person,
         address=body.address,
         phone=body.phone,
@@ -57,9 +58,10 @@ async def list_companies(
     company_svc: Annotated[CompanyService, Depends(get_company_service)],
     skip: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=500),
+    code: str | None = Query(None, description="Filter by legacy code"),
 ):
     """List companies for the tenant. Requires X-Tenant-ID."""
-    items = await company_svc.list_companies(skip=skip, limit=limit)
+    items = await company_svc.list_companies(skip=skip, limit=limit, code=code)
     return [_to_list_item(c) for c in items]
 
 
@@ -82,6 +84,7 @@ async def update_company(
     """Update a company. Requires X-Tenant-ID."""
     data = CompanyUpdate(
         name=body.name,
+        code=body.code,
         contact_person=body.contact_person,
         address=body.address,
         phone=body.phone,

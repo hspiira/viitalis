@@ -38,6 +38,19 @@ class BenefitRepository:
         b = r.scalar_one_or_none()
         return _to_result(b) if b else None
 
+    async def get_by_code(self, code: str) -> BenefitResult | None:
+        """Return benefit by code (within tenant)."""
+        if not code or not str(code).strip():
+            return None
+        r = await self.db.execute(
+            select(Benefit).where(
+                Benefit.tenant_id == self.tenant_id,
+                Benefit.code == str(code).strip(),
+            )
+        )
+        b = r.scalar_one_or_none()
+        return _to_result(b) if b else None
+
     async def list_by_tenant(
         self, skip: int = 0, limit: int = 100, status: str | None = None
     ) -> list[BenefitResult]:

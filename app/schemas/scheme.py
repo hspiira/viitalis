@@ -10,6 +10,7 @@ class SchemeCreateRequest(BaseModel):
 
     company_id: str = Field(..., min_length=1, max_length=64)
     name: str = Field(..., min_length=1, max_length=255)
+    code: str | None = Field(None, max_length=64)
     description: str | None = None
     limit_value: float | None = None
     begin_date: date | None = None
@@ -22,6 +23,7 @@ class SchemeUpdateRequest(BaseModel):
     """Request body for PATCH /schemes/{id}."""
 
     name: str | None = Field(None, min_length=1, max_length=255)
+    code: str | None = Field(None, max_length=64)
     description: str | None = None
     limit_value: float | None = None
     begin_date: date | None = None
@@ -37,6 +39,7 @@ class SchemeResponse(BaseModel):
     id: str
     tenant_id: str
     company_id: str
+    code: str | None
     name: str
     description: str | None
     limit_value: float | None
@@ -53,6 +56,7 @@ class SchemeListItem(BaseModel):
     id: str
     tenant_id: str
     company_id: str
+    code: str | None
     name: str
     description: str | None
     limit_value: float | None
@@ -66,6 +70,10 @@ class SchemePlanAddRequest(BaseModel):
     """Request body for POST /schemes/{scheme_id}/plans."""
 
     plan_id: str = Field(..., min_length=1, max_length=64)
+    limit_amount: float | None = None
+    begin_date: date | None = None
+    end_date: date | None = None
+    status: str = Field("active", max_length=32)
 
 
 class SchemePlanResponse(BaseModel):
@@ -76,3 +84,7 @@ class SchemePlanResponse(BaseModel):
     tenant_id: str
     scheme_id: str
     plan_id: str
+    limit_amount: float | None = None
+    begin_date: date | None = None
+    end_date: date | None = None
+    status: str = "active"

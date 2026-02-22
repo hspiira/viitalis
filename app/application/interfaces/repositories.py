@@ -30,6 +30,7 @@ from app.application.dtos.benefit import (
 )
 from app.application.dtos.scheme import (
     SchemeCreate,
+    SchemePlanCreate,
     SchemePlanResult,
     SchemeResult,
     SchemeUpdate,
@@ -64,8 +65,10 @@ class ICompanyRepository(Protocol):
         """Return company by ID (within tenant)."""
         ...
 
-    async def list_by_tenant(self, skip: int = 0, limit: int = 100) -> list[CompanyResult]:
-        """Return companies for the tenant with pagination."""
+    async def list_by_tenant(
+        self, skip: int = 0, limit: int = 100, code: str | None = None
+    ) -> list[CompanyResult]:
+        """Return companies for the tenant with pagination. Optional filter by code."""
         ...
 
     async def create(self, data: CompanyCreate) -> CompanyResult:
@@ -122,6 +125,10 @@ class ISchemeRepository(Protocol):
         """Return schemes for the tenant (optionally by company_id) with pagination."""
         ...
 
+    async def list_by_code(self, code: str) -> list[SchemeResult]:
+        """Return all schemes with the given legacy/reference code (e.g. renewals)."""
+        ...
+
     async def create(self, data: SchemeCreate) -> SchemeResult:
         """Create a scheme. Returns the created scheme."""
         ...
@@ -134,10 +141,8 @@ class ISchemeRepository(Protocol):
         """True if this (scheme_id, plan_id) link already exists."""
         ...
 
-    async def add_scheme_plan(
-        self, scheme_id: str, plan_id: str
-    ) -> SchemePlanResult:
-        """Link a plan to a scheme. Returns the created scheme_plan."""
+    async def add_scheme_plan(self, data: SchemePlanCreate) -> SchemePlanResult:
+        """Link a plan to a scheme (optionally with limit/dates). Returns the created scheme_plan."""
         ...
 
     async def list_scheme_benefits(

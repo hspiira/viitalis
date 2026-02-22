@@ -12,6 +12,7 @@ from app.application.dtos.benefit import (
 )
 from app.application.dtos.scheme import (
     SchemeCreate,
+    SchemePlanCreate,
     SchemePlanResult,
     SchemeResult,
     SchemeUpdate,
@@ -48,8 +49,11 @@ class SchemeService:
         skip: int = 0,
         limit: int = 100,
         company_id: str | None = None,
+        code: str | None = None,
     ) -> list[SchemeResult]:
-        """List schemes for the tenant (optionally by company_id)."""
+        """List schemes for the tenant (optionally by company_id or code)."""
+        if code is not None and code.strip():
+            return await self.scheme_repo.list_by_code(code.strip())
         return await self.scheme_repo.list_by_tenant(
             skip=skip, limit=limit, company_id=company_id
         )
@@ -62,16 +66,29 @@ class SchemeService:
         return updated
 
     async def add_plan_to_scheme(
-        self, scheme_id: str, plan_id: str
+        self, scheme_id: str, plan_id: str, **kwargs: object
     ) -> SchemePlanResult:
-        """Link a plan to a scheme. Fails if link already exists."""
+        """Link a plan to a scheme. When limit_amount/begin_date/end_date are provided, allows multiple rows (periods)."""
         await self.get_by_id(scheme_id)  # raise if scheme not found
-        if await self.scheme_repo.exists_scheme_plan(scheme_id, plan_id):
+        has_period = (
+            kwargs.get("limit_amount") is not None
+            or kwargs.get("begin_date") is not None
+            or kwargs.get("end_date") is not None
+        )
+        if not has_period and await self.scheme_repo.exists_scheme_plan(scheme_id, plan_id):
             raise ValidationException(
                 "This plan is already linked to this scheme",
                 field="plan_id",
             )
-        return await self.scheme_repo.add_scheme_plan(scheme_id, plan_id)
+        data = SchemePlanCreate(
+            scheme_id=scheme_id,
+            plan_id=plan_id,
+            limit_amount=kwargs.get("limit_amount"),
+            begin_date=kwargs.get("begin_date"),
+            end_date=kwargs.get("end_date"),
+            status=kwargs.get("status", "active"),
+        )
+        return await self.scheme_repo.add_scheme_plan(data)
 
     async def list_scheme_benefits(
         self, scheme_id: str, skip: int = 0, limit: int = 100

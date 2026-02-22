@@ -20,6 +20,7 @@ class Scheme(MultiTenantModel, Base):
         nullable=False,
         index=True,
     )
+    code: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     limit_value: Mapped[float | None] = mapped_column(Float, nullable=True)

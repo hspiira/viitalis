@@ -8,6 +8,7 @@ class CompanyCreateRequest(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     id: str | None = Field(None, min_length=1, max_length=64)  # optional; e.g. legacy code as primary key
+    code: str | None = Field(None, min_length=1, max_length=64)  # legacy/external identifier
     contact_person: str | None = Field(None, max_length=255)
     address: str | None = None
     phone: str | None = Field(None, max_length=64)
@@ -24,6 +25,7 @@ class CompanyUpdateRequest(BaseModel):
     """Request body for PATCH /companies/{id}."""
 
     name: str | None = Field(None, min_length=1, max_length=255)
+    code: str | None = Field(None, min_length=1, max_length=64)
     contact_person: str | None = Field(None, max_length=255)
     address: str | None = None
     phone: str | None = Field(None, max_length=64)
@@ -41,6 +43,7 @@ class CompanyResponse(BaseModel):
 
     id: str
     tenant_id: str
+    code: str | None
     name: str
     contact_person: str | None
     address: str | None
@@ -59,6 +62,7 @@ class CompanyListItem(BaseModel):
 
     id: str
     tenant_id: str
+    code: str | None
     name: str
     contact_person: str | None
     address: str | None

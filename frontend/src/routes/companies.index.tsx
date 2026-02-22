@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState, useMemo } from 'react'
 import { apiGet, getApiErrorDetail } from '#/lib/api-client'
@@ -35,6 +35,7 @@ import {
   Ban,
   PauseCircle,
   Archive,
+  CircleDot,
 } from 'lucide-react'
 import { CreateCompanyDialog, EditCompanyDialog } from './companies'
 
@@ -42,6 +43,7 @@ interface Company {
   id: string
   tenant_id: string
   name: string
+  status: string
   contact_person: string | null
   address: string | null
   phone: string | null
@@ -51,6 +53,64 @@ interface Company {
   location: string | null
   district_id: number | null
   company_type: number | null
+}
+
+const TABLE_CELL = 'py-1.5 px-3'
+const TABLE_CELL_TRUNCATE = `min-w-0 ${TABLE_CELL} overflow-hidden`
+
+function StatusBadge({ status }: { status: string }) {
+  const normalized = (status || '').toLowerCase()
+  const isActive = normalized === 'active'
+  const variant = isActive
+    ? 'bg-[var(--icon-success)]/15 text-[var(--icon-success)]'
+    : 'bg-[var(--muted)] text-[var(--foreground-muted)]'
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium capitalize ${variant}`}
+      title={status}
+    >
+      <span className={`size-1.5 rounded-full ${isActive ? 'bg-[var(--icon-success)]' : 'bg-current'}`} aria-hidden />
+      {status || '—'}
+    </span>
+  )
+}
+
+function TableTh({
+  icon: Icon,
+  children,
+  className = '',
+}: {
+  icon: React.ComponentType<{ className?: string }>
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <th className={`text-left font-medium text-[var(--foreground-muted)] ${TABLE_CELL} ${className}`}>
+      <span className="inline-flex items-center gap-2">
+        <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
+          <Icon className="size-3.5" aria-hidden />
+        </span>
+        {children}
+      </span>
+    </th>
+  )
+}
+
+function TruncateCell({
+  value,
+  fallback = '—',
+}: {
+  value: string | null
+  fallback?: string
+}) {
+  const display = value ?? fallback
+  return (
+    <td className={`${TABLE_CELL_TRUNCATE} text-[var(--foreground-muted)]`}>
+      <span className="block truncate" title={value ?? undefined}>
+        {display}
+      </span>
+    </td>
+  )
 }
 
 interface CompanyType {
@@ -64,7 +124,7 @@ interface CompanyType {
 const LIMIT = 20
 
 function CompanyTableSkeleton() {
-  return <TableSkeleton columns={7} withCheckbox rows={5} />
+  return <TableSkeleton columns={8} withCheckbox rows={5} />
 }
 
 export const Route = createFileRoute('/companies/')({
@@ -72,6 +132,7 @@ export const Route = createFileRoute('/companies/')({
 })
 
 function CompaniesListPage() {
+  const navigate = useNavigate()
   const opts = useApi()
   const queryClient = useQueryClient()
   const [typeFilter, setTypeFilter] = useState('')
@@ -237,113 +298,77 @@ function CompaniesListPage() {
       ) : (
         <>
           <div className="rounded-lg border border-[var(--border)] shadow-none">
-            <table className="w-full text-sm">
+            <table className="w-full table-fixed text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                  <th className="w-10 py-2.5 pl-3 pr-2">
+                  <th className="w-10 py-1.5 pl-3 pr-2">
                     <Checkbox
                       checked={allSelected}
                       onCheckedChange={handleToggleAll}
                       aria-label="Select all"
                     />
                   </th>
-                  <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground-muted)]">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
-                        <Building2 className="size-3.5" aria-hidden />
-                      </span>
-                      Name
-                    </span>
-                  </th>
-                  <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground-muted)]">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
-                        <User className="size-3.5" aria-hidden />
-                      </span>
-                      Contact
-                    </span>
-                  </th>
-                  <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground-muted)]">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
-                        <Mail className="size-3.5" aria-hidden />
-                      </span>
-                      Email
-                    </span>
-                  </th>
-                  <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground-muted)]">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
-                        <Phone className="size-3.5" aria-hidden />
-                      </span>
-                      Phone
-                    </span>
-                  </th>
-                  <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground-muted)]">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
-                        <Layers className="size-3.5" aria-hidden />
-                      </span>
-                      Type
-                    </span>
-                  </th>
-                  <th className="text-left py-2.5 px-3 font-medium text-[var(--foreground-muted)]">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
-                        <Globe className="size-3.5" aria-hidden />
-                      </span>
-                      Website
-                    </span>
-                  </th>
-                  <th className="text-left py-2.5 px-3 w-[12rem] font-medium text-[var(--foreground-muted)]">
-                    <span className="inline-flex items-center gap-2">
-                      <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/15 text-[var(--primary)]">
-                        <SquareArrowOutUpRight className="size-3.5" aria-hidden />
-                      </span>
-                      Actions
-                    </span>
-                  </th>
+                  <TableTh icon={Building2}>Name</TableTh>
+                  <TableTh icon={CircleDot} className="w-[7%]">Status</TableTh>
+                  <TableTh icon={User} className="w-[12%]">Contact</TableTh>
+                  <TableTh icon={Mail} className="w-[14%]">Email</TableTh>
+                  <TableTh icon={Phone} className="w-[11%]">Phone</TableTh>
+                  <TableTh icon={Layers} className="w-[8%]">Type</TableTh>
+                  <TableTh icon={Globe} className="w-[11%]">Website</TableTh>
+                  <TableTh icon={SquareArrowOutUpRight} className="w-24">Actions</TableTh>
                 </tr>
               </thead>
               <tbody>
-                {filteredItems.map((company) => (
+                {filteredItems.map((company, index) => (
                   <tr
                     key={company.id}
                     className={`border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--muted)]/20 ${
-                      selectedIds.has(company.id) ? 'bg-[var(--muted)]/40' : ''
-                    }`}
+                      index % 2 === 0 ? 'bg-[var(--muted)]/10' : ''
+                    } ${selectedIds.has(company.id) ? '!bg-[var(--muted)]/40' : ''}`}
                   >
-                    <td className="py-2.5 pl-3 pr-2">
+                    <td className={`${TABLE_CELL} pl-3 pr-2`}>
                       <Checkbox
                         checked={selectedIds.has(company.id)}
                         onCheckedChange={() => toggleOne(company.id)}
                         aria-label={`Select ${company.name}`}
                       />
                     </td>
-                    <td className="py-2.5 px-3 font-medium text-[var(--foreground)]">
-                      {company.name}
+                    <td className={`${TABLE_CELL_TRUNCATE} font-medium text-[var(--foreground)]`}>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        className="block truncate cursor-pointer hover:underline focus:outline-none focus:underline"
+                        title={company.name}
+                        onDoubleClick={() => navigate({ to: '/companies/$companyId', params: { companyId: company.id } })}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            navigate({ to: '/companies/$companyId', params: { companyId: company.id } })
+                          }
+                        }}
+                      >
+                        {company.name}
+                      </span>
                     </td>
-                    <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
-                      {company.contact_person ?? '—'}
+                    <td className={TABLE_CELL}>
+                      <StatusBadge status={company.status} />
                     </td>
-                    <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
-                      {company.email ?? '—'}
-                    </td>
-                    <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
-                      {company.phone ?? '—'}
-                    </td>
-                    <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
+                    <TruncateCell value={company.contact_person} />
+                    <TruncateCell value={company.email} />
+                    <TruncateCell value={company.phone} />
+                    <td className={`${TABLE_CELL} text-[var(--foreground-muted)]`}>
                       {company.company_type != null
                         ? companyTypeById[String(company.company_type)]?.name ?? '—'
                         : '—'}
                     </td>
-                    <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
+                    <td className={`${TABLE_CELL_TRUNCATE} text-[var(--foreground-muted)]`}>
                       {company.website ? (
                         <a
                           href={company.website.startsWith('http') ? company.website : `https://${company.website}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-1 text-[var(--primary)] hover:underline truncate max-w-[130px]"
+                          className="flex min-w-0 items-center gap-1 text-[var(--primary)] hover:underline"
+                          title={company.website}
                         >
                           <Globe className="size-3 shrink-0" aria-hidden />
                           <span className="truncate">{company.website.replace(/^https?:\/\//, '')}</span>
@@ -352,7 +377,7 @@ function CompaniesListPage() {
                         '—'
                       )}
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className={TABLE_CELL}>
                       <div className="relative flex items-center gap-0.5">
                         <Button
                           variant="ghost"

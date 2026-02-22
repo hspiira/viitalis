@@ -9,6 +9,7 @@ class CompanyResult:
 
     id: str
     tenant_id: str
+    code: str | None
     name: str
     contact_person: str | None
     address: str | None
@@ -28,6 +29,7 @@ class CompanyCreate:
 
     name: str
     id: str | None = None  # optional; if set (e.g. legacy code), used as primary key
+    code: str | None = None  # legacy/external identifier (e.g. COMPANY_CODE from CSV)
     contact_person: str | None = None
     address: str | None = None
     phone: str | None = None
@@ -45,6 +47,7 @@ class CompanyUpdate:
     """Data for partial update of a company."""
 
     name: str | None = None
+    code: str | None = None
     contact_person: str | None = None
     address: str | None = None
     phone: str | None = None

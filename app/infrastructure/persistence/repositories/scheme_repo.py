@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.application.dtos.benefit import SchemeBenefitCreate, SchemeBenefitResult, SchemeBenefitUpdate
 from app.application.dtos.scheme import (
     SchemeCreate,
+    SchemePlanCreate,
     SchemePlanResult,
     SchemeResult,
     SchemeUpdate,
@@ -21,6 +22,7 @@ def _scheme_to_result(s: Scheme) -> SchemeResult:
         id=s.id,
         tenant_id=s.tenant_id,
         company_id=s.company_id,
+        code=s.code,
         name=s.name,
         description=s.description,
         limit_value=s.limit_value,
@@ -64,11 +66,24 @@ class SchemeRepository:
         schemes = result.scalars().all()
         return [_scheme_to_result(s) for s in schemes]
 
+    async def list_by_code(self, code: str) -> list[SchemeResult]:
+        """Return all schemes with the given legacy/reference code (e.g. renewals)."""
+        result = await self.db.execute(
+            select(Scheme)
+            .where(
+                Scheme.tenant_id == self.tenant_id,
+                Scheme.code == code,
+            )
+            .order_by(Scheme.begin_date.desc().nullslast())
+        )
+        return [_scheme_to_result(s) for s in result.scalars().all()]
+
     async def create(self, data: SchemeCreate) -> SchemeResult:
         """Create a scheme (tenant_id from repo scope)."""
         scheme = Scheme(
             tenant_id=self.tenant_id,
             company_id=data.company_id,
+            code=data.code.strip() if data.code else None,
             name=data.name.strip(),
             description=data.description.strip() if data.description else None,
             limit_value=data.limit_value,
@@ -97,6 +112,8 @@ class SchemeRepository:
             return None
         if data.name is not None:
             scheme.name = data.name.strip()
+        if data.code is not None:
+            scheme.code = data.code.strip() or None
         if data.description is not None:
             scheme.description = data.description.strip() or None
         if data.limit_value is not None:
@@ -125,13 +142,17 @@ class SchemeRepository:
         return r.scalar_one_or_none() is not None
 
     async def add_scheme_plan(
-        self, scheme_id: str, plan_id: str
+        self, data: SchemePlanCreate
     ) -> SchemePlanResult:
-        """Link a plan to a scheme. Returns the created scheme_plan."""
+        """Link a plan to a scheme (optionally with limit and dates). Returns the created scheme_plan."""
         sp = SchemePlan(
             tenant_id=self.tenant_id,
-            scheme_id=scheme_id,
-            plan_id=plan_id,
+            scheme_id=data.scheme_id,
+            plan_id=data.plan_id,
+            limit_amount=data.limit_amount,
+            begin_date=data.begin_date,
+            end_date=data.end_date,
+            status=data.status,
         )
         self.db.add(sp)
         await self.db.flush()
@@ -141,6 +162,10 @@ class SchemeRepository:
             tenant_id=sp.tenant_id,
             scheme_id=sp.scheme_id,
             plan_id=sp.plan_id,
+            limit_amount=sp.limit_amount,
+            begin_date=sp.begin_date,
+            end_date=sp.end_date,
+            status=sp.status,
         )
 
     async def list_scheme_benefits(

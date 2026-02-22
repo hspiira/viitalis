@@ -42,9 +42,9 @@ import {
 } from 'lucide-react'
 import { EditCompanyDialog } from './companies'
 
-type CompanyDetailTab = 'details' | 'members' | 'contracts' | 'analytics'
+type CompanyDetailTab = 'details' | 'branches' | 'members' | 'contracts' | 'schemes' | 'analytics'
 
-const TAB_IDS: CompanyDetailTab[] = ['details', 'members', 'contracts', 'analytics']
+const TAB_IDS: CompanyDetailTab[] = ['details', 'branches', 'members', 'contracts', 'schemes', 'analytics']
 
 export const Route = createFileRoute('/companies/$companyId')({
   beforeLoad: () => requireAuthBeforeLoad('/companies/$companyId'),
@@ -130,9 +130,11 @@ const COMPANY_DETAIL_TABS: {
   label: string
   icon: React.ComponentType<{ className?: string }>
 }[] = [
-  { id: 'details', label: 'Company details', icon: Building2 },
+  { id: 'details', label: 'Overview', icon: Building2 },
+  { id: 'branches', label: 'Branches', icon: MapPin },
   { id: 'members', label: 'Members & dependants', icon: Users },
   { id: 'contracts', label: 'Contracts', icon: ScrollText },
+  { id: 'schemes', label: 'Schemes', icon: Shield },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
 ]
 
@@ -198,10 +200,10 @@ function CompanyDetailPage() {
     enabled: !!opts.tenantId && !!opts.token,
   })
 
-  useQuery({
+  const { data: branches = [], isLoading: branchesLoading } = useQuery({
     queryKey: ['companies', companyId, 'branches'],
     queryFn: () => apiGet<CompanyBranch[]>(`/companies/${companyId}/branches?skip=0&limit=500`, opts),
-    enabled: false,
+    enabled: !!companyId && activeTab === 'branches' && !!opts.tenantId && !!opts.token,
   })
 
   const { data: members = [], isLoading: membersLoading } = useQuery({
@@ -223,7 +225,11 @@ function CompanyDetailPage() {
   const { data: schemes = [], isLoading: schemesLoading } = useQuery({
     queryKey: ['schemes', companyId],
     queryFn: () => apiGet<CompanyScheme[]>(`/schemes?company_id=${companyId}&skip=0&limit=500`, opts),
-    enabled: !!companyId && (activeTab === 'contracts' || activeTab === 'details') && !!opts.tenantId && !!opts.token,
+    enabled:
+      !!companyId &&
+      (activeTab === 'contracts' || activeTab === 'details' || activeTab === 'schemes') &&
+      !!opts.tenantId &&
+      !!opts.token,
   })
 
   const { data: summaryRows = [], isLoading: summaryLoading } = useQuery({
@@ -245,7 +251,7 @@ function CompanyDetailPage() {
 
   return (
     <div className="flex flex-col gap-0 min-h-0">
-      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--border)] bg-[var(--muted)]/40 px-6 py-4">
+      <header className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--border)] bg-[var(--muted)]/40 px-0 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <Button variant="ghost" size="icon" className="shrink-0" asChild>
             <Link to="/companies" className="text-[var(--foreground-muted)] hover:text-[var(--foreground)]">
@@ -258,7 +264,7 @@ function CompanyDetailPage() {
           <div className="min-w-0">
             <h1 className="truncate text-lg font-semibold text-[var(--foreground)]">{pageTitle}</h1>
             <p className="text-sm text-[var(--foreground-muted)]">
-              View details, branches, members, contracts and analytics.
+              View details, branches, members, contracts, schemes and analytics.
             </p>
           </div>
         </div>
@@ -272,7 +278,7 @@ function CompanyDetailPage() {
         </div>
       </header>
 
-      <div className="flex shrink-0 border-b border-[var(--border)] bg-[var(--muted)]/20">
+      <div className="flex shrink-0 border-b border-[var(--border)] bg-[var(--muted)]/20 px-0">
         {COMPANY_DETAIL_TABS.map(({ id, label, icon: Icon }) => (
           <Link
             key={id}
@@ -291,7 +297,7 @@ function CompanyDetailPage() {
         ))}
       </div>
 
-      <Breadcrumb className="shrink-0 px-6 py-2">
+      <Breadcrumb className="shrink-0 px-0 py-2">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -315,7 +321,7 @@ function CompanyDetailPage() {
         </BreadcrumbList>
       </Breadcrumb>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+      <div className="min-h-0 flex-1 overflow-y-auto px-0 py-5">
         {activeTab === 'details' && (
           <>
             {companyLoading || !company ? (
@@ -359,29 +365,6 @@ function CompanyDetailPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="mt-3 flex shrink-0 gap-1 border-b border-[var(--border-subtle)]">
-                    <button type="button" className="border-b-2 border-[var(--primary)] px-3 py-2 text-sm font-medium text-[var(--foreground)]">
-                      Claims
-                    </button>
-                    <button type="button" className="border-b-2 border-transparent px-3 py-2 text-sm font-medium text-[var(--foreground-muted)] hover:text-[var(--foreground)]">
-                      Activity
-                    </button>
-                  </div>
-                  <ul className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto">
-                    {[
-                      { time: '11:11 am', ref: 'CLM-001', status: 'Approved' },
-                      { time: '10:45 am', ref: 'CLM-002', status: 'Pending' },
-                      { time: '09:30 am', ref: 'CLM-003', status: 'Approved' },
-                      { time: 'Yesterday', ref: 'CLM-004', status: 'Rejected' },
-                      { time: 'Yesterday', ref: 'CLM-005', status: 'Pending' },
-                    ].map((row) => (
-                      <li key={row.ref} className="flex items-center gap-2 rounded-lg border border-[var(--border-subtle)] px-3 py-2 text-sm hover:bg-[var(--muted)]/20">
-                        <span className="text-[var(--foreground-muted)]">{row.time}</span>
-                        <span className="min-w-0 flex-1 truncate font-medium text-[var(--foreground)]">{row.ref}</span>
-                        <span className="shrink-0 rounded-md bg-[var(--muted)]/50 px-2 py-0.5 text-xs text-[var(--foreground-muted)]">{row.status}</span>
-                      </li>
-                    ))}
-                  </ul>
                 </div>
 
                 {/* Row 1, Col 2: Banner + Performance (two cards stacked) */}
@@ -666,6 +649,37 @@ function CompanyDetailPage() {
           </>
         )}
 
+        {activeTab === 'branches' && (
+          <>
+            {branchesLoading ? (
+              <TableSectionSkeleton cols={3} rows={3} />
+            ) : branches.length === 0 ? (
+              <p className="text-sm text-[var(--foreground-muted)]">No branches for this company.</p>
+            ) : (
+              <div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--border)]">
+                      <th className="py-2 pr-4 text-left font-medium text-[var(--foreground-muted)]">Name</th>
+                      <th className="py-2 pr-4 text-left font-medium text-[var(--foreground-muted)]">Address</th>
+                      <th className="py-2 text-left font-medium text-[var(--foreground-muted)]">Phone</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {branches.map((b) => (
+                      <tr key={b.id} className="border-b border-[var(--border-subtle)]">
+                        <td className="py-2.5 pr-4 font-medium text-[var(--foreground)]">{b.name}</td>
+                        <td className="py-2.5 pr-4 text-[var(--foreground-muted)]">{b.address ?? '—'}</td>
+                        <td className="py-2.5 text-[var(--foreground-muted)]">{b.phone ?? '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+
         {activeTab === 'members' && (
           <>
             {membersLoading ? (
@@ -795,6 +809,35 @@ function CompanyDetailPage() {
                       <th className="py-2 text-left font-medium text-[var(--foreground-muted)]">
                         Status
                       </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {schemes.map((s) => (
+                      <tr key={s.id} className="border-b border-[var(--border-subtle)]">
+                        <td className="py-2.5 pr-4 font-medium text-[var(--foreground)]">{s.name}</td>
+                        <td className="py-2.5 text-[var(--foreground-muted)]">{s.status}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'schemes' && (
+          <>
+            {schemesLoading ? (
+              <TableSectionSkeleton cols={2} rows={3} />
+            ) : schemes.length === 0 ? (
+              <p className="text-sm text-[var(--foreground-muted)]">No schemes for this company.</p>
+            ) : (
+              <div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-[var(--border)]">
+                      <th className="py-2 pr-4 text-left font-medium text-[var(--foreground-muted)]">Name</th>
+                      <th className="py-2 text-left font-medium text-[var(--foreground-muted)]">Status</th>
                     </tr>
                   </thead>
                   <tbody>

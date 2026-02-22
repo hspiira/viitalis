@@ -30,6 +30,21 @@ async def create_doctor(
         hospital_id=body.hospital_id,
         name=body.name,
         specialization=body.specialization,
+        reference=body.reference,
+        date_of_birth=body.date_of_birth,
+        address=body.address,
+        phone_home=body.phone_home,
+        phone_mobile=body.phone_mobile,
+        licence_no=body.licence_no,
+        department=body.department,
+        doctor_category=body.doctor_category,
+        email=body.email,
+        website=body.website,
+        gender=body.gender,
+        remarks=body.remarks,
+        service_charges=body.service_charges,
+        channeling_charges=body.channeling_charges,
+        referring_charges=body.referring_charges,
     )
     created = await svc.create(data)
     return _to_response(created)
@@ -63,6 +78,24 @@ async def update_doctor(
     body: DoctorUpdateRequest,
     svc: Annotated[DoctorService, Depends(get_doctor_service)],
 ):
-    data = DoctorUpdate(name=body.name, specialization=body.specialization)
+    data = DoctorUpdate(
+        name=body.name,
+        specialization=body.specialization,
+        reference=body.reference,
+        date_of_birth=body.date_of_birth,
+        address=body.address,
+        phone_home=body.phone_home,
+        phone_mobile=body.phone_mobile,
+        licence_no=body.licence_no,
+        department=body.department,
+        doctor_category=body.doctor_category,
+        email=body.email,
+        website=body.website,
+        gender=body.gender,
+        remarks=body.remarks,
+        service_charges=body.service_charges,
+        channeling_charges=body.channeling_charges,
+        referring_charges=body.referring_charges,
+    )
     updated = await svc.update(doctor_id, data)
     return _to_response(updated)

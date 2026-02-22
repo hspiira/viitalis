@@ -11,6 +11,7 @@ class SchemeResult:
     id: str
     tenant_id: str
     company_id: str
+    code: str | None
     name: str
     description: str | None
     limit_value: float | None
@@ -26,6 +27,7 @@ class SchemeCreate:
 
     company_id: str
     name: str
+    code: str | None = None
     description: str | None = None
     limit_value: float | None = None
     begin_date: date | None = None
@@ -39,6 +41,7 @@ class SchemeUpdate:
     """Data for partial update of a scheme."""
 
     name: str | None = None
+    code: str | None = None
     description: str | None = None
     limit_value: float | None = None
     begin_date: date | None = None
@@ -55,11 +58,19 @@ class SchemePlanResult:
     tenant_id: str
     scheme_id: str
     plan_id: str
+    limit_amount: float | None
+    begin_date: date | None
+    end_date: date | None
+    status: str
 
 
 @dataclass
 class SchemePlanCreate:
-    """Data required to link a plan to a scheme."""
+    """Data required to link a plan to a scheme (optionally with limit and dates)."""
 
     scheme_id: str
     plan_id: str
+    limit_amount: float | None = None
+    begin_date: date | None = None
+    end_date: date | None = None
+    status: str = "active"
