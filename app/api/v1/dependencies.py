@@ -112,6 +112,7 @@ from app.infrastructure.persistence.repositories.company_type_repo import (
 from app.infrastructure.persistence.repositories.catalog_repo import (
     DiagnosisRepository,
     LabRepository,
+    LabTypeRepository,
     MedicineRepository,
     ServiceMaintenanceRepository,
 )
@@ -407,11 +408,12 @@ async def get_catalog_upload_service(
     db: GetDbTransactional,
     tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CatalogUploadService:
-    """Catalog upload for medicines, services, and labs. Requires X-Tenant-ID."""
+    """Catalog upload for medicines, services, labs, and lab types. Requires X-Tenant-ID."""
     return CatalogUploadService(
         MedicineRepository(db, tenant_id),
         ServiceMaintenanceRepository(db, tenant_id),
         LabRepository(db, tenant_id),
+        LabTypeRepository(db, tenant_id),
     )
 
 
@@ -427,6 +429,13 @@ async def get_lab_service(
     tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
 ) -> CatalogService:
     return CatalogService(LabRepository(db, tenant_id))
+
+
+async def get_lab_type_service(
+    db: GetDbTransactional,
+    tenant_id: Annotated[str, Depends(get_authenticated_tenant_id)],
+) -> CatalogService:
+    return CatalogService(LabTypeRepository(db, tenant_id))
 
 
 async def get_diagnosis_service(

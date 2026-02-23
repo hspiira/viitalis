@@ -15,7 +15,7 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import { TableSkeleton } from '#/components/list-page'
+import { TablePagination, TableSkeleton } from '#/components/list-page'
 import { Skeleton } from '#/components/ui/skeleton'
 import {
   Building2,
@@ -304,33 +304,13 @@ function HospitalsPage() {
                 </tbody>
               </table>
             </div>
-            {!isSearching && (hasPrevPage || hasNextPage) && (
-              <div className="flex items-center justify-between gap-2 mt-2 text-sm text-[var(--foreground-muted)]">
-                <span>
-                  Page {page + 1}
-                  {hasNextPage || items.length === PAGE_SIZE ? ` · ${PAGE_SIZE} per page` : ''}
-                </span>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 px-2"
-                    disabled={!hasPrevPage || isFetching}
-                    onClick={loadPrevPage}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-7 px-2"
-                    disabled={!hasNextPage || isFetching}
-                    onClick={loadNextPage}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
+            {!isSearching && (
+              <TablePagination
+                skip={skip}
+                limit={PAGE_SIZE}
+                currentPageSize={items.length}
+                onSkipChange={(s) => setPage(Math.floor(s / PAGE_SIZE))}
+              />
             )}
           </>
         )}

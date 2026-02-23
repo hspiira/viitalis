@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 """
-Bulk import catalog items (labs, meds, services) from legacy CSVs via API.
+Bulk import catalog items (lab types, labs, meds, services) from legacy CSVs via API.
 
 Uses id = CUID; only code is stored for cross-reference. Uses upload endpoints
-(POST /medicines/upload, /services/upload, /labs/upload) with batches of 500.
+(POST /lab-types/upload, /labs/upload, /medicines/upload, /services/upload) with batches of 500.
 
-Reads: docs/data/Labs.csv, Meds.csv, Services.csv
-( Lab_types.csv has no matching entity in the app and is skipped. )
+Reads: docs/data/Lab_types.csv, Labs.csv, Meds.csv, Services.csv
 
 Usage (with login):
   export VITALIS_API_URL="http://localhost:8000/api/v1"
-  python scripts/import_catalogs_from_csv.py [labs.csv] [meds.csv] [services.csv]
+  python scripts/import_catalogs_from_csv.py [lab_types.csv] [labs.csv] [meds.csv] [services.csv]
 
 Or with token: export VITALIS_TOKEN="<JWT>" VITALIS_TENANT_ID="<tenant id>"
 
-If paths omitted, defaults to docs/data/Labs.csv, Meds.csv, Services.csv.
+If paths omitted, defaults to docs/data/Lab_types.csv, Labs.csv, Meds.csv, Services.csv.
 Pass "-" to skip a file (e.g. ... - Meds.csv Services.csv).
 """
 
@@ -183,13 +182,14 @@ def main() -> None:
         p = Path(sys.argv[n]) if len(sys.argv) > n else default
         return p if p.is_file() else None
 
-    labs_path = path_arg(1, data_dir / "Labs.csv")
-    meds_path = path_arg(2, data_dir / "Meds.csv")
-    services_path = path_arg(3, data_dir / "Services.csv")
+    lab_types_path = path_arg(1, data_dir / "Lab_types.csv")
+    labs_path = path_arg(2, data_dir / "Labs.csv")
+    meds_path = path_arg(3, data_dir / "Meds.csv")
+    services_path = path_arg(4, data_dir / "Services.csv")
 
-    if not (labs_path or meds_path or services_path):
+    if not (lab_types_path or labs_path or meds_path or services_path):
         raise SystemExit(
-            "At least one CSV required. Looked for Labs.csv, Meds.csv, Services.csv in docs/data."
+            "At least one CSV required. Looked for Lab_types.csv, Labs.csv, Meds.csv, Services.csv in docs/data."
         )
 
     base_url = _env_required("VITALIS_API_URL")
@@ -205,15 +205,25 @@ def main() -> None:
         print(f"Got tenant_id: {tenant_id}")
 
     # Column names per CSV: code and name (first match wins)
+    # Lab_types: LABARATORYTESTTYPEID, LABARATORYTESTTYPENAME
     # Labs: LABTESTCODE, LABTESTNAME; Meds: MEDICINEID, MEDICINENAME; Services: SERVICEID, SERVICENAME
     code_keys = (
-        "LABTESTCODE", "MEDICINEID", "SERVICEID",
+        "LABARATORYTESTTYPEID", "LABTESTCODE", "MEDICINEID", "SERVICEID",
         "CODE", "ID", "LAB_CODE", "MEDICINE_CODE", "SERVICE_CODE",
     )
     name_keys = (
-        "LABTESTNAME", "MEDICINENAME", "SERVICENAME",
+        "LABARATORYTESTTYPENAME", "LABTESTNAME", "MEDICINENAME", "SERVICENAME",
         "NAME", "LAB_NAME", "MEDICINE_NAME", "SERVICE_NAME",
     )
+
+    if lab_types_path:
+        rows = _read_csv(lab_types_path)
+        items = _rows_to_items(rows, code_keys, name_keys)
+        if items:
+            c, f = _upload_catalog(base_url, token, tenant_id, "/lab-types/upload", items)
+            print(f"Lab types: created={c}, failed={f}")
+        else:
+            print("Lab types: no rows with name (skipped)")
 
     if labs_path:
         rows = _read_csv(labs_path)

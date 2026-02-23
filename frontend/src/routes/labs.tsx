@@ -21,7 +21,7 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import { ListPagePagination, TableSkeleton } from '#/components/list-page'
+import { TablePagination, TableSkeleton } from '#/components/list-page'
 import { FlaskConical, Search, Plus, Upload } from 'lucide-react'
 
 export const Route = createFileRoute('/labs')({
@@ -60,10 +60,8 @@ function LabsPage() {
   })
 
   const filteredItems = searchQuery.trim()
-    ? items.filter(
-        (r) =>
-          r.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-          (r.code || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
+    ? items.filter((r) =>
+        r.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
       )
     : items
 
@@ -129,7 +127,7 @@ function LabsPage() {
       )}
 
       {isLoading ? (
-        <TableSkeleton columns={2} rows={5} />
+        <TableSkeleton columns={1} rows={5} />
       ) : filteredItems.length === 0 ? (
         <Empty className="border border-[var(--border)] rounded-lg py-8 shadow-none mt-2">
           <EmptyHeader>
@@ -162,21 +160,21 @@ function LabsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                  <th className="text-left py-2.5 px-3 font-medium">Name</th>
-                  <th className="text-left py-2.5 px-3 font-medium">Code</th>
+                  <th className="text-left py-1.5 px-3 font-medium text-[var(--foreground-muted)]">
+                    Name
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredItems.map((r) => (
+                {filteredItems.map((r, index) => (
                   <tr
                     key={r.id}
-                    className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--muted)]/20"
+                    className={`border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--muted)]/20 ${
+                      index % 2 === 0 ? 'bg-[var(--muted)]/10' : ''
+                    }`}
                   >
-                    <td className="py-2.5 px-3 font-medium text-[var(--foreground)]">
+                    <td className="py-1.5 px-3 font-medium text-[var(--foreground)] min-w-0 max-w-[600px] truncate" title={r.name}>
                       {r.name}
-                    </td>
-                    <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
-                      {r.code ?? '—'}
                     </td>
                   </tr>
                 ))}
@@ -184,12 +182,11 @@ function LabsPage() {
             </table>
           </div>
 
-          <ListPagePagination
+          <TablePagination
             skip={skip}
             limit={LIMIT}
             currentPageSize={items.length}
-            onPrevious={() => setSkip((s) => Math.max(0, s - LIMIT))}
-            onNext={() => items.length === LIMIT && setSkip((s) => s + LIMIT)}
+            onSkipChange={setSkip}
           />
         </>
       )}

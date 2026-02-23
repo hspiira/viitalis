@@ -22,11 +22,11 @@ import {
   EmptyMedia,
 } from '#/components/ui/empty'
 import { TablePagination, TableSkeleton } from '#/components/list-page'
-import { Pill, Search, Plus, Upload } from 'lucide-react'
+import { Layers, Search, Plus, Upload } from 'lucide-react'
 
-export const Route = createFileRoute('/medicines')({
-  beforeLoad: () => requireAuthBeforeLoad('/medicines'),
-  component: MedicinesPage,
+export const Route = createFileRoute('/lab-types')({
+  beforeLoad: () => requireAuthBeforeLoad('/lab-types'),
+  component: LabTypesPage,
 })
 
 interface CatalogItem {
@@ -38,7 +38,7 @@ interface CatalogItem {
 
 const LIMIT = 50
 
-function MedicinesPage() {
+function LabTypesPage() {
   const opts = useApi()
   const queryClient = useQueryClient()
   const [searchQuery, setSearchQuery] = useState('')
@@ -54,8 +54,8 @@ function MedicinesPage() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ['medicines', skip, LIMIT, opts.tenantId],
-    queryFn: () => apiGet<CatalogItem[]>(`/medicines?${params}`, opts),
+    queryKey: ['lab-types', skip, LIMIT, opts.tenantId],
+    queryFn: () => apiGet<CatalogItem[]>(`/lab-types?${params}`, opts),
     enabled: !!opts.tenantId && !!opts.token,
   })
 
@@ -69,10 +69,10 @@ function MedicinesPage() {
     return (
       <div className="w-full">
         <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-2">
-          Medicines
+          Lab types
         </h1>
         <p className="text-[var(--foreground-muted)]">
-          Sign in and select a tenant to manage the medicines catalog.
+          Sign in and select a tenant to manage the lab types catalog.
         </p>
       </div>
     )
@@ -85,14 +85,14 @@ function MedicinesPage() {
           <Search className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
           <input
             type="search"
-            placeholder="Search medicines"
+            placeholder="Search lab types"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value)
               setSkip(0)
             }}
             className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none"
-            aria-label="Search medicines"
+            aria-label="Search lab types"
           />
         </div>
         <div className="ml-auto flex shrink-0 items-center gap-2">
@@ -132,11 +132,11 @@ function MedicinesPage() {
         <Empty className="border border-[var(--border)] rounded-lg py-8 shadow-none mt-2">
           <EmptyHeader>
             <EmptyMedia variant="icon">
-              <Pill className="size-6" />
+              <Layers className="size-6" />
             </EmptyMedia>
-            <EmptyTitle>No medicines</EmptyTitle>
+            <EmptyTitle>No lab types</EmptyTitle>
             <EmptyDescription>
-              No medicines match your search. Add one or bulk upload.
+              No lab types match your search. Add one or bulk upload.
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
@@ -191,28 +191,28 @@ function MedicinesPage() {
         </>
       )}
 
-      <CreateMedicineDialog
+      <CreateLabTypeDialog
         open={showCreate}
         onOpenChange={(open) => !open && setShowCreate(false)}
         onSuccess={() => {
           setShowCreate(false)
-          queryClient.invalidateQueries({ queryKey: ['medicines'] })
+          queryClient.invalidateQueries({ queryKey: ['lab-types'] })
         }}
       />
 
-      <BulkUploadMedicinesDialog
+      <BulkUploadLabTypesDialog
         open={showUpload}
         onOpenChange={(open) => !open && setShowUpload(false)}
         onSuccess={() => {
           setShowUpload(false)
-          queryClient.invalidateQueries({ queryKey: ['medicines'] })
+          queryClient.invalidateQueries({ queryKey: ['lab-types'] })
         }}
       />
     </div>
   )
 }
 
-function CreateMedicineDialog({
+function CreateLabTypeDialog({
   open,
   onOpenChange,
   onSuccess,
@@ -223,14 +223,16 @@ function CreateMedicineDialog({
 }) {
   const opts = useApi()
   const [name, setName] = useState('')
+  const [code, setCode] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const createMutation = useMutation({
     mutationFn: (body: { name: string; code?: string }) =>
-      apiPost<CatalogItem>('/medicines', body, opts),
+      apiPost<CatalogItem>('/lab-types', body, opts),
     onSuccess: () => {
       onSuccess()
       setName('')
+      setCode('')
       setSubmitError(null)
     },
     onError: (err) => setSubmitError(getApiErrorDetail(err)),
@@ -239,6 +241,7 @@ function CreateMedicineDialog({
   const handleClose = (openState: boolean) => {
     if (!openState) {
       setName('')
+      setCode('')
       setSubmitError(null)
     }
     onOpenChange(openState)
@@ -248,27 +251,39 @@ function CreateMedicineDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>New medicine</DialogTitle>
-          <DialogDescription>Add a medicine to the catalog.</DialogDescription>
+          <DialogTitle>New lab type</DialogTitle>
+          <DialogDescription>Add a lab type to the catalog (e.g. Biochemistry, Haematology).</DialogDescription>
         </DialogHeader>
         <form
           onSubmit={(e) => {
             e.preventDefault()
             if (!name.trim()) return
-            createMutation.mutate({ name: name.trim() })
+            createMutation.mutate({ name: name.trim(), code: code.trim() || undefined })
           }}
           className="space-y-4"
         >
           <div>
-            <label htmlFor="med-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
+            <label htmlFor="lt-name" className="block text-sm text-[var(--foreground-muted)] mb-1">
               Name *
             </label>
             <input
-              id="med-name"
+              id="lt-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
+              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+            />
+          </div>
+          <div>
+            <label htmlFor="lt-code" className="block text-sm text-[var(--foreground-muted)] mb-1">
+              Code
+            </label>
+            <input
+              id="lt-code"
+              type="text"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
               className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
             />
           </div>
@@ -287,7 +302,7 @@ function CreateMedicineDialog({
   )
 }
 
-function BulkUploadMedicinesDialog({
+function BulkUploadLabTypesDialog({
   open,
   onOpenChange,
   onSuccess,
@@ -307,11 +322,11 @@ function BulkUploadMedicinesDialog({
         created: number
         failed: number
         errors: Array<{ row: number; message: string }>
-      }>('/medicines/upload', body, opts),
+      }>('/lab-types/upload', body, opts),
     onSuccess: (data) => {
       setUploadJson('')
       setUploadError(null)
-      queryClient.invalidateQueries({ queryKey: ['medicines'] })
+      queryClient.invalidateQueries({ queryKey: ['lab-types'] })
       if (data.created > 0 || data.failed > 0) onSuccess()
     },
     onError: (err) => setUploadError(getApiErrorDetail(err)),
@@ -347,9 +362,9 @@ function BulkUploadMedicinesDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Bulk upload medicines</DialogTitle>
+          <DialogTitle>Bulk upload lab types</DialogTitle>
           <DialogDescription>
-            JSON array of objects with name (and optional code for import). Max 500 items.
+            JSON array of objects with name and optional code. Max 500 items.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -357,7 +372,7 @@ function BulkUploadMedicinesDialog({
             value={uploadJson}
             onChange={(e) => setUploadJson(e.target.value)}
             rows={8}
-            placeholder='[{"name":"Paracetamol 500mg"}]'
+            placeholder='[{"name":"Biochemistry","code":"1"},{"name":"Haematology","code":"2"}]'
             className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm font-mono text-[var(--foreground)] rounded-md resize-y"
           />
           {(uploadError || uploadMutation.isError) && (
@@ -374,7 +389,10 @@ function BulkUploadMedicinesDialog({
             <Button type="button" variant="secondary" onClick={() => handleClose(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={uploadMutation.isPending}>
+            <Button
+              type="submit"
+              disabled={uploadMutation.isPending}
+            >
               {uploadMutation.isPending ? 'Uploading…' : 'Upload'}
             </Button>
           </DialogFooter>

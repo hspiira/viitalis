@@ -102,6 +102,7 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
       { to: '/medicines', label: 'Medicines', icon: Pill },
       { to: '/services', label: 'Services', icon: Stethoscope },
       { to: '/labs', label: 'Labs', icon: FlaskConical },
+      { to: '/lab-types', label: 'Lab types', icon: Layers },
       { to: '/diagnoses', label: 'Diagnoses', icon: ClipboardList },
     ],
   },

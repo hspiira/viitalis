@@ -15,7 +15,7 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import { ListPagePagination, TableSkeleton } from '#/components/list-page'
+import { TablePagination, TableSkeleton } from '#/components/list-page'
 import {
   Building2,
   Search,
@@ -482,12 +482,11 @@ function CompaniesListPage() {
             </div>
           )}
 
-          <ListPagePagination
+          <TablePagination
             skip={skip}
             limit={LIMIT}
             currentPageSize={items.length}
-            onPrevious={() => setSkip((s) => Math.max(0, s - LIMIT))}
-            onNext={() => items.length === LIMIT && setSkip((s) => s + LIMIT)}
+            onSkipChange={setSkip}
           />
         </>
       )}

@@ -22,6 +22,7 @@ import { Route as MemberDependantsRouteImport } from './routes/member-dependants
 import { Route as MedicinesRouteImport } from './routes/medicines'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LabsRouteImport } from './routes/labs'
+import { Route as LabTypesRouteImport } from './routes/lab-types'
 import { Route as HospitalsRouteImport } from './routes/hospitals'
 import { Route as HospitalBranchesRouteImport } from './routes/hospital-branches'
 import { Route as HealthRouteImport } from './routes/health'
@@ -108,6 +109,11 @@ const LoginRoute = LoginRouteImport.update({
 const LabsRoute = LabsRouteImport.update({
   id: '/labs',
   path: '/labs',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LabTypesRoute = LabTypesRouteImport.update({
+  id: '/lab-types',
+  path: '/lab-types',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HospitalsRoute = HospitalsRouteImport.update({
@@ -239,6 +245,7 @@ export interface FileRoutesByFullPath {
   '/health': typeof HealthRoute
   '/hospital-branches': typeof HospitalBranchesRoute
   '/hospitals': typeof HospitalsRoute
+  '/lab-types': typeof LabTypesRoute
   '/labs': typeof LabsRoute
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
@@ -275,6 +282,7 @@ export interface FileRoutesByTo {
   '/health': typeof HealthRoute
   '/hospital-branches': typeof HospitalBranchesRoute
   '/hospitals': typeof HospitalsRoute
+  '/lab-types': typeof LabTypesRoute
   '/labs': typeof LabsRoute
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
@@ -312,6 +320,7 @@ export interface FileRoutesById {
   '/health': typeof HealthRoute
   '/hospital-branches': typeof HospitalBranchesRoute
   '/hospitals': typeof HospitalsRoute
+  '/lab-types': typeof LabTypesRoute
   '/labs': typeof LabsRoute
   '/login': typeof LoginRoute
   '/medicines': typeof MedicinesRoute
@@ -351,6 +360,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/hospital-branches'
     | '/hospitals'
+    | '/lab-types'
     | '/labs'
     | '/login'
     | '/medicines'
@@ -387,6 +397,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/hospital-branches'
     | '/hospitals'
+    | '/lab-types'
     | '/labs'
     | '/login'
     | '/medicines'
@@ -423,6 +434,7 @@ export interface FileRouteTypes {
     | '/health'
     | '/hospital-branches'
     | '/hospitals'
+    | '/lab-types'
     | '/labs'
     | '/login'
     | '/medicines'
@@ -461,6 +473,7 @@ export interface RootRouteChildren {
   HealthRoute: typeof HealthRoute
   HospitalBranchesRoute: typeof HospitalBranchesRoute
   HospitalsRoute: typeof HospitalsRoute
+  LabTypesRoute: typeof LabTypesRoute
   LabsRoute: typeof LabsRoute
   LoginRoute: typeof LoginRoute
   MedicinesRoute: typeof MedicinesRoute
@@ -568,6 +581,13 @@ declare module '@tanstack/react-router' {
       path: '/labs'
       fullPath: '/labs'
       preLoaderRoute: typeof LabsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lab-types': {
+      id: '/lab-types'
+      path: '/lab-types'
+      fullPath: '/lab-types'
+      preLoaderRoute: typeof LabTypesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/hospitals': {
@@ -772,6 +792,7 @@ const rootRouteChildren: RootRouteChildren = {
   HealthRoute: HealthRoute,
   HospitalBranchesRoute: HospitalBranchesRoute,
   HospitalsRoute: HospitalsRoute,
+  LabTypesRoute: LabTypesRoute,
   LabsRoute: LabsRoute,
   LoginRoute: LoginRoute,
   MedicinesRoute: MedicinesRoute,

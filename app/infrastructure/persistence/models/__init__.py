@@ -45,6 +45,7 @@ from app.infrastructure.persistence.models.hospital_lab_test import HospitalLabT
 from app.infrastructure.persistence.models.hospital_medicine import HospitalMedicine
 from app.infrastructure.persistence.models.hospital_service import HospitalServicePrice
 from app.infrastructure.persistence.models.lab import Lab
+from app.infrastructure.persistence.models.lab_type import LabType
 from app.infrastructure.persistence.models.medicine import Medicine
 from app.infrastructure.persistence.models.member import Member
 from app.infrastructure.persistence.models.member_dependant import MemberDependant
@@ -92,6 +93,7 @@ __all__ = [
     "HospitalMedicine",
     "HospitalServicePrice",
     "Lab",
+    "LabType",
     "Medicine",
     "Member",
     "MemberDependant",

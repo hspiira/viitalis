@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { apiGet, apiPost, getApiErrorDetail } from '#/lib/api-client'
 import { getStoredToken, getTenantId } from '#/lib/auth-store'
+import { TablePagination } from '#/components/list-page'
 
 export const Route = createFileRoute('/claim-payments')({
   beforeLoad: () => requireAuthBeforeLoad('/claim-payments'),
@@ -183,25 +184,12 @@ function ClaimPaymentsPage() {
           </table>
         </div>
       )}
-      {items.length >= limit && (
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={() => setSkip((s) => Math.max(0, s - limit))}
-            disabled={skip === 0}
-            className="text-sm text-[var(--foreground-muted)] disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <button
-            type="button"
-            onClick={() => setSkip((s) => s + limit)}
-            className="text-sm text-[var(--foreground-muted)]"
-          >
-            Next
-          </button>
-        </div>
-      )}
+      <TablePagination
+        skip={skip}
+        limit={limit}
+        currentPageSize={items.length}
+        onSkipChange={setSkip}
+      />
     </div>
   )
 }

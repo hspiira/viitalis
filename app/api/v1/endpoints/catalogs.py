@@ -8,6 +8,7 @@ from app.api.v1.dependencies import (
     get_catalog_upload_service,
     get_diagnosis_service,
     get_lab_service,
+    get_lab_type_service,
     get_medicine_service,
     get_services_service,
 )
@@ -114,6 +115,24 @@ async def upload_labs(
     """Bulk upload labs (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
     items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
     created, failed, errors = await upload_svc.upload_labs(items)
+    return CatalogUploadResponse(
+        created=created,
+        failed=failed,
+        errors=[CatalogUploadErrorItem(row=r, message=m) for r, m in errors],
+    )
+
+
+lab_types_router = _catalog_router(get_lab_type_service)
+
+
+@lab_types_router.post("/upload", response_model=CatalogUploadResponse)
+async def upload_lab_types(
+    body: CatalogUploadRequest,
+    upload_svc: Annotated[CatalogUploadService, Depends(get_catalog_upload_service)],
+):
+    """Bulk upload lab types (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
+    items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
+    created, failed, errors = await upload_svc.upload_lab_types(items)
     return CatalogUploadResponse(
         created=created,
         failed=failed,

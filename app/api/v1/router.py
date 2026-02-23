@@ -118,6 +118,9 @@ api_router.include_router(
 )
 api_router.include_router(catalogs.labs_router, prefix="/labs", tags=["labs"])
 api_router.include_router(
+    catalogs.lab_types_router, prefix="/lab-types", tags=["lab-types"]
+)
+api_router.include_router(
     catalogs.diagnoses_router, prefix="/diagnoses", tags=["diagnoses"]
 )
 api_router.include_router(

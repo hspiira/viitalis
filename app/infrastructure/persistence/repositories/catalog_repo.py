@@ -104,10 +104,12 @@ def make_catalog_repo(model_class: type[_CatalogModel]):
 # Concrete catalog repositories (same interface, different model)
 from app.infrastructure.persistence.models.diagnosis import Diagnosis
 from app.infrastructure.persistence.models.lab import Lab
+from app.infrastructure.persistence.models.lab_type import LabType
 from app.infrastructure.persistence.models.medicine import Medicine
 from app.infrastructure.persistence.models.service_maintenance import ServiceMaintenance
 
 MedicineRepository = make_catalog_repo(Medicine)
 ServiceMaintenanceRepository = make_catalog_repo(ServiceMaintenance)
 LabRepository = make_catalog_repo(Lab)
+LabTypeRepository = make_catalog_repo(LabType)
 DiagnosisRepository = make_catalog_repo(Diagnosis)

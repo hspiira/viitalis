@@ -7,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from app.application.dtos.catalog import CatalogItemCreate
 from app.infrastructure.persistence.repositories.catalog_repo import (
     LabRepository,
+    LabTypeRepository,
     MedicineRepository,
     ServiceMaintenanceRepository,
 )
@@ -18,7 +19,10 @@ GENERIC_ROW_ERROR = "Row failed validation or duplicate data"
 
 
 async def _upload_catalog(
-    repo: MedicineRepository | ServiceMaintenanceRepository | LabRepository,
+    repo: MedicineRepository
+    | ServiceMaintenanceRepository
+    | LabRepository
+    | LabTypeRepository,
     items: list[CatalogItemCreate],
 ) -> tuple[int, int, list[tuple[int, str]]]:
     """DRY: create items in batch, skip duplicate code. Returns (created, failed, errors)."""
@@ -53,17 +57,19 @@ async def _upload_catalog(
 
 
 class CatalogUploadService:
-    """Bulk upload medicines, services, and labs. Conflict policy: skip duplicate code."""
+    """Bulk upload medicines, services, labs, and lab types. Conflict policy: skip duplicate code."""
 
     def __init__(
         self,
         medicine_repo: MedicineRepository,
         service_repo: ServiceMaintenanceRepository,
         lab_repo: LabRepository,
+        lab_type_repo: LabTypeRepository,
     ) -> None:
         self.medicine_repo = medicine_repo
         self.service_repo = service_repo
         self.lab_repo = lab_repo
+        self.lab_type_repo = lab_type_repo
 
     async def upload_medicines(
         self,
@@ -85,3 +91,10 @@ class CatalogUploadService:
     ) -> tuple[int, int, list[tuple[int, str]]]:
         """Create labs in batch. Skips rows with duplicate code (same tenant)."""
         return await _upload_catalog(self.lab_repo, items)
+
+    async def upload_lab_types(
+        self,
+        items: list[CatalogItemCreate],
+    ) -> tuple[int, int, list[tuple[int, str]]]:
+        """Create lab types in batch. Skips rows with duplicate code (same tenant)."""
+        return await _upload_catalog(self.lab_type_repo, items)

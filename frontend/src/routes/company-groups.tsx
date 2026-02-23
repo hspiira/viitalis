@@ -21,7 +21,7 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import { DetailRow, ListPagePagination, TableSkeleton } from '#/components/list-page'
+import { DetailRow, TablePagination, TableSkeleton } from '#/components/list-page'
 import { Building2, Search, Plus } from 'lucide-react'
 
 export const Route = createFileRoute('/company-groups')({
@@ -189,12 +189,11 @@ function CompanyGroupsPage() {
             </table>
           </div>
 
-          <ListPagePagination
+          <TablePagination
             skip={skip}
             limit={LIMIT}
             currentPageSize={items.length}
-            onPrevious={() => setSkip((s) => Math.max(0, s - LIMIT))}
-            onNext={() => items.length === LIMIT && setSkip((s) => s + LIMIT)}
+            onSkipChange={setSkip}
           />
         </>
       )}
