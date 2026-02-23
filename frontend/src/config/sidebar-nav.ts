@@ -65,14 +65,18 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
     ],
   },
   {
+    id: 'schemes',
+    label: 'Schemes',
+    icon: Shield,
+    items: [{ to: '/schemes', label: 'Schemes', icon: Shield }],
+  },
+  {
     id: 'membership',
     label: 'Membership',
     icon: Users,
     items: [
       { to: '/members', label: 'Members', icon: Users },
       { to: '/member-dependants', label: 'Dependants (by member)', icon: UserCircle2 },
-      { to: '/schemes', label: 'Schemes', icon: Shield },
-      { to: '/plans', label: 'Plans', icon: FileStack },
     ],
   },
   {
@@ -128,6 +132,7 @@ export const SIDEBAR_CATEGORIES: NavCategory[] = [
     icon: Database,
     items: [
       { to: '/reference-data', label: 'Reference data', icon: Database },
+      { to: '/plans', label: 'Plans', icon: FileStack },
       { to: '/card-replacements', label: 'Card replacements', icon: CreditCard },
     ],
   },

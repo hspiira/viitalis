@@ -168,6 +168,34 @@ class SchemeRepository:
             status=sp.status,
         )
 
+    async def list_scheme_plans(
+        self, scheme_id: str, skip: int = 0, limit: int = 100
+    ) -> list[SchemePlanResult]:
+        """Return scheme_plans for a scheme."""
+        r = await self.db.execute(
+            select(SchemePlan)
+            .where(
+                SchemePlan.tenant_id == self.tenant_id,
+                SchemePlan.scheme_id == scheme_id,
+            )
+            .offset(skip)
+            .limit(limit)
+            .order_by(SchemePlan.plan_id)
+        )
+        return [
+            SchemePlanResult(
+                id=sp.id,
+                tenant_id=sp.tenant_id,
+                scheme_id=sp.scheme_id,
+                plan_id=sp.plan_id,
+                limit_amount=sp.limit_amount,
+                begin_date=sp.begin_date,
+                end_date=sp.end_date,
+                status=sp.status,
+            )
+            for sp in r.scalars().all()
+        ]
+
     async def list_scheme_benefits(
         self, scheme_id: str, skip: int = 0, limit: int = 100
     ) -> list[SchemeBenefitResult]:

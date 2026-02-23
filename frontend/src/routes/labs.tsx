@@ -34,6 +34,7 @@ interface CatalogItem {
   tenant_id: string
   name: string
   code: string | null
+  remarks: string | null
 }
 
 const LIMIT = 50
@@ -60,8 +61,11 @@ function LabsPage() {
   })
 
   const filteredItems = searchQuery.trim()
-    ? items.filter((r) =>
-        r.name.toLowerCase().includes(searchQuery.trim().toLowerCase())
+    ? items.filter(
+        (r) =>
+          r.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+          (r.code || '').toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+          (r.remarks || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
       )
     : items
 
@@ -127,7 +131,7 @@ function LabsPage() {
       )}
 
       {isLoading ? (
-        <TableSkeleton columns={1} rows={5} />
+        <TableSkeleton columns={3} rows={5} />
       ) : filteredItems.length === 0 ? (
         <Empty className="border border-[var(--border)] rounded-lg py-8 shadow-none mt-2">
           <EmptyHeader>
@@ -163,6 +167,12 @@ function LabsPage() {
                   <th className="text-left py-1.5 px-3 font-medium text-[var(--foreground-muted)]">
                     Name
                   </th>
+                  <th className="text-left py-1.5 px-3 font-medium text-[var(--foreground-muted)] w-32">
+                    Code
+                  </th>
+                  <th className="text-left py-1.5 px-3 font-medium text-[var(--foreground-muted)]">
+                    Remarks
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -173,8 +183,14 @@ function LabsPage() {
                       index % 2 === 0 ? 'bg-[var(--muted)]/10' : ''
                     }`}
                   >
-                    <td className="py-1.5 px-3 font-medium text-[var(--foreground)] min-w-0 max-w-[600px] truncate" title={r.name}>
+                    <td className="py-1.5 px-3 font-medium text-[var(--foreground)] min-w-0 max-w-[400px] truncate" title={r.name}>
                       {r.name}
+                    </td>
+                    <td className="py-1.5 px-3 text-[var(--foreground-muted)] truncate" title={r.code ?? undefined}>
+                      {r.code ?? '—'}
+                    </td>
+                    <td className="py-1.5 px-3 text-[var(--foreground-muted)] min-w-0 max-w-[280px] truncate" title={r.remarks ?? undefined}>
+                      {r.remarks ?? '—'}
                     </td>
                   </tr>
                 ))}
@@ -224,15 +240,17 @@ function CreateLabDialog({
   const opts = useApi()
   const [name, setName] = useState('')
   const [code, setCode] = useState('')
+  const [remarks, setRemarks] = useState('')
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const createMutation = useMutation({
-    mutationFn: (body: { name: string; code?: string }) =>
+    mutationFn: (body: { name: string; code?: string; remarks?: string }) =>
       apiPost<CatalogItem>('/labs', body, opts),
     onSuccess: () => {
       onSuccess()
       setName('')
       setCode('')
+      setRemarks('')
       setSubmitError(null)
     },
     onError: (err) => setSubmitError(getApiErrorDetail(err)),
@@ -242,6 +260,7 @@ function CreateLabDialog({
     if (!openState) {
       setName('')
       setCode('')
+      setRemarks('')
       setSubmitError(null)
     }
     onOpenChange(openState)
@@ -258,7 +277,7 @@ function CreateLabDialog({
           onSubmit={(e) => {
             e.preventDefault()
             if (!name.trim()) return
-            createMutation.mutate({ name: name.trim(), code: code.trim() || undefined })
+            createMutation.mutate({ name: name.trim(), code: code.trim() || undefined, remarks: remarks.trim() || undefined })
           }}
           className="space-y-4"
         >
@@ -284,6 +303,18 @@ function CreateLabDialog({
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
+              className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
+            />
+          </div>
+          <div>
+            <label htmlFor="lab-remarks" className="block text-sm text-[var(--foreground-muted)] mb-1">
+              Remarks
+            </label>
+            <input
+              id="lab-remarks"
+              type="text"
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
               className="w-full border border-[var(--input)] bg-[var(--secondary)] px-3 py-2 text-sm text-[var(--foreground)] rounded-md"
             />
           </div>
@@ -317,7 +348,7 @@ function BulkUploadLabsDialog({
   const [uploadError, setUploadError] = useState<string | null>(null)
 
   const uploadMutation = useMutation({
-    mutationFn: (body: { items: Array<{ name: string; code?: string }> }) =>
+    mutationFn: (body: { items: Array<{ name: string; code?: string; remarks?: string }> }) =>
       apiPost<{
         created: number
         failed: number
@@ -343,6 +374,7 @@ function BulkUploadLabsDialog({
         items: parsed.map((r) => ({
           name: String(r.name ?? '').trim(),
           code: r.code ? String(r.code).trim() : undefined,
+          remarks: r.remarks ? String(r.remarks).trim() : undefined,
         })),
       })
     } catch (err) {

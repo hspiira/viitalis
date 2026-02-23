@@ -145,6 +145,12 @@ class ISchemeRepository(Protocol):
         """Link a plan to a scheme (optionally with limit/dates). Returns the created scheme_plan."""
         ...
 
+    async def list_scheme_plans(
+        self, scheme_id: str, skip: int = 0, limit: int = 100
+    ) -> list[SchemePlanResult]:
+        """Return scheme_plans for a scheme."""
+        ...
+
     async def list_scheme_benefits(
         self, scheme_id: str, skip: int = 0, limit: int = 100
     ) -> list[SchemeBenefitResult]:

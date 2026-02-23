@@ -90,6 +90,15 @@ class SchemeService:
         )
         return await self.scheme_repo.add_scheme_plan(data)
 
+    async def list_scheme_plans(
+        self, scheme_id: str, skip: int = 0, limit: int = 100
+    ) -> list[SchemePlanResult]:
+        """List plans linked to a scheme."""
+        await self.get_by_id(scheme_id)
+        return await self.scheme_repo.list_scheme_plans(
+            scheme_id, skip=skip, limit=limit
+        )
+
     async def list_scheme_benefits(
         self, scheme_id: str, skip: int = 0, limit: int = 100
     ) -> list[SchemeBenefitResult]:

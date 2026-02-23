@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { apiGet, apiPost, apiPatch, getApiErrorDetail } from '#/lib/api-client'
 import { useApi } from '#/lib/use-api'
 import { buildIdToEntityMap } from '#/lib/utils'
@@ -15,12 +15,11 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import { TablePagination, TableSkeleton } from '#/components/list-page'
+import { TableSkeleton } from '#/components/list-page'
 import { Skeleton } from '#/components/ui/skeleton'
 import { Stethoscope, Search, Plus, Building2, SquareArrowOutUpRight, MoreVertical, SquarePen, User, LogOut } from 'lucide-react'
 
-const PAGE_SIZE = 10
-const SEARCH_LIMIT = 500
+const DOCTORS_LIMIT = 500
 
 export const Route = createFileRoute('/doctors')({
   beforeLoad: () => requireAuthBeforeLoad('/doctors'),
@@ -90,16 +89,12 @@ function DoctorsPage() {
   const { selected } = Route.useSearch()
   const [searchQuery, setSearchQuery] = useState('')
   const [hospitalFilter, setHospitalFilter] = useState('')
-  const [page, setPage] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [openActionsId, setOpenActionsId] = useState<string | null>(null)
   const tableScrollRef = useRef<HTMLDivElement>(null)
 
-  const isSearching = searchQuery.trim().length > 0
-  const skip = isSearching ? 0 : page * PAGE_SIZE
-  const limit = isSearching ? SEARCH_LIMIT : PAGE_SIZE
-  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  const params = new URLSearchParams({ skip: '0', limit: String(DOCTORS_LIMIT) })
   if (hospitalFilter) params.set('hospital_id', hospitalFilter)
 
   const {
@@ -107,9 +102,8 @@ function DoctorsPage() {
     isLoading,
     error,
     refetch,
-    isFetching,
   } = useQuery({
-    queryKey: ['doctors', skip, limit, hospitalFilter, opts.tenantId],
+    queryKey: ['doctors', hospitalFilter, opts.tenantId],
     queryFn: () => apiGet<Doctor[]>(`/doctors?${params}`, opts),
     enabled: !!opts.tenantId && !!opts.token,
   })
@@ -121,29 +115,15 @@ function DoctorsPage() {
   })
 
   const hospitalById = buildIdToEntityMap(hospitals)
-  const filteredItems = isSearching
+  const filteredItems = searchQuery.trim()
     ? items.filter((d) =>
         d.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
         (d.specialization || '').toLowerCase().includes(searchQuery.trim().toLowerCase())
       )
     : items
-  const hasNextPage = !isSearching && items.length === PAGE_SIZE
-  const hasPrevPage = !isSearching && page > 0
-
-  const loadNextPage = useCallback(() => {
-    if (hasNextPage) setPage((p) => p + 1)
-  }, [hasNextPage])
-
-  const onTableScroll = useCallback(() => {
-    const el = tableScrollRef.current
-    if (!el || isSearching || !hasNextPage || isFetching) return
-    const { scrollTop, scrollHeight, clientHeight } = el
-    if (scrollTop + clientHeight >= scrollHeight - 20) loadNextPage()
-  }, [isSearching, hasNextPage, isFetching, loadNextPage])
 
   const onSearchChange = (value: string) => {
     setSearchQuery(value)
-    if (!value.trim()) setPage(0)
   }
 
   const setSelected = (id: string | null) => {
@@ -204,10 +184,9 @@ function DoctorsPage() {
             <Building2 className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
             <select
               value={hospitalFilter}
-              onChange={(e) => {
-                setHospitalFilter(e.target.value)
-                setPage(0)
-              }}
+            onChange={(e) => {
+              setHospitalFilter(e.target.value)
+            }}
               className="min-w-0 flex-1 bg-transparent text-sm text-[var(--foreground)] focus:outline-none"
               aria-label="Hospital"
             >
@@ -245,7 +224,7 @@ function DoctorsPage() {
               <EmptyDescription>No doctors match your filters. Add one or clear filters.</EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button variant="secondary" onClick={() => { setHospitalFilter(''); setSearchQuery(''); setPage(0); refetch() }}>Clear filters</Button>
+              <Button variant="secondary" onClick={() => { setHospitalFilter(''); setSearchQuery(''); refetch() }}>Clear filters</Button>
               <Button onClick={() => setShowCreate(true)}>New</Button>
             </EmptyContent>
           </Empty>
@@ -253,11 +232,10 @@ function DoctorsPage() {
           <>
             <div
               ref={tableScrollRef}
-              onScroll={onTableScroll}
               className="rounded-lg border border-[var(--border)] overflow-x-auto overflow-y-auto max-h-[280px]"
             >
               <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-[var(--muted)]/50 border-b border-[var(--border)]">
+                <thead className="sticky top-0 z-10 bg-[var(--muted)] border-b border-[var(--border)]">
                   <tr>
                     <TableTh icon={User}>Name</TableTh>
                     <TableTh icon={Stethoscope}>Specialization</TableTh>
@@ -333,14 +311,6 @@ function DoctorsPage() {
                 </tbody>
               </table>
             </div>
-            {!isSearching && (
-              <TablePagination
-                skip={skip}
-                limit={PAGE_SIZE}
-                currentPageSize={items.length}
-                onSkipChange={(s) => setPage(Math.floor(s / PAGE_SIZE))}
-              />
-            )}
           </>
         )}
       </div>

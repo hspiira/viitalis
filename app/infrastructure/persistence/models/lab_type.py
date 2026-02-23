@@ -12,3 +12,4 @@ class LabType(MultiTenantModel, Base):
 
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    remarks: Mapped[str | None] = mapped_column(String(500), nullable=True)

@@ -6,11 +6,13 @@ from pydantic import BaseModel, ConfigDict, Field
 class CatalogItemCreateRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     code: str | None = Field(None, max_length=64)
+    remarks: str | None = Field(None, max_length=500)
 
 
 class CatalogItemUpdateRequest(BaseModel):
     name: str | None = Field(None, min_length=1, max_length=255)
     code: str | None = Field(None, max_length=64)
+    remarks: str | None = Field(None, max_length=500)
 
 
 class CatalogItemResponse(BaseModel):
@@ -19,11 +21,13 @@ class CatalogItemResponse(BaseModel):
     tenant_id: str
     name: str
     code: str | None
+    remarks: str | None = None
 
 
 class CatalogUploadRow(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     code: str | None = Field(None, max_length=64)
+    remarks: str | None = Field(None, max_length=500)
 
 
 class CatalogUploadRequest(BaseModel):

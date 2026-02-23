@@ -125,6 +125,18 @@ async def add_plan_to_scheme(
     return _plan_to_response(result)
 
 
+@router.get("/{scheme_id}/plans", response_model=list[SchemePlanResponse])
+async def list_scheme_plans(
+    scheme_id: str,
+    scheme_svc: Annotated[SchemeService, Depends(get_scheme_service)],
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+):
+    """List plans linked to a scheme. Requires X-Tenant-ID."""
+    items = await scheme_svc.list_scheme_plans(scheme_id, skip=skip, limit=limit)
+    return [_plan_to_response(sp) for sp in items]
+
+
 # --- Scheme benefits ---
 
 

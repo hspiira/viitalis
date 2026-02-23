@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { requireAuthBeforeLoad } from '#/lib/route-auth'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef } from 'react'
 import { apiGet, apiPost, apiPatch, apiDelete, getApiErrorDetail } from '#/lib/api-client'
 import { useApi } from '#/lib/use-api'
 import { buildIdToEntityMap } from '#/lib/utils'
@@ -15,7 +15,7 @@ import {
   EmptyContent,
   EmptyMedia,
 } from '#/components/ui/empty'
-import { TablePagination, TableSkeleton } from '#/components/list-page'
+import { TableSkeleton } from '#/components/list-page'
 import { Skeleton } from '#/components/ui/skeleton'
 import {
   Building2,
@@ -111,8 +111,7 @@ const HOSPITAL_DETAIL_TABS: { id: HospitalDetailTab; label: string; icon: React.
   { id: 'medicines', label: 'Medicine Offered', icon: Pill },
 ]
 
-const PAGE_SIZE = 10
-const SEARCH_LIMIT = 500
+const HOSPITALS_LIMIT = 500
 
 function HospitalsPage() {
   const opts = useApi()
@@ -120,51 +119,28 @@ function HospitalsPage() {
   const navigate = useNavigate({ from: '/hospitals' })
   const { selected, tab: activeTab } = Route.useSearch()
   const [searchQuery, setSearchQuery] = useState('')
-  const [page, setPage] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const tableScrollRef = useRef<HTMLDivElement>(null)
 
-  const isSearching = searchQuery.trim().length > 0
-  const skip = isSearching ? 0 : page * PAGE_SIZE
-  const limit = isSearching ? SEARCH_LIMIT : PAGE_SIZE
-  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) })
+  const params = new URLSearchParams({ skip: '0', limit: String(HOSPITALS_LIMIT) })
   const {
     data: items = [],
     isLoading,
     error,
     refetch,
-    isFetching,
   } = useQuery({
-    queryKey: ['hospitals', skip, limit, opts.tenantId],
+    queryKey: ['hospitals', opts.tenantId],
     queryFn: () => apiGet<Hospital[]>(`/hospitals?${params}`, opts),
     enabled: !!opts.tenantId && !!opts.token,
   })
 
-  const filteredItems = isSearching
+  const filteredItems = searchQuery.trim()
     ? items.filter((h) => h.name.toLowerCase().includes(searchQuery.trim().toLowerCase()))
     : items
-  const hasNextPage = !isSearching && items.length === PAGE_SIZE
-  const hasPrevPage = !isSearching && page > 0
 
-  const loadNextPage = useCallback(() => {
-    if (hasNextPage) setPage((p) => p + 1)
-  }, [hasNextPage])
-  const loadPrevPage = useCallback(() => {
-    if (hasPrevPage) setPage((p) => p - 1)
-  }, [hasPrevPage])
-
-  const onTableScroll = useCallback(() => {
-    const el = tableScrollRef.current
-    if (!el || isSearching || !hasNextPage || isFetching) return
-    const { scrollTop, scrollHeight, clientHeight } = el
-    if (scrollTop + clientHeight >= scrollHeight - 20) loadNextPage()
-  }, [isSearching, hasNextPage, isFetching, loadNextPage])
-
-  // Reset to first page when switching to/from search
   const onSearchChange = (value: string) => {
     setSearchQuery(value)
-    if (!value.trim()) setPage(0)
   }
 
   const setSelected = (id: string | null) => {
@@ -204,6 +180,7 @@ function HospitalsPage() {
         </Link>
         <Link
           to="/doctors"
+          search={{ selected: null }}
           className="flex items-center gap-2 border-b-2 border-transparent px-4 py-3 text-sm font-medium text-[var(--foreground-muted)] hover:bg-[var(--muted)]/50 hover:text-[var(--foreground)]"
         >
           <Stethoscope className="size-4 shrink-0" aria-hidden />
@@ -260,11 +237,10 @@ function HospitalsPage() {
           <>
             <div
               ref={tableScrollRef}
-              onScroll={onTableScroll}
               className="rounded-lg border border-[var(--border)] overflow-x-auto overflow-y-auto max-h-[280px]"
             >
               <table className="w-full text-sm">
-                <thead className="sticky top-0 z-10 bg-[var(--muted)]/50 border-b border-[var(--border)]">
+                <thead className="sticky top-0 z-10 bg-[var(--muted)] border-b border-[var(--border)]">
                   <tr>
                     <th className="text-left py-2 px-3 font-medium text-[var(--foreground-muted)]">NAME</th>
                     <th className="text-left py-2 px-3 font-medium text-[var(--foreground-muted)]">REFERENCE</th>
@@ -304,14 +280,6 @@ function HospitalsPage() {
                 </tbody>
               </table>
             </div>
-            {!isSearching && (
-              <TablePagination
-                skip={skip}
-                limit={PAGE_SIZE}
-                currentPageSize={items.length}
-                onSkipChange={(s) => setPage(Math.floor(s / PAGE_SIZE))}
-              />
-            )}
           </>
         )}
       </div>

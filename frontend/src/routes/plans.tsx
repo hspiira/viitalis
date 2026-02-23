@@ -83,9 +83,9 @@ function PlansPage() {
 
   return (
     <div className="flex flex-col gap-0">
-      <div className="flex flex-nowrap items-center gap-2 border-b border-[var(--border)] py-2.5 text-sm">
-        <div className="flex h-8 min-w-0 max-w-[220px] shrink-0 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2.5">
-          <Search className="size-3.5 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
+      <div className="flex flex-nowrap items-center gap-2 border-b border-[var(--border)] py-2 text-sm">
+        <div className="flex h-7 min-w-0 max-w-[180px] shrink-0 items-center gap-1.5 rounded-md border border-[var(--input)] bg-[var(--background)] px-2">
+          <Search className="size-3 shrink-0 text-[var(--foreground-muted)]" aria-hidden />
           <input
             type="search"
             placeholder="Search plans"
@@ -94,16 +94,16 @@ function PlansPage() {
               setSearchQuery(e.target.value)
               setSkip(0)
             }}
-            className="min-w-0 flex-1 bg-transparent text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none"
+            className="min-w-0 flex-1 bg-transparent text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-muted)] focus:outline-none"
             aria-label="Search plans"
           />
         </div>
         <div className="ml-auto flex shrink-0">
           <Button
             onClick={() => setShowCreate(true)}
-            className="h-8 bg-[var(--primary)] px-3 text-[var(--primary-foreground)]"
+            className="h-7 bg-[var(--primary)] px-2.5 text-[var(--primary-foreground)] text-xs"
           >
-            <Plus className="size-3.5 mr-1" aria-hidden />
+            <Plus className="size-3 mr-1" aria-hidden />
             Add plan
           </Button>
         </div>
@@ -149,13 +149,13 @@ function PlansPage() {
         </Empty>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-lg border border-[var(--border)] shadow-none">
-            <table className="w-full text-sm">
+          <div className="rounded-lg border border-[var(--border)] shadow-none">
+            <table className="w-full table-fixed text-sm">
               <thead>
                 <tr className="border-b border-[var(--border)] bg-[var(--muted)]/30">
-                  <th className="text-left py-2.5 px-3 font-medium">Name</th>
-                  <th className="text-left py-2.5 px-3 font-medium">Code</th>
-                  <th className="text-left py-2.5 px-3 w-20">Actions</th>
+                  <th className="text-left py-1.5 px-3 font-medium text-[var(--foreground-muted)] w-[45%]">Name</th>
+                  <th className="text-left py-1.5 px-3 font-medium text-[var(--foreground-muted)] w-[35%]">Code</th>
+                  <th className="text-left py-1.5 px-3 w-20">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -164,16 +164,17 @@ function PlansPage() {
                     key={p.id}
                     className="border-b border-[var(--border-subtle)] last:border-0 hover:bg-[var(--muted)]/20"
                   >
-                    <td className="py-2.5 px-3 font-medium text-[var(--foreground)]">
+                    <td className="py-1.5 px-3 font-medium text-[var(--foreground)] min-w-0 truncate" title={p.name}>
                       {p.name}
                     </td>
-                    <td className="py-2.5 px-3 text-[var(--foreground-muted)]">
+                    <td className="py-1.5 px-3 text-[var(--foreground-muted)] min-w-0 truncate" title={p.code ?? undefined}>
                       {p.code ?? '—'}
                     </td>
-                    <td className="py-2.5 px-3">
+                    <td className="py-1.5 px-3">
                       <Button
                         variant="ghost"
                         size="sm"
+                        className="h-7 text-xs"
                         onClick={() => setDetailId(p.id)}
                       >
                         View

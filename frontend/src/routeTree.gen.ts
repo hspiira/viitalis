@@ -40,8 +40,10 @@ import { Route as CardReplacementsRouteImport } from './routes/card-replacements
 import { Route as BillingSessionsRouteImport } from './routes/billing-sessions'
 import { Route as BanksRouteImport } from './routes/banks'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SchemesIndexRouteImport } from './routes/schemes.index'
 import { Route as MembersIndexRouteImport } from './routes/members.index'
 import { Route as CompaniesIndexRouteImport } from './routes/companies.index'
+import { Route as SchemesSchemeIdRouteImport } from './routes/schemes.$schemeId'
 import { Route as MembersMemberIdRouteImport } from './routes/members.$memberId'
 import { Route as CompaniesCompanyIdRouteImport } from './routes/companies.$companyId'
 import { Route as ApiTrpcSplatRouteImport } from './routes/api.trpc.$'
@@ -201,6 +203,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SchemesIndexRoute = SchemesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SchemesRoute,
+} as any)
 const MembersIndexRoute = MembersIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -210,6 +217,11 @@ const CompaniesIndexRoute = CompaniesIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CompaniesRoute,
+} as any)
+const SchemesSchemeIdRoute = SchemesSchemeIdRouteImport.update({
+  id: '/$schemeId',
+  path: '/$schemeId',
+  getParentRoute: () => SchemesRoute,
 } as any)
 const MembersMemberIdRoute = MembersMemberIdRouteImport.update({
   id: '/$memberId',
@@ -256,13 +268,15 @@ export interface FileRoutesByFullPath {
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
-  '/schemes': typeof SchemesRoute
+  '/schemes': typeof SchemesRouteWithChildren
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
   '/companies/$companyId': typeof CompaniesCompanyIdRoute
   '/members/$memberId': typeof MembersMemberIdRoute
+  '/schemes/$schemeId': typeof SchemesSchemeIdRoute
   '/companies/': typeof CompaniesIndexRoute
   '/members/': typeof MembersIndexRoute
+  '/schemes/': typeof SchemesIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesByTo {
@@ -292,13 +306,14 @@ export interface FileRoutesByTo {
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
-  '/schemes': typeof SchemesRoute
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
   '/companies/$companyId': typeof CompaniesCompanyIdRoute
   '/members/$memberId': typeof MembersMemberIdRoute
+  '/schemes/$schemeId': typeof SchemesSchemeIdRoute
   '/companies': typeof CompaniesIndexRoute
   '/members': typeof MembersIndexRoute
+  '/schemes': typeof SchemesIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRoutesById {
@@ -331,13 +346,15 @@ export interface FileRoutesById {
   '/register': typeof RegisterRoute
   '/reimbursements': typeof ReimbursementsRoute
   '/reports': typeof ReportsRoute
-  '/schemes': typeof SchemesRoute
+  '/schemes': typeof SchemesRouteWithChildren
   '/services': typeof ServicesRoute
   '/tenants': typeof TenantsRoute
   '/companies/$companyId': typeof CompaniesCompanyIdRoute
   '/members/$memberId': typeof MembersMemberIdRoute
+  '/schemes/$schemeId': typeof SchemesSchemeIdRoute
   '/companies/': typeof CompaniesIndexRoute
   '/members/': typeof MembersIndexRoute
+  '/schemes/': typeof SchemesIndexRoute
   '/api/trpc/$': typeof ApiTrpcSplatRoute
 }
 export interface FileRouteTypes {
@@ -376,8 +393,10 @@ export interface FileRouteTypes {
     | '/tenants'
     | '/companies/$companyId'
     | '/members/$memberId'
+    | '/schemes/$schemeId'
     | '/companies/'
     | '/members/'
+    | '/schemes/'
     | '/api/trpc/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -407,13 +426,14 @@ export interface FileRouteTypes {
     | '/register'
     | '/reimbursements'
     | '/reports'
-    | '/schemes'
     | '/services'
     | '/tenants'
     | '/companies/$companyId'
     | '/members/$memberId'
+    | '/schemes/$schemeId'
     | '/companies'
     | '/members'
+    | '/schemes'
     | '/api/trpc/$'
   id:
     | '__root__'
@@ -450,8 +470,10 @@ export interface FileRouteTypes {
     | '/tenants'
     | '/companies/$companyId'
     | '/members/$memberId'
+    | '/schemes/$schemeId'
     | '/companies/'
     | '/members/'
+    | '/schemes/'
     | '/api/trpc/$'
   fileRoutesById: FileRoutesById
 }
@@ -484,7 +506,7 @@ export interface RootRouteChildren {
   RegisterRoute: typeof RegisterRoute
   ReimbursementsRoute: typeof ReimbursementsRoute
   ReportsRoute: typeof ReportsRoute
-  SchemesRoute: typeof SchemesRoute
+  SchemesRoute: typeof SchemesRouteWithChildren
   ServicesRoute: typeof ServicesRoute
   TenantsRoute: typeof TenantsRoute
   ApiTrpcSplatRoute: typeof ApiTrpcSplatRoute
@@ -709,6 +731,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/schemes/': {
+      id: '/schemes/'
+      path: '/'
+      fullPath: '/schemes/'
+      preLoaderRoute: typeof SchemesIndexRouteImport
+      parentRoute: typeof SchemesRoute
+    }
     '/members/': {
       id: '/members/'
       path: '/'
@@ -722,6 +751,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/companies/'
       preLoaderRoute: typeof CompaniesIndexRouteImport
       parentRoute: typeof CompaniesRoute
+    }
+    '/schemes/$schemeId': {
+      id: '/schemes/$schemeId'
+      path: '/$schemeId'
+      fullPath: '/schemes/$schemeId'
+      preLoaderRoute: typeof SchemesSchemeIdRouteImport
+      parentRoute: typeof SchemesRoute
     }
     '/members/$memberId': {
       id: '/members/$memberId'
@@ -774,6 +810,19 @@ const MembersRouteChildren: MembersRouteChildren = {
 const MembersRouteWithChildren =
   MembersRoute._addFileChildren(MembersRouteChildren)
 
+interface SchemesRouteChildren {
+  SchemesSchemeIdRoute: typeof SchemesSchemeIdRoute
+  SchemesIndexRoute: typeof SchemesIndexRoute
+}
+
+const SchemesRouteChildren: SchemesRouteChildren = {
+  SchemesSchemeIdRoute: SchemesSchemeIdRoute,
+  SchemesIndexRoute: SchemesIndexRoute,
+}
+
+const SchemesRouteWithChildren =
+  SchemesRoute._addFileChildren(SchemesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   BanksRoute: BanksRoute,
@@ -803,7 +852,7 @@ const rootRouteChildren: RootRouteChildren = {
   RegisterRoute: RegisterRoute,
   ReimbursementsRoute: ReimbursementsRoute,
   ReportsRoute: ReportsRoute,
-  SchemesRoute: SchemesRoute,
+  SchemesRoute: SchemesRouteWithChildren,
   ServicesRoute: ServicesRoute,
   TenantsRoute: TenantsRoute,
   ApiTrpcSplatRoute: ApiTrpcSplatRoute,

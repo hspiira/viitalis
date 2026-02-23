@@ -26,6 +26,7 @@ def make_catalog_repo(model_class: type[_CatalogModel]):
             tenant_id=row.tenant_id,
             name=row.name,
             code=row.code,
+            remarks=getattr(row, "remarks", None),
         )
 
     class _Repo:
@@ -72,6 +73,7 @@ def make_catalog_repo(model_class: type[_CatalogModel]):
                 tenant_id=self._tenant_id,
                 name=data.name.strip(),
                 code=data.code.strip() if data.code else None,
+                remarks=data.remarks.strip() if data.remarks else None,
             )
             self._db.add(row)
             await self._db.flush()
@@ -94,6 +96,8 @@ def make_catalog_repo(model_class: type[_CatalogModel]):
                 row.name = data.name.strip()
             if data.code is not None:
                 row.code = data.code.strip() or None
+            if data.remarks is not None:
+                row.remarks = data.remarks.strip() or None
             await self._db.flush()
             await self._db.refresh(row)
             return to_result(row)

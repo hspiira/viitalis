@@ -34,7 +34,7 @@ def _catalog_router(get_svc):
         body: CatalogItemCreateRequest,
         svc: Annotated[CatalogService, Depends(get_svc)],
     ):
-        data = CatalogItemCreate(name=body.name, code=body.code)
+        data = CatalogItemCreate(name=body.name, code=body.code, remarks=body.remarks)
         created = await svc.create(data)
         return CatalogItemResponse.model_validate(created)
 
@@ -61,7 +61,7 @@ def _catalog_router(get_svc):
         body: CatalogItemUpdateRequest,
         svc: Annotated[CatalogService, Depends(get_svc)],
     ):
-        data = CatalogItemUpdate(name=body.name, code=body.code)
+        data = CatalogItemUpdate(name=body.name, code=body.code, remarks=body.remarks)
         updated = await svc.update(item_id, data)
         return CatalogItemResponse.model_validate(updated)
 
@@ -77,7 +77,7 @@ async def upload_medicines(
     upload_svc: Annotated[CatalogUploadService, Depends(get_catalog_upload_service)],
 ):
     """Bulk upload medicines (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
-    items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
+    items = [CatalogItemCreate(name=r.name, code=r.code, remarks=r.remarks) for r in body.items]
     created, failed, errors = await upload_svc.upload_medicines(items)
     return CatalogUploadResponse(
         created=created,
@@ -95,7 +95,7 @@ async def upload_services(
     upload_svc: Annotated[CatalogUploadService, Depends(get_catalog_upload_service)],
 ):
     """Bulk upload services (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
-    items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
+    items = [CatalogItemCreate(name=r.name, code=r.code, remarks=r.remarks) for r in body.items]
     created, failed, errors = await upload_svc.upload_services(items)
     return CatalogUploadResponse(
         created=created,
@@ -113,7 +113,7 @@ async def upload_labs(
     upload_svc: Annotated[CatalogUploadService, Depends(get_catalog_upload_service)],
 ):
     """Bulk upload labs (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
-    items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
+    items = [CatalogItemCreate(name=r.name, code=r.code, remarks=r.remarks) for r in body.items]
     created, failed, errors = await upload_svc.upload_labs(items)
     return CatalogUploadResponse(
         created=created,
@@ -131,7 +131,7 @@ async def upload_lab_types(
     upload_svc: Annotated[CatalogUploadService, Depends(get_catalog_upload_service)],
 ):
     """Bulk upload lab types (JSON). Skips duplicate code. Max 500 per request. Requires X-Tenant-ID."""
-    items = [CatalogItemCreate(name=r.name, code=r.code) for r in body.items]
+    items = [CatalogItemCreate(name=r.name, code=r.code, remarks=r.remarks) for r in body.items]
     created, failed, errors = await upload_svc.upload_lab_types(items)
     return CatalogUploadResponse(
         created=created,
