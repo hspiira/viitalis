@@ -7,6 +7,8 @@ class CompanyCreateRequest(BaseModel):
     """Request body for POST /companies."""
 
     name: str = Field(..., min_length=1, max_length=255)
+    id: str | None = Field(None, min_length=1, max_length=64)  # optional; e.g. legacy code as primary key
+    code: str | None = Field(None, min_length=1, max_length=64)  # legacy/external identifier
     contact_person: str | None = Field(None, max_length=255)
     address: str | None = None
     phone: str | None = Field(None, max_length=64)
@@ -16,12 +18,14 @@ class CompanyCreateRequest(BaseModel):
     location: str | None = Field(None, max_length=255)
     district_id: int | None = None
     company_type: int | None = None
+    status: str | None = Field(None, max_length=32)  # e.g. active, inactive; default active
 
 
 class CompanyUpdateRequest(BaseModel):
     """Request body for PATCH /companies/{id}."""
 
     name: str | None = Field(None, min_length=1, max_length=255)
+    code: str | None = Field(None, min_length=1, max_length=64)
     contact_person: str | None = Field(None, max_length=255)
     address: str | None = None
     phone: str | None = Field(None, max_length=64)
@@ -31,6 +35,7 @@ class CompanyUpdateRequest(BaseModel):
     location: str | None = Field(None, max_length=255)
     district_id: int | None = None
     company_type: int | None = None
+    status: str | None = None
 
 
 class CompanyResponse(BaseModel):
@@ -38,6 +43,7 @@ class CompanyResponse(BaseModel):
 
     id: str
     tenant_id: str
+    code: str | None
     name: str
     contact_person: str | None
     address: str | None
@@ -48,6 +54,7 @@ class CompanyResponse(BaseModel):
     location: str | None
     district_id: int | None
     company_type: int | None
+    status: str
 
 
 class CompanyListItem(BaseModel):
@@ -55,6 +62,7 @@ class CompanyListItem(BaseModel):
 
     id: str
     tenant_id: str
+    code: str | None
     name: str
     contact_person: str | None
     address: str | None
@@ -65,3 +73,4 @@ class CompanyListItem(BaseModel):
     location: str | None
     district_id: int | None
     company_type: int | None
+    status: str

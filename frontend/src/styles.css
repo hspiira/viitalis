@@ -1,0 +1,137 @@
+/* @import must precede all other statements (CSS spec) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap');
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@custom-variant dark (&:is(.dark *));
+
+body {
+  @apply m-0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: ui-monospace, 'JetBrains Mono', 'Cascadia Code', monospace;
+}
+
+/* Light theme (default): page background #ecebe7 */
+:root {
+  --background: #ecebe7;
+  --foreground: #1a1a1a;
+  --foreground-muted: #525252;
+  --foreground-subtle: #737373;
+  --foreground-active: #0a0a0a;
+  --card: #f5f4f0;
+  --card-foreground: #1a1a1a;
+  --popover: #f5f4f0;
+  --popover-foreground: #1a1a1a;
+  --primary: #1a1a1a;
+  --primary-foreground: #ecebe7;
+  --secondary: #e5e4e0;
+  --secondary-foreground: #1a1a1a;
+  --muted: #e5e4e0;
+  --muted-foreground: #525252;
+  --accent: #e0dfdb;
+  --accent-foreground: #1a1a1a;
+  --destructive: #dc1b19;
+  --destructive-foreground: #fff;
+  --border: #d4d3cf;
+  --border-subtle: rgba(0, 0, 0, 0.08);
+  --border-dialog: #d4d3cf;
+  --input: #d4d3cf;
+  --ring: rgba(0, 0, 0, 0.15);
+  --radius: 0;
+  --sidebar: #ecebe7;
+  --sidebar-foreground: #1a1a1a;
+  --sidebar-accent: #e5e4e0;
+  --sidebar-accent-foreground: #0a0a0a;
+  --sidebar-border: #d4d3cf;
+  --chart-1: 160, 84%, 39%;
+  --chart-2: 173, 58%, 39%;
+  /* Semantic icon/UI colors */
+  --icon-primary: #1a1a1a;
+  --icon-destructive: #dc1b19;
+  --icon-warning: #b45309;
+  --icon-success: #15803d;
+  --icon-muted: #737373;
+  --icon-accent: #2563eb;
+}
+
+/* Dark theme (Scalar.com default) – applied when .dark is on <html> */
+/* https://github.com/scalar/scalar/blob/main/packages/themes/src/presets/default.css */
+.dark {
+  --background: #0f0f0f;
+  --foreground: #e7e7e7;
+  --foreground-muted: #a4a4a4;
+  --foreground-subtle: #797979;
+  --foreground-active: #ffffff;
+  --card: #272727;
+  --card-foreground: #e7e7e7;
+  --popover: #0f0f0f;
+  --popover-foreground: #e7e7e7;
+  --primary: #e7e7e7;
+  --primary-foreground: #0f0f0f;
+  --secondary: #1a1a1a;
+  --secondary-foreground: #e7e7e7;
+  --muted: #272727;
+  --muted-foreground: #a4a4a4;
+  --accent: #272727;
+  --accent-foreground: #e7e7e7;
+  --destructive: #dc1b19;
+  --destructive-foreground: #fff;
+  --border: #2d2d2d;
+  --border-subtle: rgba(45, 45, 45, 0.5);
+  --border-dialog: #1f1f1f;
+  --input: #2d2d2d;
+  --ring: rgba(255, 255, 255, 0.1);
+  --sidebar: #0f0f0f;
+  --sidebar-foreground: #e7e7e7;
+  --sidebar-accent: #1a1a1a;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #2d2d2d;
+  --icon-primary: #e7e7e7;
+  --icon-destructive: #dc1b19;
+  --icon-warning: #f59e0b;
+  --icon-success: #22c55e;
+  --icon-muted: #a4a4a4;
+  --icon-accent: #60a5fa;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+}
+
+@layer base {
+  body {
+    @apply bg-background text-foreground;
+  }
+}

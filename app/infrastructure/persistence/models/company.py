@@ -12,6 +12,7 @@ class Company(MultiTenantModel, Base):
 
     __tablename__ = "company"
 
+    code: Mapped[str | None] = mapped_column(String(64), nullable=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     contact_person: Mapped[str | None] = mapped_column(String(255), nullable=True)
     address: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -22,3 +23,4 @@ class Company(MultiTenantModel, Base):
     location: Mapped[str | None] = mapped_column(String(255), nullable=True)
     district_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     company_type: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="active")

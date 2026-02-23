@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vitalis — Healthcare Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --page-bg: #e5d9cc;
+      --text: #2c2520;
+      --text-muted: #5c534d;
+      --accent: #F4704B;
+      --accent-soft: #e8a090;
+      --gray: #6b6b6b;
+      --grid-line: rgba(44, 37, 32, 0.12);
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--page-bg);
+      margin: 0;
+      line-height: 1.55;
+      color: var(--text);
+    }
+    .page {
+      width: 100%;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 100%;
+      overflow: hidden;
+      background: var(--page-bg);
+      padding: 2.5rem 3rem;
+      position: relative;
+      display: grid;
+      /* col-5 col-2 col-5, 3 rows */
+      grid-template-columns: 5fr 2fr 5fr;
+      grid-template-rows: 1fr 1fr 1fr;
+      gap: 0;
+    }
+    /* Dividing lines: col-5, col-2, col-5 (5/12, 7/12) and 3 equal rows (1/3, 2/3) */
+    .page::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+      background-size:
+        1px 100%,
+        1px 100%,
+        100% 1px,
+        100% 1px;
+      background-position:
+        41.6667% 0,
+        58.3333% 0,
+        0 33.3333%,
+        0 66.6667%;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .cell {
+      position: relative;
+      z-index: 1;
+      padding: 1.5rem 1.25rem;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    .cell--left {
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+    .cell--right {
+      justify-content: flex-end;
+      align-items: flex-end;
+      text-align: right;
+    }
+    .cell--center-left {
+      justify-content: center;
+      align-items: flex-start;
+    }
+    .cell--center-right {
+      justify-content: center;
+      align-items: flex-end;
+      text-align: right;
+    }
+    .cell--bottom-left {
+      justify-content: flex-end;
+      align-items: flex-start;
+      text-align: left;
+    }
+    .cell--bottom-right {
+      justify-content: flex-end;
+      align-items: flex-end;
+      text-align: right;
+    }
+    /* Row 1 */
+    .row1-left {
+      grid-column: 1;
+      grid-row: 1;
+    }
+    .row1-mid {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .row1-right {
+      grid-column: 3;
+      grid-row: 1;
+    }
+    /* Row 2 */
+    .row2-left {
+      grid-column: 1;
+      grid-row: 2;
+    }
+    .row2-mid {
+      grid-column: 2;
+      grid-row: 2;
+    }
+    .row2-right {
+      grid-column: 3;
+      grid-row: 2;
+    }
+    /* Row 3 */
+    .row3-left {
+      grid-column: 1;
+      grid-row: 3;
+    }
+    .row3-mid {
+      grid-column: 2;
+      grid-row: 3;
+    }
+    .row3-right {
+      grid-column: 3;
+      grid-row: 3;
+    }
+    .logo {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+    .logo span {
+      color: var(--accent);
+      font-weight: 700;
+    }
+    .eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 2.25rem;
+    }
+    .nav a {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .nav a:hover {
+      color: var(--accent);
+    }
+    .row1-nav {
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+    .row1-nav .nav {
+      margin-left: auto;
+    }
+    .row3-copy {
+      align-items: flex-start;
+      text-align: left;
+    }
+    .graphic {
+      width: 100%;
+      max-width: 20rem;
+      aspect-ratio: 1;
+    }
+    .copy {
+      font-size: 1.125rem;
+      color: var(--text);
+      max-width: 36ch;
+      line-height: 1.6;
+      text-align: left;
+    }
+    .copy strong {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .scroll-hint {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .version {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 0.05em;
+    }
+    @media (max-width: 768px) {
+      .page {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto auto auto auto;
+        padding: 1.5rem;
+      }
+      .page::before {
+        display: none;
+      }
+      .cell {
+        grid-column: 1 !important;
+        min-height: auto;
+        padding: 1rem 0;
+      }
+      .row1-right { grid-row: 2; }
+      .row2-left { grid-row: 3; }
+      .row2-right { grid-row: 4; }
+      .row3-left { grid-row: 5; }
+      .row3-right { grid-row: 6; }
+      .row1-mid, .row2-mid, .row3-mid { display: none; }
+      .cell--right, .cell--center-right, .cell--bottom-right {
+        align-items: flex-start;
+        text-align: left;
+      }
+      .graphic {
+        max-width: 14rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Row 1: top – logo left, nav right -->
+    <div class="cell cell--left row1-left">
+      <div class="logo">Vitali<span>s</span></div>
+      <p class="eyebrow">Healthcare management</p>
+      <p class="eyebrow">Powered by API</p>
+    </div>
+    <div class="cell row1-mid"></div>
+    <div class="cell row1-right row1-nav">
+      <nav class="nav">
+        <a href="/docs">API</a>
+        <a href="/docs">Docs</a>
+        <a href="/api/v1/health">Health</a>
+      </nav>
+    </div>
+
+    <!-- Row 2: col-5 | col-2 | col-5 -->
+    <div class="cell cell--center-left row2-left">
+      <svg class="graphic" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="orange" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#F4704B" />
+            <stop offset="100%" stop-color="#e85d4a" />
+          </linearGradient>
+          <linearGradient id="gray" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#9ca3af" />
+            <stop offset="100%" stop-color="#6b7280" />
+          </linearGradient>
+        </defs>
+        <path d="M80 20 A60 60 0 0 1 140 80 A60 60 0 0 1 80 140 A60 60 0 0 1 20 80 A60 60 0 0 1 80 20 Z" fill="url(#orange)" opacity="0.9" />
+        <path d="M80 35 A45 45 0 0 0 125 80 A45 45 0 0 0 80 125 A45 45 0 0 0 35 80 A45 45 0 0 0 80 35 Z" fill="#e5d9cc" />
+        <path d="M80 50 A30 30 0 0 1 110 80 A30 30 0 0 1 80 110 A30 30 0 0 1 50 80 A30 30 0 0 1 80 50 Z" fill="url(#gray)" opacity="0.85" />
+        <path d="M80 58 A22 22 0 0 0 102 80 A22 22 0 0 0 80 102 A22 22 0 0 0 58 80 A22 22 0 0 0 80 58 Z" fill="url(#orange)" opacity="0.7" />
+      </svg>
+    </div>
+    <div class="cell row2-mid"></div>
+    <div class="cell row2-right"></div>
+
+    <!-- Row 3: version bottom left, wordings bottom right (left-aligned) -->
+    <div class="cell cell--bottom-left row3-left">
+      <p class="version">{{ app_name }} · {{ app_version }}</p>
+    </div>
+    <div class="cell row3-mid"></div>
+    <div class="cell cell--bottom-right row3-right row3-copy">
+      <p class="copy">
+        Vitalis redefines healthcare management workflows, empowering you to manage members, process claims, and report with clarity—unlocking your <strong>operational potential</strong>.
+      </p>
+    </div>
+  </div>
+</body>
+</html>

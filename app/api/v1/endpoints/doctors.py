@@ -1,0 +1,101 @@
+"""Doctors API. Requires X-Tenant-ID."""
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Query
+
+from app.api.v1.dependencies import get_doctor_service
+from app.application.dtos.doctor import DoctorCreate, DoctorUpdate
+from app.application.use_cases.doctors import DoctorService
+from app.schemas.doctor import (
+    DoctorCreateRequest,
+    DoctorResponse,
+    DoctorUpdateRequest,
+)
+
+router = APIRouter()
+
+
+def _to_response(d) -> DoctorResponse:
+    """Map DoctorResult DTO to API response (DRY)."""
+    return DoctorResponse.model_validate(d)
+
+
+@router.post("", response_model=DoctorResponse, status_code=201)
+async def create_doctor(
+    body: DoctorCreateRequest,
+    svc: Annotated[DoctorService, Depends(get_doctor_service)],
+):
+    data = DoctorCreate(
+        hospital_id=body.hospital_id,
+        name=body.name,
+        specialization=body.specialization,
+        reference=body.reference,
+        date_of_birth=body.date_of_birth,
+        address=body.address,
+        phone_home=body.phone_home,
+        phone_mobile=body.phone_mobile,
+        licence_no=body.licence_no,
+        department=body.department,
+        doctor_category=body.doctor_category,
+        email=body.email,
+        website=body.website,
+        gender=body.gender,
+        remarks=body.remarks,
+        service_charges=body.service_charges,
+        channeling_charges=body.channeling_charges,
+        referring_charges=body.referring_charges,
+    )
+    created = await svc.create(data)
+    return _to_response(created)
+
+
+@router.get("", response_model=list[DoctorResponse])
+async def list_doctors(
+    svc: Annotated[DoctorService, Depends(get_doctor_service)],
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    hospital_id: str | None = Query(None),
+):
+    items = await svc.list_doctors(
+        skip=skip, limit=limit, hospital_id=hospital_id
+    )
+    return [_to_response(d) for d in items]
+
+
+@router.get("/{doctor_id}", response_model=DoctorResponse)
+async def get_doctor(
+    doctor_id: str,
+    svc: Annotated[DoctorService, Depends(get_doctor_service)],
+):
+    d = await svc.get_by_id(doctor_id)
+    return _to_response(d)
+
+
+@router.patch("/{doctor_id}", response_model=DoctorResponse)
+async def update_doctor(
+    doctor_id: str,
+    body: DoctorUpdateRequest,
+    svc: Annotated[DoctorService, Depends(get_doctor_service)],
+):
+    data = DoctorUpdate(
+        name=body.name,
+        specialization=body.specialization,
+        reference=body.reference,
+        date_of_birth=body.date_of_birth,
+        address=body.address,
+        phone_home=body.phone_home,
+        phone_mobile=body.phone_mobile,
+        licence_no=body.licence_no,
+        department=body.department,
+        doctor_category=body.doctor_category,
+        email=body.email,
+        website=body.website,
+        gender=body.gender,
+        remarks=body.remarks,
+        service_charges=body.service_charges,
+        channeling_charges=body.channeling_charges,
+        referring_charges=body.referring_charges,
+    )
+    updated = await svc.update(doctor_id, data)
+    return _to_response(updated)

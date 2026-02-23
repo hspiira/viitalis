@@ -30,9 +30,11 @@ class CompanyService:
             raise ResourceNotFoundException("Company not found")
         return company
 
-    async def list_companies(self, skip: int = 0, limit: int = 100) -> list[CompanyResult]:
-        """List companies for the tenant."""
-        return await self.company_repo.list_by_tenant(skip=skip, limit=limit)
+    async def list_companies(
+        self, skip: int = 0, limit: int = 100, code: str | None = None
+    ) -> list[CompanyResult]:
+        """List companies for the tenant. Optional filter by code (legacy identifier)."""
+        return await self.company_repo.list_by_tenant(skip=skip, limit=limit, code=code)
 
     async def update_company(self, company_id: str, data: CompanyUpdate) -> CompanyResult:
         """Update a company. Raises ResourceNotFoundException if not found."""
@@ -40,3 +42,16 @@ class CompanyService:
         if not updated:
             raise ResourceNotFoundException("Company not found")
         return updated
+
+    async def delete_company(self, company_id: str) -> None:
+        """Delete a company. Fails if company has any members."""
+        await self.get_by_id(company_id)  # raise if not found
+        n = await self.company_repo.count_members(company_id)
+        if n > 0:
+            raise ValidationException(
+                "Cannot delete company that has members; remove or reassign members first",
+                field="company_id",
+            )
+        ok = await self.company_repo.delete(company_id)
+        if not ok:
+            raise ResourceNotFoundException("Company not found")
